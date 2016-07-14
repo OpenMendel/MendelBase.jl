@@ -1,8 +1,8 @@
-"""
-This set of functions houses OpenMendel's keyword's default values
-and processes the user-defined keywords that specify
-the external files to read and the analyses to perform.
-"""
+################################################################################
+# This set of functions houses OpenMendel's keyword's default values
+# and processes the user-defined keywords that specify
+# the external files to read and the analyses to perform.
+################################################################################
 #
 # External modules.
 #
@@ -264,11 +264,14 @@ function revise_keywords!(keyword::Dict{ASCIIString, Any},
     keyword[keyword_string] = new_set
   end
   #
-  # An analysis option and a pedigree dataframe are mandatory.
+  # A named analysis option used to be mandatory.
   #
-  if !("analysis_option" in set_of_modified_keywords)
-    throw(ArgumentError("No analysis option was specified.\n \n"))
-  end
+  # if !("analysis_option" in set_of_modified_keywords)
+  #   throw(ArgumentError("No analysis option was specified.\n \n"))
+  # end
+  #
+  # A pedigree file is mandatory.
+  #
   if !("pedigree_file" in set_of_modified_keywords)
     throw(ArgumentError("No pedigree file was named.\n \n"))
   end

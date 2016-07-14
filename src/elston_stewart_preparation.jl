@@ -1,7 +1,7 @@
-"""
-This set of functions prepares OpenMendel to evaluate the likelihood
-of a collection of pedigrees by the Elston-Stewart algorithm.
-"""
+################################################################################
+# This set of functions prepares OpenMendel to evaluate the likelihood
+# of a collection of pedigrees by the Elston-Stewart algorithm.
+################################################################################
 
 # using DataStructures
 # using GeneralUtilities

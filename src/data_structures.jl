@@ -1,8 +1,8 @@
-"""
-The following data structures are the basis of OpenMendel.
-Complex data types allow related variables to be accessed as a whole.
-The plural of a variable name indicates the number of instances of the variable.
-"""
+################################################################################
+# The following data structures are the basis of OpenMendel.
+# Complex data types allow related variables to be accessed as a whole.
+# The plural of a variable indicates the number of instances of the variable.
+################################################################################
 
 export Person, Pedigree, NuclearFamily, Locus, Parameter
 

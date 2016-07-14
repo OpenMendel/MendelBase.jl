@@ -1,7 +1,7 @@
-"""
-This set of functions implements the Elston-Stewart algorithm for
-evaluating the likelihood of a pedigree.
-"""
+################################################################################
+# This set of functions implements the Elston-Stewart algorithm for
+# evaluating the likelihood of a pedigree.
+################################################################################
 
 # using DataStructures
 # using ReadData

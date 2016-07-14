@@ -1,8 +1,8 @@
-"""
-This set of functions allows evaluation of Mendelian models.
-These functions can be modified by the user to create models
-appropriate to specific types of analyses.
-"""
+################################################################################
+# This set of functions allows evaluation of Mendelian models.
+# These functions can be modified by the user to create models
+# appropriate to specific types of analyses.
+################################################################################
 
 # using DataStructures
 # using GeneticUtilities

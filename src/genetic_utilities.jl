@@ -1,6 +1,6 @@
-"""
-This set of functions provides various genetic utilities.
-"""
+################################################################################
+# This set of functions provides various genetic utilities.
+################################################################################
 #
 # External modules.
 #

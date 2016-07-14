@@ -1,6 +1,6 @@
-"""
-This set of functions provides various general utilities.
-"""
+################################################################################
+# This set of functions provides various general utilities.
+################################################################################
 
 export empties, blanks, repeated_string, select_set_element, random_category
 export normalize!, print_sample_stats, sample_mean_std, sample_stats

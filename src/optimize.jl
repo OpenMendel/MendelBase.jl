@@ -1,6 +1,6 @@
-"""
-This set of functions houses the Search optimization algorithm.
-"""
+################################################################################
+# This set of functions houses the Search optimization algorithm.
+################################################################################
 
 # using DataStructures
  

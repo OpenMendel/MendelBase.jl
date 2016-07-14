@@ -1,7 +1,7 @@
-"""
-This set of functions reads the pedigree and locus data from external files
-and then constructs data frames and data structures.
-"""
+################################################################################
+# This set of functions reads the pedigree and locus data from external files
+# and then constructs data frames and data structures.
+################################################################################
 #
 # Other OpenMendel modules.
 #
