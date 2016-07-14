@@ -8,8 +8,7 @@ This Base Module includes all the base functions of OpenMendel. It includes usef
 
 Use the Julia package manager to install MendelBase.jl:
 
-   Pkg.clone("git@github.com:OpenMendel/MendelBase.jl.git")
-
+ Pkg.clone("git@github.com:OpenMendel/MendelBase.jl.git")
 
 ## Documentation
 
