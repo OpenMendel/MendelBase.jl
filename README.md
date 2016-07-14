@@ -14,4 +14,7 @@ Use the Julia package manager to install MendelBase.jl:
 
 ## OpenMendel
 
-OpenMendel is one component of the umbrella [OpenMendel](https://github.com/OpenMendel) project. See [cite]() if you use the code in your research.    
+OpenMendel is one component of the umbrella [OpenMendel](https://github.com/OpenMendel) project. See [cite]() if you use the code in your research.
+
+## Acknowledgments
+This project is supported through National Institutes of Health R01 HG006139.
