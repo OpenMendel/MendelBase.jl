@@ -1,6 +1,6 @@
 ################################################################################
 # This set of functions reads the pedigree and locus data from external files
-# and then constructs data frames and data structures.
+# and then constructs the appropriate data frames and data structures.
 ################################################################################
 #
 # Other OpenMendel modules.
@@ -9,7 +9,6 @@ using SnpArrays
 # using DataStructures
 # using GeneralUtilities
 # using GeneticUtilities
-
 #
 # External modules.
 #
@@ -165,7 +164,7 @@ end # function read_plink_bim_file
 This function copies information from a SNP definition dataframe into
 the SNP data structure.
 """
-function snp_information(snp_definition_frame::DataFrame, person::Person, 
+function snp_information(snp_definition_frame::DataFrame, person::Person,
   snpmatrix, keyword::Dict{ASCIIString, Any})
 
   if keyword["snpdefinition_file"] == ""
@@ -196,8 +195,9 @@ function snp_information(snp_definition_frame::DataFrame, person::Person,
   end
   if :CentiMorgans in column_names
     centimorgans = snp_definition_frame[:CentiMorgans]
+    centimorgans = convert(Vector{Float64}, centimorgans)
   else
-    centimorgans = zeros(snps)
+    centimorgans = zeros(Float64, snps)
   end
   if :Basepairs in column_names
     basepairs = snp_definition_frame[:BasePairs]
@@ -562,16 +562,17 @@ function pedigree_information(pedigree_frame::DataFrame)
   families = zeros(Int, pedigrees)
   #
   # Check whether each pedigree occupies a contiguous block.
-  # If not, sort people by pedigree id.
+  # If not, throw an error.
   #
-  ped = 0
-  for i = 1:people
-    if i == 1 || pedigree_frame[i, :Pedigree] != pedigree_frame[i-1, :Pedigree]
-      ped = ped+1
+  ped = 1
+  for i = 2:people
+    if pedigree_frame[i, :Pedigree] != pedigree_frame[i - 1, :Pedigree]
+      ped = ped + 1
     end
-  end
-  if ped > pedigrees
-    sort!(pedigree_frame, cols = order(:Pedigree))
+    if ped > pedigrees
+      throw(ArgumentError("Some pedigrees do not occur in a contiguous block." *
+      " Please fix the data files.\n"))
+    end
   end
   #
   # Find the name, start, and finish of each pedigree.
@@ -666,11 +667,13 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
         father_found = false
         for j = pedigree.start[ped]:pedigree.twin_finish[ped]
           if j == i; continue; end
-          if !isna(mother_string[i]) && mother_string[i] == pedigree_frame[j, :Person]
+          if !isna(mother_string[i]) &&
+             mother_string[i] == pedigree_frame[j, :Person]
             mother[i] = j
             mother_found = true
           end
-          if !isna(father_string[i]) && father_string[i] == pedigree_frame[j, :Person]
+          if !isna(father_string[i]) &&
+             father_string[i] == pedigree_frame[j, :Person]
             father[i] = j
             father_found = true
           end
@@ -753,8 +756,8 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
     # Sort the pedigree dataframe according to the inverse permutation.
     #
     pedigree_frame = hcat(pedigree_frame, inverse_perm)
-    last = size(pedigree_frame, 2)
-    sort!(pedigree_frame::DataFrame, cols = last)
+    sort!(pedigree_frame, cols = size(pedigree_frame, 2))
+    delete!(pedigree_frame, :x1)
   end
   #
   # Record who is male.
