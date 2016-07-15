@@ -8,6 +8,9 @@
 #
 using Distributions # From package Distributions.
 using GLM           # From package GLM.
+#
+# Other OpenMendel modules.
+#
 # using DataStructures
 
 export process_keywords!, set_keyword_defaults!
@@ -97,6 +100,7 @@ function set_keyword_defaults!(keyword::Dict{ASCIIString, Any})
   keyword["gene_drop_output"] = "Unordered" # "Ordered", "Sourced", "Population"
   keyword["goal"] = "maximize"
   keyword["gradient_provided"] = false
+  keyword["reference_haplotypes"] = 0
   keyword["interleaved"] = true
   keyword["keep_founder_genotypes"] = false
   keyword["kinship_file"] = "Kinship_Frame.txt"
@@ -116,6 +120,7 @@ function set_keyword_defaults!(keyword::Dict{ASCIIString, Any})
   keyword["pedigree_file"] = ""
   keyword["phenotype_file"] = ""
   keyword["plink_files_basename"] = ""
+  keyword["plink_output_basename"] = ""
   keyword["points"] = 0
   keyword["populations"] = Set{ASCIIString}()
   keyword["product_mode"] = true
@@ -128,6 +133,7 @@ function set_keyword_defaults!(keyword::Dict{ASCIIString, Any})
   keyword["title"] = ""
   keyword["trait"] = ""
   keyword["travel"] = "search" # or "grid"
+  keyword["window_width"] = 200 # width of imputation window
   keyword["xlinked_analysis"] = false
   #
   # Non-user keywords.
@@ -192,13 +198,13 @@ function revise_keywords!(keyword::Dict{ASCIIString, Any},
   if "distribution" in set_of_modified_keywords
     distribution_name = keyword["distribution"]
     if isa(distribution_name, AbstractString)
-      keyword["distribution"] = eval(parse(distribution_name, raise=false))
+      keyword["distribution"] = eval(parse(distribution_name, raise = false))
     end
   end
   if "link" in set_of_modified_keywords
     link_name = keyword["link"]
     if isa(link_name, AbstractString)
-      keyword["link"] = eval(parse(link_name, raise=false))
+      keyword["link"] = eval(parse(link_name, raise = false))
     end
   end
   #
@@ -228,7 +234,7 @@ function revise_keywords!(keyword::Dict{ASCIIString, Any},
   for keyword_string in
     intersect(keyword["keywords_naming_string_sets"], set_of_modified_keywords)
     set_of_strings =
-      Set{ASCIIString}(split(keyword[keyword_string], ','; keep=false))
+      Set{ASCIIString}(split(keyword[keyword_string], ','; keep = false))
     new_set = Set{ASCIIString}()
     for element_string in set_of_strings
       element_string = strip(element_string, ' ')
@@ -247,13 +253,13 @@ function revise_keywords!(keyword::Dict{ASCIIString, Any},
   for keyword_string in
     intersect(keyword["keywords_naming_general_sets"], set_of_modified_keywords)
     set_of_strings =
-      Set{ASCIIString}(split(keyword[keyword_string], ','; keep=false))
+      Set{ASCIIString}(split(keyword[keyword_string], ','; keep = false))
     new_set = Set{Any}()
     for element_string in set_of_strings
       element_string = strip(element_string, ' ')
-      if isa(parse(element_string, raise=false), Number)
+      if isa(parse(element_string, raise = false), Number)
         element_item = parse(element_string)
-      elseif isa(parse(element_string, raise=false), Char)
+      elseif isa(parse(element_string, raise = false), Char)
         element_item = parse(element_string)
       else
         element_item = strip(element_string, DOUBLE_QUOTE_CHAR)
@@ -361,7 +367,7 @@ function read_control_file!(keyword::Dict{ASCIIString, Any},
       keyword[keyword_string] = true
     elseif lc_value_string == "false" || lc_value_string == "f"
       keyword[keyword_string] = false
-    elseif isa(parse(value_string, raise=false), Number)
+    elseif isa(parse(value_string, raise = false), Number)
       keyword[keyword_string] = parse(value_string)
     elseif keyword_string in keyword["keywords_naming_string_sets"]
       keyword[keyword_string] = strip(value_string, ' ')
@@ -369,7 +375,7 @@ function read_control_file!(keyword::Dict{ASCIIString, Any},
       keyword[keyword_string] = strip(value_string, ' ')
     else
       keyword[keyword_string] = strip(value_string, DOUBLE_QUOTE_CHAR)
-      if isa(parse(keyword[keyword_string], raise=false), Char)
+      if isa(parse(keyword[keyword_string], raise = false), Char)
         keyword[keyword_string] = parse(keyword[keyword_string])
       end
     end
