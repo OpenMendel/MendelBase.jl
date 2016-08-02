@@ -3,16 +3,20 @@
 # These functions can be modified by the user to create models
 # appropriate to specific types of analyses.
 ################################################################################
-
+#
+# Required OpenMendel packages and modules.
+#
+# using Search
+# using SearchSetup
 # using DataStructures
 # using GeneticUtilities
 
 export penetrance, prior, transmission, initialize_optimization
 
 """
-This function supplies a penetrance for individual i at a
-multiple locus genotype starting and ending with particular
-model loci. The current version is only appropriate for
+Supply a penetrance for individual i at a multiple locus genotype
+starting and ending with particular model loci.
+The current version is only appropriate for
 multiplicative penetrances and fully penetrant loci.
 """
 function penetrance(person::Person, locus::Locus,
@@ -32,7 +36,7 @@ function penetrance(person::Person, locus::Locus,
 end # function penetrance
 
 """
-This function supplies a prior probability for founder i.
+Supply a prior probability for founder i.
 His or her multiple locus genotype starts and ends with
 particular model loci. The current version assumes
 Hardy-Weinberg and linkage equilibrium.
@@ -68,7 +72,7 @@ function prior(person::Person, locus::Locus,
 end # function prior
 
 """
-This function supplies the probability that a parent i
+Supply the probability that a parent i
 with a particular multiple locus genotype transmits a
 particular gamete to his or her child j. The multiple
 locus genotype and gamete start and finish with particular
@@ -199,7 +203,7 @@ function transmission(person::Person, locus::Locus, gamete::Vector{Int},
 end # function transmission
 
 """
-This function initializes a minimization problem.
+Initialize a minimization problem.
 """
 function initialize_optimization(locus::Locus, parameter::Parameter,
   keyword::Dict{ASCIIString, Any})

@@ -4,13 +4,15 @@
 # the external files to read and the analyses to perform.
 ################################################################################
 #
-# External modules.
+# Required external packages.
 #
-using Distributions # From package Distributions.
-using GLM           # From package GLM.
+# using Distributions # From package Distributions.
+# using GLM           # From package GLM.
 #
-# Other OpenMendel modules.
+# Required OpenMendel packages and modules.
 #
+# using Search
+# using SearchSetup
 # using DataStructures
 
 export process_keywords!, set_keyword_defaults!
@@ -73,70 +75,56 @@ function process_keywords!(keyword::Dict{ASCIIString, Any},
 end # process_keywords!
 
 """
-This function constructs a dictionary of keywords and their defaults.
+This function constructs a dictionary of the basic keywords
+and assignes them their default values. Keywords specific
+to an analysis option should be first declared at the marked position
+in the source code for that analysis option.
 """
 function set_keyword_defaults!(keyword::Dict{ASCIIString, Any})
   #
-  # User modifiable keywords.
+  # Set the user-modifiable keywords using the format:
+  # keyword["some_keyword_name"] = default_value
   #
   keyword["affected_designator"] = "affected"
   keyword["allele_pseudo_count"] = 0.1
   keyword["allele_separator"] = "/\\" # first character is used in output
   keyword["analysis_option"] = ""
-  keyword["cases"] = 0
   keyword["complexity_threshold"] = 5e7
-  keyword["compression_level"] = 8
   keyword["control_file"] = ""
-  keyword["constraints"] = 0
   keyword["disease_status"] = ""
   keyword["distribution"] = Normal() # Binomial, Gamma, Normal, Poisson
   keyword["eliminate_genotypes"] = false
   keyword["female"] = Set{Any}(["female", "f", 'f', "2", '2', 2])
   keyword["field_separator"] = ','
-  keyword["flanking_distance"] = [0.5, 0.5]
-  keyword["flanking_markers"] = 1
-  keyword["gender_neutral"] = true
-  keyword["genetic_map_function"] = "Haldane" # or "Kosambi"
-  keyword["gene_drop_output"] = "Unordered" # "Ordered", "Sourced", "Population"
-  keyword["goal"] = "maximize"
-  keyword["gradient_provided"] = false
-  keyword["reference_haplotypes"] = 0
-  keyword["interleaved"] = true
-  keyword["keep_founder_genotypes"] = false
-  keyword["kinship_file"] = "Kinship_Frame.txt"
+  keyword["genetic_map_function"] = "Haldane" # "Haldane" or "Kosambi"
   keyword["link"] = IdentityLink()
-  keyword["lod_score_table"] = "Lod_Score_Frame.txt"
   keyword["locus_file"] = ""
   keyword["lump_alleles"] = false
-  keyword["magic_bytes"] = 0
-  keyword["manhattan_plot_file"] = "Manhattan_Plot.png"
   keyword["male"] = Set{Any}(["male", "m", 'm', "1", '1', 1])
-  keyword["missing_data_pattern"] = "ExistingData"
-  keyword["missing_rate"] = 0.0
   keyword["new_pedigree_file"] = ""
   keyword["ordered_allele_separator"] = "|" # first character is used in output
   keyword["output_file"] = "Mendel_Output.txt"
-  keyword["parameters"] = 0
   keyword["pedigree_file"] = ""
   keyword["phenotype_file"] = ""
-  keyword["plink_files_basename"] = ""
+  keyword["plink_input_basename"] = ""
   keyword["plink_output_basename"] = ""
-  keyword["points"] = 0
   keyword["populations"] = Set{ASCIIString}()
   keyword["product_mode"] = true
-  keyword["regression_formula"] = ""
-  keyword["repetitions"] = 1
   keyword["seed"] = 1234
   keyword["snpdata_file"] = ""
   keyword["snpdefinition_file"] = ""
-  keyword["standard_errors"] = false
-  keyword["title"] = ""
   keyword["trait"] = ""
-  keyword["travel"] = "search" # or "grid"
-  keyword["window_width"] = 200 # width of imputation window
   keyword["xlinked_analysis"] = false
+## For imputation:
+##  keyword["gradient_provided"] = false
+##  keyword["reference_haplotypes"] = 0
+##  keyword["window_width"] = 200 # width of imputation window
   #
-  # Non-user keywords.
+  # Add default optimization keywords from package Search.
+  #
+  keyword = optimization_keywords!(keyword)
+  #
+  # Non-user-modifiable keywords.
   #
   keyword["keywords_naming_general_sets"] = Set{ASCIIString}(["female", "male"])
   keyword["keywords_naming_string_sets"] = Set{ASCIIString}(["populations"])
@@ -214,10 +202,12 @@ function revise_keywords!(keyword::Dict{ASCIIString, Any},
     keyword["field_separator"] = keyword["field_separator"][1]
   end
   #
-  # If a Plink file basename has been provided, set the appropriate filenames.
+  # If a Plink input files basename has been provided,
+  # set the field separator to a blank and set the appropriate filenames.
   #
-  if "plink_files_basename" in set_of_modified_keywords
-    plink_basename = keyword["plink_files_basename"]
+  if "plink_input_basename" in set_of_modified_keywords
+    keyword["field_separator"] = ' '
+    plink_basename = keyword["plink_input_basename"]
     keyword["snpdefinition_file"] = string(plink_basename, ".bim")
     push!(set_of_modified_keywords, "snpdefinition_file")
     keyword["snpdata_file"] = string(plink_basename, ".bed")

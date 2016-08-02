@@ -2,7 +2,11 @@
 # This set of functions implements the Elston-Stewart algorithm for
 # evaluating the likelihood of a pedigree.
 ################################################################################
-
+#
+# Required OpenMendel packages and modules.
+#
+# using Search
+# using SearchSetup
 # using DataStructures
 # using ReadData
 # using ElstonStewartPreparation
@@ -11,8 +15,8 @@
 export elston_stewart_loglikelihood
 
 """
-This function evaluates the loglikelihood of a collection of independent
-pedigrees by the Elston-Stewart algorithm.
+Evaluate the loglikelihood of a collection of independent pedigrees
+by the Elston-Stewart algorithm.
 """
 function elston_stewart_loglikelihood(pedigree::Pedigree, person::Person,
   locus::Locus, parameter::Parameter, instruction::Instruction,
@@ -51,9 +55,9 @@ function elston_stewart_loglikelihood(pedigree::Pedigree, person::Person,
 end # function elston_stewart_loglikelihood
 
 """
-This function computes the likelihood of a single pedigree by
-the Elston-Stewart algorithm. Various operations are performed
-on an array of arrays.
+Compute the likelihood of a single pedigree
+by the Elston-Stewart algorithm.
+Various operations are performed on an array of arrays.
 """
 function compute_likelihood(person::Person, locus::Locus,
   instruction::Instruction, par::Vector{Float64},
@@ -174,7 +178,7 @@ function compute_likelihood(person::Person, locus::Locus,
 end # function compute_likelihood
 
 """
-This subroutine constructs a penetrance array or the product of a
+Construct a penetrance array or the product of a
 penetrance and prior array.
 """
 function construct_penetrance_prior(person::Person, locus::Locus,
@@ -232,13 +236,14 @@ function construct_penetrance_prior(person::Person, locus::Locus,
 end # function construct_penetrance_prior
 
 """
-This function constructs a transmission array from parent i
-to child j. Fetch the starting and finishing loci and i and j.
+Construct a transmission array from parent i to child j.
 """
 function construct_transmission(person::Person, locus::Locus,
   instruction::Instruction, par::Vector{Float64},
   keyword::Dict{ASCIIString, Any}, array::Vector{Float64}, n::Int)
-
+  #
+  # Fetch the starting & finishing loci and i & j.
+  #
   start = instruction.extra[n][1]
   finish = instruction.extra[n][2]
   i = instruction.extra[n][3]
@@ -277,8 +282,7 @@ function construct_transmission(person::Person, locus::Locus,
 end # function construct_transmission
 
 """
-This functions counts i's possible multilocus genotypes
-between loci start and finish.
+Count i's possible multilocus genotypes between loci start and finish.
 """
 function genotype_count(person::Person, locus::Locus, i::Int, start::Int,
   finish::Int)
@@ -292,7 +296,7 @@ function genotype_count(person::Person, locus::Locus, i::Int, start::Int,
 end # function genotype_count
 
 """
-This function checks whether the array A has any negative entries and
+Check whether the array A has any negative entries and
 any positive entries.
 """
 function check_array_entries(array_a::Vector{Float64})
@@ -303,7 +307,7 @@ function check_array_entries(array_a::Vector{Float64})
 end # function check_array_entries
 
 """
-This function carries out a pure add operation.
+Carry out a pure add operation.
 """
 function pure_add_operation(loglikelihood::Float64, array::Vector{Float64})
 
@@ -318,9 +322,8 @@ function pure_add_operation(loglikelihood::Float64, array::Vector{Float64})
 end # function pure_add_operation
 
 """
-This function multiplies array1 times array2 and sums on the
-pivot index if required. It inserts the result in array3
-and rescales to avoid underflows and overflows.
+Multiply array1 times array2 and sum on the pivot index if required.
+Inserts the result in array3 and rescales to avoid underflows and overflows.
 ?? Can this be recoded to call a LAPACK routine??
 """
 function multiply_add_operation(array1::Vector{Float64},
@@ -385,9 +388,8 @@ function multiply_add_operation(array1::Vector{Float64},
 end # function multiply_add_operation
 
 """
-This function creates the multi-locus genotypes for person i from
-his/her single locus genotypes. Only model loci between positions
-start and finish are considered.
+Create the multi-locus genotypes for person i from the single locus genotypes.
+Only model loci between positions start and finish are considered.
 """
 function construct_multigenotypes(person::Person, locus::Locus,
   start::Int, finish::Int, genotypes::Int, i::Int)
@@ -423,9 +425,9 @@ function construct_multigenotypes(person::Person, locus::Locus,
 end # function construct_multigenotypes
 
 """
-This function creates the maternal or paternal gametes for person
-i from his/her single locus genotypes. Only model loci between positions
-start and finish are considered.
+Create the maternal or paternal gametes for person i
+from the single locus genotypes.
+Only model loci between positions start and finish are considered.
 """
 function construct_gametes(person::Person, locus::Locus,
   start::Int, finish::Int, genotypes::Int, i::Int, maternal::Bool)

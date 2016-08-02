@@ -2,16 +2,15 @@
 # This set of functions provides various genetic utilities.
 ################################################################################
 #
-# External modules.
+# Required external packages.
 #
-using Distributions # From package Distributions.
+# using Distributions # From package Distributions.
 
 export map_function, inverse_map_function
-export hardy_weinberg_test, xlinked_hardy_weinberg_test, simes_fdr
+export hardy_weinberg_test, xlinked_hardy_weinberg_test
 
 """
-  This function calculates recombination fractions based on
-  Haldane's or Kosambi's formula.
+Calculate recombination fractions based on Haldane's or Kosambi's formula.
 """
 function map_function(d::Float64, choice::ASCIIString)
 
@@ -27,8 +26,7 @@ function map_function(d::Float64, choice::ASCIIString)
 end # function map_function
 
 """
-This function calculates genetic map distances based on Haldane's or
-Kosambi's formula.
+Calculates genetic map distances based on Haldane's or Kosambi's formula.
 """
 function inverse_map_function(theta::Float64, choice::ASCIIString)
 
@@ -52,7 +50,7 @@ function inverse_map_function(theta::Float64, choice::ASCIIString)
 end # function inverse_map_function
 
 """
-This function tests for Hardy-Weinberg equilibrium at a SNP.
+Test for Hardy-Weinberg equilibrium at a SNP.
 The genotype vector conveys for each person his/her number of
 reference alleles. Thus, all genotypes belong to {0, 1, 2, NaN}.
 The pvalue of the chi-square statistic is returned.
@@ -98,10 +96,10 @@ function hardy_weinberg_test(genotype::Vector{Float64})
 end # function hardy_weinberg_test
 
 """
-This function tests for Hardy-Weinberg equilibrium at an
-xlinked SNP. The genotype vector conveys for each person his/her
-number of reference alleles. Thus, all genotypes belong to {0, 1, 2, NaN}.
-The pvalue of the chisquare statistic is returned.
+Test for Hardy-Weinberg equilibrium at an xlinked SNP.
+The genotype vector conveys for each person his/her number of reference alleles.
+Thus, all genotypes belong to {0, 1, 2, NaN}.
+The p-value of the chi-square statistic is returned.
 """
 function xlinked_hardy_weinberg_test(genotype::Vector{Float64}, 
   male::BitArray{1})
@@ -161,28 +159,33 @@ function xlinked_hardy_weinberg_test(genotype::Vector{Float64},
   return ccdf(Chisq(2), test)
 end # function xlinked_hardy_weinberg_test
 
-"""
-This function implements the Simes false discovery rate (FDR) procedure
-discussed by Benjamini and Hochberg. All p-values at or below the threshold
-are declared significant for the given FDR rate and number of tests.
-"""
-function simes_fdr(pvalue::Vector{Float64}, fdr::Vector{Float64}, tests::Int)
-
-  n = length(fdr)
-  threshold = zeros(n)
-  number_passing = zeros(Int, n)
-  perm = sortperm(pvalue)
-  k = 1 # previous value of i
-  for j = 1:n
-    i = 0
-    for i = k:length(pvalue)
-      if tests * pvalue[perm[i]] > i * fdr[j] break end
-    end
-    if i == 1 continue end
-      k = i - 1
-      threshold[j] = pvalue[perm[i - 1]]
-      number_passing[j] = i - 1
-  end
-  return (number_passing, threshold)
-end # function simes_fdr
-
+# using GeneticUtilities
+# d = 1.0
+# choice = "Haldane"
+# theta = map_function(d, choice)
+# d = inverse_map_function(theta, choice)
+# println(d)
+# d = 1.0
+# choice = "Kosambi"
+# theta = map_function(d, choice)
+# d = inverse_map_function(theta, choice)
+# println(d)
+# p = 1 / 3
+# n = 100
+# x = zeros(n)
+# for i = 1:n
+#   u = rand(2)
+#   if u[1] <= p; x[i] = x[i] + 1.0; end
+#   if u[2] <= p; x[i] = x[i] + 1.0; end 
+# end
+# pvalue = hardy_weinberg_test(x)
+# println("pvalue = ",pvalue)
+# male = falses(n)
+# male[1:div(n, 2)] = true
+# for i = 1:div(n, 2)
+#   x[i] = 0.0
+#   u = rand(1)
+#   if u[1] <= p; x[i] = x[i] + 1.0; end
+# end
+# pvalue = xlinked_hardy_weinberg_test(x, male)
+# println("pvalue = ",pvalue)

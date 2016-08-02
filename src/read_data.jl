@@ -1,18 +1,18 @@
 ################################################################################
-# This set of functions reads the pedigree and locus data from external files
+# Reads the pedigree and locus data from external files
 # and then constructs the appropriate data frames and data structures.
 ################################################################################
 #
-# Other OpenMendel modules.
+# Required external modules.
 #
-using SnpArrays
+# using DataFrames    # From package DataFrames.
+#
+# Required OpenMendel pacakges and modules.
+#
 # using DataStructures
 # using GeneralUtilities
 # using GeneticUtilities
-#
-# External modules.
-#
-using DataFrames    # From package DataFrames.
+# using SnpArrays
 
 export count_homozygotes!, read_external_data_files
 
@@ -24,7 +24,7 @@ function read_external_data_files(keyword::Dict{ASCIIString, Any})
   #
   # Set the field separator used in the data files.
   #
-  fsep = keyword["field_separator"]
+  field_sep = keyword["field_separator"]
   #
   # Read the data from the appropriate dataframes.
   # Start by reading the locus frame.
@@ -32,7 +32,8 @@ function read_external_data_files(keyword::Dict{ASCIIString, Any})
   if keyword["locus_file"] == ""
     locus_frame = DataFrame() # An empty dataframe
   else
-    locus_frame = readtable(keyword["locus_file"], separator = fsep)
+    locus_frame = readtable(keyword["locus_file"],
+      separator = field_sep)
   end
   #
   # Read the phenotype frame.
@@ -40,7 +41,8 @@ function read_external_data_files(keyword::Dict{ASCIIString, Any})
   if keyword["phenotype_file"] == ""
     phenotype_frame = DataFrame() # An empty dataframe
   else
-    phenotype_frame = readtable(keyword["phenotype_file"], separator = fsep)
+    phenotype_frame = readtable(keyword["phenotype_file"],
+      separator = field_sep)
   end
   #
   # Read the mandatory pedigree frame. Plink .fam files are allowed.
@@ -50,7 +52,8 @@ function read_external_data_files(keyword::Dict{ASCIIString, Any})
   if contains(keyword["pedigree_file"], ".fam")
     pedigree_frame = read_plink_fam_file(keyword["pedigree_file"], keyword)
   else
-    pedigree_frame = readtable(keyword["pedigree_file"], separator = fsep)
+    pedigree_frame = readtable(keyword["pedigree_file"],
+      separator = field_sep)
   end
   #
   # Add a column recording the order of entry of each person.
@@ -99,7 +102,7 @@ function read_external_data_files(keyword::Dict{ASCIIString, Any})
         keyword)
     else
       snp_definition_frame = readtable(keyword["snpdefinition_file"],
-        separator = fsep)
+        separator = field_sep)
     end
     #
     # Read the SNP bed file.
@@ -118,17 +121,20 @@ function read_external_data_files(keyword::Dict{ASCIIString, Any})
 end # function read_external_data_files
 
 """
-This function converts a Plink .fam file into a dataframe and 
+Converts a Plink .fam file into a dataframe and 
 substitutes blanks for missing values.
 """
 function read_plink_fam_file(plink_fam_file::AbstractString,
   keyword::Dict{ASCIIString, Any})
 
+##
+# Problem using non-integers for sex names!
+##
   column_types = [UTF8String, UTF8String, UTF8String, UTF8String,
-    UTF8String, UTF8String]
-  column_names = [:Pedigree, :Person, :Father, :Mother, :Sex, :PlinkTrait]
-  fsep = keyword["field_separator"]
-  fam_dframe = readtable(plink_fam_file, header = false, separator = fsep, 
+    Int64, UTF8String]
+  column_names = [:Pedigree, :Person, :Father, :Mother, :Sex, :Trait]
+  field_sep = keyword["field_separator"]
+  fam_dframe = readtable(plink_fam_file, header = false, separator = field_sep,
     eltypes = column_types, names = column_names)
   for i = 1:size(fam_dframe, 1)
     if fam_dframe[i, :Father] == "0"
@@ -137,15 +143,15 @@ function read_plink_fam_file(plink_fam_file::AbstractString,
     if fam_dframe[i, :Mother] == "0"
      fam_dframe[i, :Mother] = " "
     end
-    if fam_dframe[i, :PlinkTrait] == "-9" || fam_dframe[i, :PlinkTrait] == "0"
-      fam_dframe[i, :PlinkTrait] = " "
+    if fam_dframe[i, :Trait] == "-9" || fam_dframe[i, :Trait] == "0"
+      fam_dframe[i, :Trait] = " "
     end
   end
   return fam_dframe
 end # function read_plink_fam_file
 
 """
-This function converts a Plink .bim file into a dataframe.
+Converts a Plink .bim file into a dataframe.
 """
 function read_plink_bim_file(plink_bim_file::AbstractString,
   keyword::Dict{ASCIIString, Any})
@@ -154,14 +160,14 @@ function read_plink_bim_file(plink_bim_file::AbstractString,
     UTF8String, UTF8String]
   column_names = [:Chromosome, :SNP, :CentiMorgans, :Basepairs, 
     :Allele1, :Allele2]
-  fsep = keyword["field_separator"]
-  bim_dframe = readtable(plink_bim_file, header = false, separator = fsep, 
+  field_sep = keyword["field_separator"]
+  bim_dframe = readtable(plink_bim_file, header = false, separator = field_sep,
     eltypes = column_types, names = column_names)
   return bim_dframe
 end # function read_plink_bim_file
 
 """
-This function copies information from a SNP definition dataframe into
+Copies information from a SNP definition dataframe into
 the SNP data structure.
 """
 function snp_information(snp_definition_frame::DataFrame, person::Person,
@@ -181,10 +187,13 @@ function snp_information(snp_definition_frame::DataFrame, person::Person,
     for snp = 1:snps
       snp_name[snp] = string(snp_definition_frame[snp, :Locus])
     end
-  end
-  if :SNP in column_names
+  elseif :SNP in column_names
     for snp = 1:snps
       snp_name[snp] = string(snp_definition_frame[snp, :SNP])
+    end
+  else
+    for snp = 1:snps
+      snp_name[snp] = dec(snp) # label SNPs 1, 2, 3, etc.
     end
   end
   chromosome = blanks(snps)
@@ -192,6 +201,8 @@ function snp_information(snp_definition_frame::DataFrame, person::Person,
     for snp = 1:snps
       chromosome[snp] = string(snp_definition_frame[snp, :Chromosome])
     end
+  else
+    fill!(chromosome, "autosome")
   end
   if :CentiMorgans in column_names
     centimorgans = snp_definition_frame[:CentiMorgans]
@@ -200,7 +211,7 @@ function snp_information(snp_definition_frame::DataFrame, person::Person,
     centimorgans = zeros(Float64, snps)
   end
   if :Basepairs in column_names
-    basepairs = snp_definition_frame[:BasePairs]
+    basepairs = snp_definition_frame[:Basepairs]
   else
     basepairs = zeros(Int, snps)
   end
@@ -232,7 +243,7 @@ function snp_information(snp_definition_frame::DataFrame, person::Person,
 end # function snp_information
 
 """
-This function extracts locus information from the locus frame.
+Extracts locus information from the locus frame.
 First extract relevant dimensions and fields.
 """
 function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
@@ -266,7 +277,9 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   end
   loci = 1
   for i = 2:rows
-    if locus_frame[i, :Locus] != locus_frame[i - 1, :Locus]; loci = loci + 1; end
+    if locus_frame[i, :Locus] != locus_frame[i - 1, :Locus]
+      loci = loci + 1
+    end
   end
   if loci != length(locus_name)
     throw(ArgumentError(
@@ -304,8 +317,8 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   # Chromosome names should be 1, 2, ... 22, or X without further
   # adornment.
   #
-  if :BasePairs in locus_field
-    sort!(locus_frame::DataFrame, cols = [:Chromosome, :BasePairs])
+  if :Basepairs in locus_field
+    sort!(locus_frame::DataFrame, cols = [:Chromosome, :Basepairs])
   elseif :FemaleMorgans in locus_field
     sort!(locus_frame::DataFrame, cols = [:Chromosome, :FemaleMorgans])
   end
@@ -331,7 +344,7 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
       # base pairs to a centiMorgan.
       #
       if :BasesPairs in locus_field
-        bases_pairs[loc] = locus_frame[i, :BasePairs]
+        bases_pairs[loc] = locus_frame[i, :Basepairs]
         if !(:FemaleMorgans in locus_field)
           morgans[:, loc] = bases_pairs[loc] / 1e8
         end
@@ -541,15 +554,20 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
 end # function locus_information
 
 """
-This function extracts pedigree information from the pedigree frame.
-Some fields must be supplied later.
+Extracts pedigree information from the pedigree frame.
+Some fields are supplied later.
 """
 function pedigree_information(pedigree_frame::DataFrame)
   #
   # Initialize arrays.
   #
   people = length(pedigree_frame[:, :Person])
-  pedigrees = length(unique(pedigree_frame[:, :Pedigree]))
+  pedigree_field = names(pedigree_frame)
+  if :Pedigree in pedigree_field
+    pedigrees = length(unique(pedigree_frame[:, :Pedigree]))
+  else
+    pedigrees = people
+  end
   pedigree_name = blanks(pedigrees)
   start = zeros(Int, pedigrees)
   twin_finish = zeros(Int, pedigrees)
@@ -564,29 +582,40 @@ function pedigree_information(pedigree_frame::DataFrame)
   # Check whether each pedigree occupies a contiguous block.
   # If not, throw an error.
   #
-  ped = 1
-  for i = 2:people
-    if pedigree_frame[i, :Pedigree] != pedigree_frame[i - 1, :Pedigree]
-      ped = ped + 1
+  if :Pedigree in pedigree_field
+    ped = 1
+    for i = 2:people
+      if pedigree_frame[i, :Pedigree] != pedigree_frame[i - 1, :Pedigree]
+        ped = ped + 1
+      end
     end
     if ped > pedigrees
-      throw(ArgumentError("Some pedigrees do not occur in a contiguous block." *
-      " Please fix the data files.\n"))
+#      throw(ArgumentError("Some pedigrees are not in a contiguous block." *
+#      " Please fix the data files.\n"))
+      sort!(pedigree_frame, cols = order(:Pedigree))
+    end
+    #
+    # Find the name, start, and finish of each pedigree.
+    #
+    ped = 0
+    for i = 1:people
+      if i == 1 ||
+         pedigree_frame[i, :Pedigree] != pedigree_frame[i - 1, :Pedigree]
+        ped = ped + 1
+        start[ped] = i
+        if i > 1; twin_finish[ped - 1] = i - 1; end
+        pedigree_name[ped] = string(pedigree_frame[i, :Pedigree])
+      end
+    end
+    twin_finish[pedigrees] = people
+  else
+    for i = 1:people
+      start[i] = i
+      finish[i] = i
+      twin_finish[i] = i
+      pedigree_name[i] = "$i"
     end
   end
-  #
-  # Find the name, start, and finish of each pedigree.
-  #
-  ped = 0
-  for i = 1:people
-    if i == 1 || pedigree_frame[i, :Pedigree] != pedigree_frame[i - 1, :Pedigree]
-      ped = ped + 1
-      start[ped] = i
-      if i > 1; twin_finish[ped - 1] = i - 1; end
-      pedigree_name[ped] = string(pedigree_frame[i, :Pedigree])
-    end
-  end
-  twin_finish[pedigrees] = people
   #
   # Insert the gathered information into the Pedigree structure.
   #
@@ -596,7 +625,7 @@ function pedigree_information(pedigree_frame::DataFrame)
 end # function pedigree_information
 
 """
-This function extracts person information from the pedigree frame.
+Extracts person information from the pedigree frame.
 """
 function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   phenotype_frame::DataFrame, locus::Locus, pedigree::Pedigree,
@@ -658,22 +687,22 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   #
   pedigree_number = zeros(Int, people)
   person_name = blanks(people)
-  if parents_present
-    for ped = 1:pedigrees
-      for i = pedigree.start[ped]:pedigree.twin_finish[ped]
-        pedigree_number[i] = ped
-        person_name[i] = string(pedigree_frame[i, :Person])
+  for ped = 1:pedigrees
+    for i = pedigree.start[ped]:pedigree.twin_finish[ped]
+      pedigree_number[i] = ped
+      person_name[i] = string(pedigree_frame[i, :Person])
+      if parents_present
         mother_found = false
         father_found = false
         for j = pedigree.start[ped]:pedigree.twin_finish[ped]
           if j == i; continue; end
-          if !isna(mother_string[i]) &&
-             mother_string[i] == pedigree_frame[j, :Person]
+          if !isna(mother_string[i]) && 
+            mother_string[i] == pedigree_frame[j, :Person]
             mother[i] = j
             mother_found = true
           end
-          if !isna(father_string[i]) &&
-             father_string[i] == pedigree_frame[j, :Person]
+          if !isna(father_string[i]) && 
+            father_string[i] == pedigree_frame[j, :Person]
             father[i] = j
             father_found = true
           end
@@ -756,8 +785,8 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
     # Sort the pedigree dataframe according to the inverse permutation.
     #
     pedigree_frame = hcat(pedigree_frame, inverse_perm)
-    sort!(pedigree_frame, cols = size(pedigree_frame, 2))
-    delete!(pedigree_frame, :x1)
+    last = size(pedigree_frame, 2)
+    sort!(pedigree_frame::DataFrame, cols = last)
   end
   #
   # Record who is male.
@@ -1071,7 +1100,7 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
 end # function person_information
 
 """
-This function counts various features of a pedigree.
+Counts various features of a pedigree.
 Mates is a set of parent pairs in a particular pedigree.
 """
 function pedigree_counts!(pedigree::Pedigree, person::Person)
@@ -1082,6 +1111,9 @@ function pedigree_counts!(pedigree::Pedigree, person::Person)
     males = 0
     twins = 0
     co_twins = 0
+    #
+    # Mates is a set of parent pairs in a particular pedigree.
+    #
     mates = Set{Tuple{Int, Int}}()
     for j = pedigree.start[i]:pedigree.twin_finish[i]
       if person.father[j] == 0
@@ -1110,8 +1142,7 @@ function pedigree_counts!(pedigree::Pedigree, person::Person)
 end # function pedigree_counts!
 
 """
-This function identities all nuclear families, spouses, and children.
-The variable k indexes the current nuclear family.
+Identities all nuclear families, spouses, and children.
 """ 
 function construct_nuclear_families(pedigree::Pedigree, person::Person)
 
@@ -1120,7 +1151,7 @@ function construct_nuclear_families(pedigree::Pedigree, person::Person)
     zeros(Int, fams), empties(fams))
   mother = 0
   father = 0
-  k = 0
+  k = 0 # Index of the current nuclear family.
   #
   # Identify each nuclear family in a pedigree with a pair
   # of parents (mates). Collect the children and spouses of
@@ -1156,10 +1187,9 @@ function construct_nuclear_families(pedigree::Pedigree, person::Person)
 end # function construct_nuclear_families
 
 """
-This function completes various data structures and performs
-a few checks. Start by eliminating heterozygous genotypes
-in a hemizygote, counting homozygotes, and filling in ethnic
-admixture fractions.
+Complete various data structures and perform a few checks.
+Start by eliminating heterozygous genotypes in a hemizygote,
+counting homozygotes, and filling in ethnic admixture fractions.
 """
 function check_data_structures!(pedigree::Pedigree, person::Person,
   locus::Locus, nuclear_family::NuclearFamily, keyword::Dict{ASCIIString, Any})
@@ -1217,12 +1247,12 @@ function check_data_structures!(pedigree::Pedigree, person::Person,
 end # function check_data_structures!
 
 """
-This function returns a permutation putting founders at the
-head of the pedigree, co-twins at the tail of the pedigree, and
-everyone else arranged so that parents precede their children.
-It also checks for directed cycles. For algorithmic details see:
-Lawler E (1976) Combinatorial Optimization and Matroids. Holt,
-Rinehart, and Winston.
+Return a permutation putting founders at the head of the pedigree,
+co-twins at the tail of the pedigree, and everyone else
+arranged so that parents precede their children.
+Also check for directed cycles. For algorithmic details see:
+Lawler E (1976) Combinatorial Optimization and Matroids.
+Holt, Rinehart, and Winston.
 """
 function loop(pedigree::Pedigree, father::Vector{Int},
   mother::Vector{Int}, primary_twin::Vector{Int})
@@ -1305,7 +1335,7 @@ function loop(pedigree::Pedigree, father::Vector{Int},
 end # function loop
 
 """
-This function returns a full set of ordered genotypes.
+Return a full set of ordered genotypes.
 """
 function full_genotype_set(n::Int, hemizygous::Bool)
 
@@ -1325,7 +1355,7 @@ function full_genotype_set(n::Int, hemizygous::Bool)
 end # function full_genotype_set
 
 """
-This function recovers the constituent alleles from a genotype.
+Recover the constituent alleles from a genotype.
 """
 function fetch_genotype(allele::Vector{ASCIIString}, genotype::AbstractString,
   allele_separator::ASCIIString, ordered_allele_separator::ASCIIString)
@@ -1363,7 +1393,7 @@ function fetch_genotype(allele::Vector{ASCIIString}, genotype::AbstractString,
 end # function fetch_genotype
 
 """
-This function does a few pedigree and person checks.
+Check for a few pedigree and person inconsistencies.
 """
 function preliminary_checks(pedigree::Pedigree, person::Person)
 
@@ -1395,7 +1425,8 @@ function preliminary_checks(pedigree::Pedigree, person::Person)
   for i = 1:person.people
     if person.name[i] == ""
       errors = errors + 1
-      println("Error: Pedigree $person.pedigree[i] has a blank person name.")
+      person_ped = person.pedigree[i]
+      println("Error: Pedigree $person_ped has a blank person name.")
     end
     #
     # Check for missing parents, parents of the wrong sex, or parents
@@ -1405,7 +1436,8 @@ function preliminary_checks(pedigree::Pedigree, person::Person)
     father_present = person.father[i] != 0
     if mother_present != father_present
       errors = errors + 1
-      println("Error: Person $person.name[i] lacks one parent.")
+      person_name = person.name[i]
+      println("Error: Person $person_name lacks one parent.")
     end
     if mother_present
       if person.male[person.mother[i]]
@@ -1415,7 +1447,8 @@ function preliminary_checks(pedigree::Pedigree, person::Person)
       end
       if person.name[i] == person.name[person.mother[i]]
         errors = errors + 1
-        println("Error: Person $person.name[i] is her own mother.")
+        person_name = person.name[i]
+        println("Error: Person $person_name is her own mother.")
       end
     end
     if father_present
@@ -1426,7 +1459,8 @@ function preliminary_checks(pedigree::Pedigree, person::Person)
       end
       if person.name[i] == person.name[person.father[i]]
         errors = errors + 1
-        println("Error: Person $person.name[i] is his own father.")
+        person_name = person.name[i]
+        println("Error: Person $person_name is his own father.")
       end
     end
     #
@@ -1436,7 +1470,8 @@ function preliminary_checks(pedigree::Pedigree, person::Person)
       j = person.next_twin[person.primary_twin[i]]
       if j == 0
         errors = errors + 1
-        println("Error: The twin $person.name[i]] lacks identical siblings.")
+        person_name = person.name[i]
+        println("Error: The twin $person_name lacks identical siblings.")
       end
       while j != 0
         if person.male[i] != person.male[j]
@@ -1453,8 +1488,8 @@ function preliminary_checks(pedigree::Pedigree, person::Person)
 end # function preliminary_checks
 
 """
-This function deletes heterozygous genotypes ostensibly compatible
-with x-linked male phenotypes.
+Delete heterozygous genotypes ostensibly compatible
+with X-linked male phenotypes.
 """
 function check_hemizygous_genotypes!(person::Person, locus::Locus, loc::Int)
 
@@ -1471,7 +1506,7 @@ function check_hemizygous_genotypes!(person::Person, locus::Locus, loc::Int)
 end # function check_hemizygous_genotypes!
 
 """
-This function counts the number of homozygous genotypes at a locus.
+Count the number of homozygous genotypes at a locus.
 """
 function count_homozygotes!(person::Person, loc::Int)
 
@@ -1486,19 +1521,21 @@ function count_homozygotes!(person::Person, loc::Int)
 end # function count_homozygotes!
 
 """
-This function computes the ethnic admixture fractions
-for all non-founders. Warning: Parents must come before
-children in each pedigree for averaging to work.
+Compute the ethnic admixture fractions for all non-founders.
+Warning: Parents must come before children in each pedigree
+for averaging to work.
 """
 function ethnic_admixture!(person::Person)
 
+  populations = person.populations
   for i = 1:person.people
     if person.mother[i] != 0
       a = person.admixture[person.mother[i], :]
       b = person.admixture[person.father[i], :]
       person.admixture[i, :] = 0.5 * (a + b)
     else
-      for j = 1:length(person.admixture[i, :])
+##       for j = 1:length(person.admixture[i, :])
+      for j = 1:populations
         if isna(person.admixture[i, j])
           person.admixture[i, j] = 0.0
         end
@@ -1510,11 +1547,10 @@ function ethnic_admixture!(person::Person)
 end # function ethnic_admixture!
 
 """
-This function estimates allele frequencies at locus loc
-by gene counting (EM algorithm). People are treated as
-unrelated. A pseudocount is required for each population
-allele pair. Warning: Estimation should precede genotype
-elimination and allele consolidation.
+Estimate allele frequencies at locus loc by gene counting (EM algorithm).
+People are treated as unrelated. A pseudocount is required
+for each population allele pair. Warning: Estimation should precede
+genotype elimination and allele consolidation.
 """
 function gene_counting(person::Person, locus::Locus, loc::Int,
                        pseudocount::Matrix{Float64})
@@ -1602,8 +1638,8 @@ function gene_counting(person::Person, locus::Locus, loc::Int,
 end # function gene_counting
 
 """
-This function checks that ancestral populations are present in both the
-pedigree and locus frames.
+Check that ancestral populations are present in both the pedigree
+and locus frames.
 """
 function check_populations(locus_frame::DataFrame, pedigree_frame::DataFrame,
                            keyword::Dict{ASCIIString, Any})

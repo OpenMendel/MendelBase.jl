@@ -3,6 +3,18 @@ This module includes all the base functions of OpenMendel.
 """
 module MendelBase
 #
+# Required external packages.
+#
+using DataFrames    # From package DataFrames.
+using Distributions # From package Distributions.
+using GLM           # From package GLM.
+#
+# Required OpenMendel packages and modules.
+#
+using Search
+using SearchSetup
+using SnpArrays
+#
 # Define the data structures used by OpenMendel.
 #
 include("data_structures.jl")
@@ -33,9 +45,5 @@ include("model_construction.jl")
 #
 include("elston_stewart_preparation.jl")
 include("elston_stewart_evaluation.jl")
-#
-# Include specialized optimization routines.
-#
-include("optimize.jl")
 
 end # module MendelBase

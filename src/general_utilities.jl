@@ -3,10 +3,10 @@
 ################################################################################
 
 export empties, blanks, repeated_string, select_set_element, random_category
-export normalize!, print_sample_stats, sample_mean_std, sample_stats
+export normalize!, print_sample_stats, sample_mean_std, sample_stats, simes_fdr
 
 """
-This function creates an array of blank ASCII strings.
+Create an array of blank ASCII strings.
 """
 function blanks(n::Int)
 
@@ -18,7 +18,7 @@ function blanks(n::Int)
 end # function blanks
 
 """
-This function creates an array of empty integer sets.
+Create an array of empty integer sets.
 """
 function empties(n::Int)
 
@@ -30,7 +30,7 @@ function empties(n::Int)
 end # function empties
 
 """
-This function identifies a repeated string in an array of strings.
+Identify a repeated string in an array of strings.
 """
 function repeated_string(name::Vector{ASCIIString})
 
@@ -44,7 +44,7 @@ function repeated_string(name::Vector{ASCIIString})
 end # function repeated_string
 
 """
-This function selects element number k of the integer set S.
+Select element number k of the integer set S.
 """
 function select_set_element(set_s::IntSet, k::Int)
 
@@ -56,10 +56,11 @@ function select_set_element(set_s::IntSet, k::Int)
       j = j + 1
     end
   end
+  return nothing
 end # function select_set_element
 
 """
-This function returns a random category (numbered 1, 2, and so forth)
+Return a random category (numbered 1, 2, and so forth)
 according to a vector of category frequencies.
 """
 function random_category(frequency::Vector{Float64})
@@ -76,9 +77,9 @@ function random_category(frequency::Vector{Float64})
 end # function random_category
 
 """
-This function normalizes the vector x. Missing values are ignored.
+Normalize the vector x. Missing values are ignored.
 """
-function normalize!(x::Vector{AbstractFloat})
+function normalize!(x::Vector{Float64})
 
   (p, avg, ss) = zeros(3)
   for i = 1:length(x)
@@ -99,7 +100,7 @@ function normalize!(x::Vector{AbstractFloat})
 end # function normalize!
 
 """
-This function computes a sample mean and standard deviation.
+Compute a sample mean and standard deviation.
 Missing values are ignored.
 """
 function sample_mean_std(x::Vector{Float64})
@@ -122,14 +123,14 @@ function sample_mean_std(x::Vector{Float64})
 end # function sample_mean_std
 
 """
-This function computes sample statistics for the data
-vector x. Missing values equal NaN. The output consists
+Compute sample statistics for the data vector x.
+Missing values equal NaN. The output consists
 of the number of values present, the number of values
 missing, the minimum, the 0.25 quantile, the median, the
 0.75 quantile, the maximum, the mean, the standard
 deviation, the skewness, and the excess kurtosis.
 """
-function sample_stats(x::Vector{AbstractFloat})
+function sample_stats(x::Vector{Float64})
 
   y = copy(x)
   (p, n) = (0, length(x))
@@ -145,7 +146,7 @@ function sample_stats(x::Vector{AbstractFloat})
 end # function sample_stats
 
 """
-This function prints the sample statistics output by the function sample_stats.
+Print the sample statistics output by the function sample_stats.
 """
 function print_sample_stats(s, io::IO = STDOUT)
 
@@ -163,3 +164,58 @@ function print_sample_stats(s, io::IO = STDOUT)
   println(io, "Excess Kurtosis:    ", s[11])
 end # function print_sample_stats
 
+"""
+Perform the Simes false discovery rate (FDR) procedure discussed 
+by Benjamini and Hochberg. All p-values at or below the threshold
+are declared significant for the given FDR rate and number of tests.
+"""
+function simes_fdr(pvalue::Vector{Float64}, fdr::Vector{Float64}, tests::Int)
+
+  n = length(fdr)
+  threshold = zeros(n)
+  number_passing = zeros(Int, n)
+  perm = sortperm(pvalue)
+  k = 1 # previous value of i
+  for j = 1:n
+    i = 0
+    for i = k:length(pvalue)
+      if tests * pvalue[perm[i]] > i * fdr[j]; break; end
+    end
+    if i == 1; continue; end
+    k = i - 1
+    threshold[j] = pvalue[perm[i - 1]]
+    number_passing[j] = i - 1
+  end
+  return (number_passing, threshold)
+end # function simes_fdr
+
+# using GeneralUtilities
+# n = 10
+# a = blanks(n)
+# println(a,"  ",typeof(a))
+# b = empties(n)
+# println(b,"  ",typeof(b))
+# c = repeated_string(["av", "bc", "qrb", "bc"])
+# println(c)
+# integerset = IntSet([7, 5, 4, 10])
+# d = select_set_element(integerset, 3)
+# println(integerset,"  ",d)
+# frequency = rand(n)
+# frequency = frequency / sum(frequency)
+# @time for i = 1:1000
+#   s = random_category(frequency)
+#   if s < 1 || s > n
+#     println("category error")
+#   end
+# end
+# n = 100
+# x = randn(n)
+# x[1] = NaN
+# normalize!(x)
+# println(sample_mean_std(x))
+# s = sample_stats(x)
+# print_sample_stats(s)
+# pvalue = 0.1*rand(n)
+# fdr = collect(0.1:0.1:0.5)
+# tests = 1000
+# (number_passing, threshold) = simes_fdr(pvalue, fdr, tests)

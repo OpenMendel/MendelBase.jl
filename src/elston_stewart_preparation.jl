@@ -2,7 +2,9 @@
 # This set of functions prepares OpenMendel to evaluate the likelihood
 # of a collection of pedigrees by the Elston-Stewart algorithm.
 ################################################################################
-
+#
+# Required OpenMendel packages and modules.
+#
 # using DataStructures
 # using GeneralUtilities
 # using GeneticUtilities
@@ -34,7 +36,7 @@ export multiply_and_add, pure_multiply, quit_processing_pedigree
 export model_recombination_fractions
 
 """
-This function orchestrates allele lumping, genotype consolidation,
+Orchestrate allele lumping, genotype consolidation,
 and creation of the Elston-Stewart instructions.
 """
 function orchestrate_likelihood(pedigree::Pedigree, person::Person,
@@ -108,13 +110,13 @@ function orchestrate_likelihood(pedigree::Pedigree, person::Person,
 end  # function orchestrate_likelihood
 
 """
-This function consolidates alleles in each pedigree at
-locus number loc. The lumped allele is numbered alleles + 1,
-where alleles counts the number of alleles at locus loc.
+Consolidate alleles in each pedigree at locus number loc.
+The lumped allele is numbered alleles + 1,
+where alleles counts the number of alleles at the locus.
 The frequency of the lumped allele and the lumping status
 of each pedigree is returned along with the altered
-genotype set for each person. Warning: Allele consolidation
-should precede genotype elimination.
+genotype set for each person.
+Warning: Allele consolidation should precede genotype elimination.
 """
 function allele_consolidation(pedigree::Pedigree, person::Person,
   locus::Locus, loc::Int)
@@ -193,7 +195,7 @@ function allele_consolidation(pedigree::Pedigree, person::Person,
 end # function allele_consolidation
 
 """
-This function performs genotype elimination at locus number loc.
+Perform genotype elimination at locus number loc.
 Genotypes for person i are stored in the set person.genotype[i, loc].
 """
 function genotype_elimination!(pedigree::Pedigree, person::Person,
@@ -327,8 +329,7 @@ function genotype_elimination!(pedigree::Pedigree, person::Person,
 end # function genotype_elimination!
 
 """
-This function specifies the steps of the Elston-Stewart algorithm for
-each pedigree.
+Specify the steps of the Elston-Stewart algorithm for each pedigree.
 """
 function prepare_elston_stewart(pedigree::Pedigree, person::Person,
   locus::Locus, elston_stewart_count::Vector{Float64},
@@ -418,8 +419,7 @@ function prepare_elston_stewart(pedigree::Pedigree, person::Person,
 end # function prepare_elston_stewart
 
 """
-This function defines the adjacency graph connecting the indices of
-summation.
+Define the adjacency graph connecting the indices of summation.
 """
 function adjacency_graph(pedigree::Pedigree, person::Person, locus::Locus,
   homozygotes::Matrix{Int}, pedigree_product_mode::Bool, ped::Int,
@@ -461,19 +461,19 @@ function adjacency_graph(pedigree::Pedigree, person::Person, locus::Locus,
           kloc = locus.model_locus[k]
           self_connected = false
           if mom != 0
-            if !loci_split(homozygotes[mom, :], mom, j, k, free_recombination)
+            if !loci_split(homozygotes[mom, :], j, k, free_recombination)           
               if j != k; self_connected = true; end
               push!(graph[node], (mom - ped_start) * model_loci + k)
             end
           end
           if dad != 0
-            if !loci_split(homozygotes[dad, :], dad, j, k, free_recombination)
+            if !loci_split(homozygotes[dad, :], j, k, free_recombination)
               if j != k; self_connected = true; end
               push!(graph[node], (dad - ped_start) * model_loci + k)
             end
           end
           if length(person.children[i]) > 0 &&
-            !loci_split(homozygotes[i, :], i, j, k, free_recombination)
+            !loci_split(homozygotes[i, :], j, k, free_recombination)
             if j != k; self_connected = true; end
             for kid in person.children[i]
               push!(graph[node], (kid - ped_start) * model_loci + k)
@@ -511,29 +511,29 @@ function adjacency_graph(pedigree::Pedigree, person::Person, locus::Locus,
 end # function adjacency_graph
 
 """
-This function decides if two model loci are split within person i
+Decide if two model loci are split within person i
 in the sense of being separated by an obligate heterozygous locus.
 Under free recombination, the likelihood factors over different loci.
 """
-function loci_split(homozygotes, i::Int, locus_1::Int, locus_2::Int,
-  free_recombination::Bool)
+function loci_split(homozygotes, locus_1::Int, locus_2::Int,
+                    free_recombination::Bool)
 
   if free_recombination
-    loci_split = locus_1 != locus_2
+    split_loci = locus_1 != locus_2
   else
-    loci_split = false
+    split_loci = false
     for loc = min(locus_1, locus_2) + 1:max(locus_1, locus_2) - 1
       if homozygotes[loc] == 0
         return true
       end
     end
   end
-  return loci_split
+  return split_loci
 end # function loci_split
 
 """
-This function selects a good summation sequence by the greedy
-method and stores it in a permutation. Observe that the cost
+Select a good summation sequence by the greedy method
+and store it in a permutation. Observe that the cost
 of removing a node from the adjacency graph is a simple surrogate
 for the number of arithmetic operations involved in summing over
 the genotypes possible for the node.
@@ -607,13 +607,13 @@ function greedy(nodes::Int, graph::Vector{IntSet},
 end  # function greedy
 
 """
-This function creates the index sets for all initial arrays in
-likelihood computation. Allocate the index sets and a variable
-n tracking the current index set.
+Create the index sets for all initial arrays in likelihood computation.
 """
 function create_index_set(pedigree::Pedigree, person::Person,
   locus::Locus, nodes::Int, ped::Int, pedigree_product_mode::Bool)
-
+  #
+  # Allocate the index sets and a variable n tracking the current index set.
+  #
   model_loci = locus.model_loci
   free_recombination = locus.free_recombination
   ped_start = pedigree.start[ped]
@@ -717,8 +717,7 @@ function create_index_set(pedigree::Pedigree, person::Person,
 end # function create_index_set
 
 """
-This function prepares the instructions for carrying out the
-Elston-Stewart algorithm.
+Prepare the instructions for performing the Elston-Stewart algorithm.
 """
 function prepare_instructions(pedigree::Pedigree, person::Person, locus::Locus,
   elston_stewart_count::Vector{Float64}, index_set::Vector{IntSet}, 
@@ -907,14 +906,13 @@ function prepare_instructions(pedigree::Pedigree, person::Person, locus::Locus,
 end # function prepare_instructions
 
 """
-This subroutine consolidates the nodes for the multiplicand and product
-arrays into blocks. It then generates the instructions for a pure
-multiply or a multiply and add. a and b are the index sets for the
-multiplicand arrays, and a_union_b is the index set for the product
-array. n is the current instruction index, and pivot is the node to
+Consolidate the nodes for the multiplicand and product arrays into blocks.
+Generate the instructions for a pure multiply or a multiply and add.
+a and b are the index sets for the multiplicand arrays,
+and a_union_b is the index set for the product array.
+n is the current instruction index, and pivot is the node to
 be eliminated in a multiply and add. a_location and b_location give
-the locations of the multiplicand arrays in the evolving sequence of
-arrays.
+the locations of the multiplicand arrays in the evolving sequence of arrays.
 """
 function combine_nodes(a::IntSet, b::IntSet, a_union_b::IntSet,
   weight::Vector{Int}, a_location::Int, b_location::Int, nodes::Int, pivot::Int)
@@ -1097,8 +1095,7 @@ function combine_nodes(a::IntSet, b::IntSet, a_union_b::IntSet,
 end # function combine_nodes
 
 """
-This function finds the product of the weights of the
-elements of the integer set S.
+Find the product of the weights of the elements of the integer set S.
 """
 function product_weights(s::IntSet, weight::Vector{Int})
 
@@ -1110,7 +1107,7 @@ function product_weights(s::IntSet, weight::Vector{Int})
 end # function product_weights
 
 """
-This function computes recombination fractions between adjacent model loci.
+Compute recombination fractions between adjacent model loci.
 """
 function model_recombination_fractions(locus::Locus,
   keyword::Dict{ASCIIString, Any})

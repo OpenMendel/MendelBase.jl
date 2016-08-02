@@ -4,7 +4,7 @@
 # The plural of a variable indicates the number of instances of the variable.
 ################################################################################
 
-export Person, Pedigree, NuclearFamily, Locus, Parameter
+export Person, Pedigree, NuclearFamily, Locus
 
 type Person
   people :: Int
@@ -66,25 +66,5 @@ type Locus
   lumped_frequency :: Array{Float64, 3} # indices: pedigree, population, locus
   model_locus :: Vector{Int} # indices of loci currently modeled
   locus_field_in_pedigree_frame :: Vector{Int}
-end
-
-type Parameter
-  cases :: Int # number of cases in a least squares problem
-  constraints :: Int # number of affine constraints
-  goal :: ASCIIString # "minimize" or "maximize"
-  output_unit :: IO # for output of Search iterations
-  parameters :: Int # number of parameters
-  points :: Int # number of points in a grid search
-  standard_errors :: Bool # true for parameter standard errors
-  title :: ASCIIString # problem title
-  travel :: ASCIIString # "grid" or "search"
-  constraint :: Matrix{Float64} # parameter.constraint[constraint, par]
-  constraint_level :: Vector{Float64}
-  function_value :: Vector{Float64}
-  grid :: Matrix{Float64} # parameter.grid[point, coordinate]
-  min :: Vector{Float64}
-  max :: Vector{Float64}
-  name :: Vector{ASCIIString}
-  par :: Vector{Float64}
 end
 
