@@ -1,20 +1,28 @@
 # MendelBase
- 
-[![Build Status](https://travis-ci.org/OpenMendel/MendelBase.jl.svg?branch=master)](https://travis-ci.org/ericsobel/MendelBase.jl)
 
-This Base Module includes all the base functions of OpenMendel. It includes useful utilities such as functions to process keywords that specify the data files to use and the analysis options to perform, functions to read data from external files, and specialized optimization routines.
+MendelBase includes all the base functions of [OpenMendel](https://openmendel.github.io). It includes useful utilities such as functions to process keywords that specify the data files to use and the analysis options to perform, and functions to read data from external files.
+
+[![](https://img.shields.io/badge/docs-latest-blue.svg)](https://OpenMendel.github.io/MendelBase.jl/latest)
 
 ## Installation
 
-Use the Julia package manager to install MendelBase.jl:
+*Note: Three OpenMendel packages - [SnpArrays](https://github.com/OpenMendel/SnpArrays.jl), [Search](https://github.com/OpenMendel/Search.jl), and [MendelBase](https://github.com/OpenMendel/MendelBase.jl) must be installed before any Mendel analysis packages will run.*
+
+Within Julia, use the package manager to install MendelBase:
 
     Pkg.clone("git@github.com:OpenMendel/MendelBase.jl.git")
 
-## Documentation
+This package supports Julia v0.4.
 
-## OpenMendel
+## Citation
 
-OpenMendel is one component of the umbrella [OpenMendel](https://github.com/OpenMendel) project. See [cite]() if you use the code in your research.
+If you use this analysis package in your research, please cite the following reference in the resulting publications:
+
+Lange K, Papp JC, Sinsheimer JS, Sripracha R, Zhou H, Sobel EM (2013) Mendel: The Swiss army knife of genetic analysis programs. Bioinformatics 29:1568-1570.
+
+<!--- ## Contributing
+We welcome contributions to this Open Source project. To contribute, follow this procedure ... --->
 
 ## Acknowledgments
-This project is supported through National Institutes of Health R01 HG006139.
+
+This project is supported by the National Institutes of Health under NIGMS awards R01GM053275 and R25GM103774 and NHGRI award R01HG006139.
