@@ -32,29 +32,274 @@
     <div id="main_content_wrap" class="outer">
       <section id="main_content" class="inner">
         <h3>
-<a id="welcome-to-mendelbase-pages" class="anchor" href="#welcome-to-mendelbase-pages" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Welcome to MendelBase Pages.</h3>
+<a id="input-files" class="anchor" href="#input-files" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Input Files</h3>
 
-<p><strong>This page generator is the easiest way to create beautiful pages for all of your projects. Author your page content here <a href="https://guides.github.com/features/mastering-markdown/">using GitHub Flavored Markdown</a>, select a template crafted by a designer, and publish. After your page is generated, you can check out the new <code>gh-pages</code> branch locally. If you’re using GitHub Desktop, simply sync your repository and you’ll see the new branch.</strong></p>
+<p>To make your genetic data available to OpenMendel, the various input files must be in a format
+that OpemMendel can read. To provide OpenMendel with the information it needs to perform its analysis you must prepare the following files. An analysis option won't always need every file type.</p>
+
+<ul>
+<li>
+<strong>Control file:</strong> Specifies the names of your data files and any optional parameters (<em>keywords</em>) for the analysis.</li>
+<li>
+<strong>Locus File:</strong> Names and describes the genetic loci in your data.</li>
+<li>
+<strong>Pedigree File:</strong> Gives information about your individuals, such as name, sex, family structure, and ancestry.</li>
+<li>
+<strong>Phenotype File:</strong> Lists the available phenotypes.</li>
+<li>
+<strong>SNP Definition File:</strong> Defines your SNPs with information such as SNP name, chromosome, position, allele names, allele frequencies. This may be a PLINK .bim format file.</li>
+<li>
+<strong>SNP Data File:</strong> Holds the genotypes for your data set. Must be a standard binary PLINK .bed file in SNP major format. If you have a SNP data file you must have a SNP definition file.</li>
+</ul>
 
 <h3>
-<a id="designer-templates" class="anchor" href="#designer-templates" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Designer Templates</h3>
+<a id="control-files" class="anchor" href="#control-files" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Control files</h3>
 
-<p>We’ve crafted some handsome templates for you to use. Go ahead and click 'Continue to layouts' to browse through them. You can easily go back to edit your page before publishing. After publishing your page, you can revisit the page generator and switch to another theme. Your Page content will be preserved.</p>
+<p>The format of the Control file is</p>
+
+<pre><code>Keyword = Keyword_Value(s)
+</code></pre>
+
+<p>Below is an example Control file to run GWAS (text after "#" is commented out):</p>
+
+<pre><code>#
+# Input and Output files.
+#
+plink_input_basename = gwas 1 data
+output_file = gwas 1 Output.txt
+manhattan_plot_file = ManPlotOutput_1.png
+#
+# Analysis parameters.
+#
+regression = linear
+regression_formula = Trait ~ Sex
+</code></pre>
+
+<p>In the example above, there are five keywords. The first three specify input and output files: <em>plink_input_basename</em>, <em>output_file</em>, <em>manhattan_plot_file</em>. The last two specify analysis parameters: <em>regression</em> and <em>regression_formula</em>. The text after the '=' are the keyword values.</p>
 
 <h3>
-<a id="creating-pages-manually" class="anchor" href="#creating-pages-manually" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Creating pages manually</h3>
+<a id="keywords" class="anchor" href="#keywords" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Keywords</h3>
 
-<p>If you prefer to not use the automatic generator, push a branch named <code>gh-pages</code> to your repository to create a page manually. In addition to supporting regular HTML content, GitHub Pages support Jekyll, a simple, blog aware static site generator. Jekyll makes it easy to create site-wide headers and footers without having to copy them across every page. It also offers intelligent blog support and other advanced templating features.</p>
+<table>
+<thead>
+<tr>
+<th>Keyword</th>
+<th>Default</th>
+<th>Allowed Values</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>affected_designator</td>
+<td>"affected"</td>
+<td></td>
+</tr>
+<tr>
+<td>allele_pseudo_count</td>
+<td>0.1</td>
+<td></td>
+</tr>
+<tr>
+<td>allele_separator</td>
+<td>"/\"</td>
+<td>first character is used in output</td>
+</tr>
+<tr>
+<td>analysis_option</td>
+<td>""</td>
+<td></td>
+</tr>
+<tr>
+<td>complexity_threshold</td>
+<td>5e7</td>
+<td></td>
+</tr>
+<tr>
+<td>disease_status</td>
+<td>""</td>
+<td></td>
+</tr>
+<tr>
+<td>distribution</td>
+<td>Normal()</td>
+<td>Binomial, Gamma, Normal, Poisson</td>
+</tr>
+<tr>
+<td>eliminate_genotypes</td>
+<td>false</td>
+<td></td>
+</tr>
+<tr>
+<td>female</td>
+<td>Set{Any}(["female", "f", 'f', "2", '2', 2])</td>
+<td></td>
+</tr>
+<tr>
+<td>field_separator</td>
+<td>','</td>
+<td></td>
+</tr>
+<tr>
+<td>genetic_map_function</td>
+<td>"Haldane"</td>
+<td>"Haldane" or "Kosambi"</td>
+</tr>
+<tr>
+<td>link</td>
+<td>IdentityLink()</td>
+<td></td>
+</tr>
+<tr>
+<td>locus_file</td>
+<td>""</td>
+<td></td>
+</tr>
+<tr>
+<td>lump_alleles</td>
+<td>false</td>
+<td></td>
+</tr>
+<tr>
+<td>male</td>
+<td>Set{Any}(["male", "m", 'm', "1", '1', 1])</td>
+<td></td>
+</tr>
+<tr>
+<td>new_pedigree_file</td>
+<td>""</td>
+<td></td>
+</tr>
+<tr>
+<td>ordered_allele_separator</td>
+<td>"</td>
+<td>"</td>
+</tr>
+<tr>
+<td>output_file</td>
+<td>"Mendel_Output.txt"</td>
+<td></td>
+</tr>
+<tr>
+<td>pedigree_file</td>
+<td>""</td>
+<td></td>
+</tr>
+<tr>
+<td>phenotype_file</td>
+<td>""</td>
+<td></td>
+</tr>
+<tr>
+<td>plink_input_basename</td>
+<td>""</td>
+<td></td>
+</tr>
+<tr>
+<td>plink_output_basename</td>
+<td>""</td>
+<td></td>
+</tr>
+<tr>
+<td>populations</td>
+<td>Set{ASCIIString}()</td>
+<td></td>
+</tr>
+<tr>
+<td>product_mode</td>
+<td>true</td>
+<td></td>
+</tr>
+<tr>
+<td>seed</td>
+<td>1234</td>
+<td></td>
+</tr>
+<tr>
+<td>snpdata_file</td>
+<td>""</td>
+<td></td>
+</tr>
+<tr>
+<td>snpdefinition_file</td>
+<td>""</td>
+<td></td>
+</tr>
+<tr>
+<td>trait</td>
+<td>""</td>
+<td></td>
+</tr>
+<tr>
+<td>xlinked_analysis</td>
+<td>false</td>
+<td></td>
+</tr>
+</tbody>
+</table>
 
 <h3>
-<a id="authors-and-contributors" class="anchor" href="#authors-and-contributors" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Authors and Contributors</h3>
+<a id="locus-file" class="anchor" href="#locus-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Locus File</h3>
 
-<p>You can @mention a GitHub username to generate a link to their profile. The resulting <code>&lt;a&gt;</code> element will link to the contributor’s GitHub Profile. For example: In 2007, Chris Wanstrath (<a href="https://github.com/defunkt" class="user-mention">@defunkt</a>), PJ Hyett (<a href="https://github.com/pjhyett" class="user-mention">@pjhyett</a>), and Tom Preston-Werner (<a href="https://github.com/mojombo" class="user-mention">@mojombo</a>) founded GitHub.</p>
+<p>The Locus File must have a header row with the fieldnames (in any order): Locus, Allele, Chromosome, Frequency. If your samples come from different populations, instead of one column lablelled Frequency, name the populations in the control file with the keyword <em>populations</em>, and give a frequency for each population, where the fieldnames are the population names specified in the control file.</p>
+
+<p><strong>Example</strong></p>
+
+<pre><code>Locus,Allele,Chromosome,Basepairs,FemaleMorgans,MaleMorgans,European,African,Chinese
+ABO,A,9,10,0.0,0.0,0.27,0.18,0.19
+ABO,B,9,10,0.0,0.0,0.06,0.11,0.17
+ABO,O,9,10,0.0,0.0,NA,0.71,0.64
+Rh,D,1,0,0.0,0.0,0.61,0.81,1.0
+Rh,d,1,0,0.0,0.0,0.39,0.19,0.0
+SNP,1,9,0,0.2,0.1,NA,NA,NA
+SNP,2,9,0,0.2,0.1,NA,NA,NA
+</code></pre>
 
 <h3>
-<a id="support-or-contact" class="anchor" href="#support-or-contact" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Support or Contact</h3>
+<a id="pedigree-file" class="anchor" href="#pedigree-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Pedigree File</h3>
 
-<p>Having trouble with Pages? Check out our <a href="https://help.github.com/pages">documentation</a> or <a href="https://github.com/contact">contact support</a> and we’ll help you sort it out.</p>
+<p>A Pedigree file is always required. It can be in PLINK FAM file format, in which case it must have the extension .fam, or it can have the format of a required header rows with the following fieldnames (in any order): Pedigree,Person,Mother,Father,Sex,Twin, and optional columns such as populations ancestries.</p>
+
+<p><strong>Example</strong></p>
+
+<pre><code>Pedigree,Person,Mother,Father,Sex,Twin,BirthYear,Politician,European,African,Chinese,ABO,Rh,Xg,XSNP,HtMeters
+Clinton,Bill,,,male,0,1946.0,true,1.0,0.0,0.0,A,+,+,2/2,1.88
+Clinton,Hillary,,,female,0,1947.0,true,1.0,0.0,0.0,O,-,-,1/1,NA
+Clinton,Chelsea,Hillary,Bill,female,0,1980.0,false,NA,NA,NA,A,+,-,1/2,NA
+Obama,Barack,,,male,0,1961.0,true,0.5,0.5,0.0,O,+,NA,1/1,1.85
+Obama,Michelle,,,female,0,1964.0,false,0.3,0.7,0.0,B,+,NA,2/2,NA
+Obama,Malia,Michelle,Barack,female,0,1998.0,false,NA,NA,NA,O,-,+,1/2,NA
+Obama,Sasha,Michelle,Barack,female,0,2001.0,false,NA,NA,NA,B,+,+,1/2,NA
+</code></pre>
+
+<h3>
+<a id="phenotype-file" class="anchor" href="#phenotype-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Phenotype File</h3>
+
+<p>Format</p>
+
+<p><strong>Example</strong></p>
+
+<pre><code>Locus,Phenotype,Genotypes
+ABO,A,"A/A,A/O"
+ABO,B,"B/B,B/O"
+ABO,AB,"A/B"
+ABO,O,"O/O"
+Rh,+,"D/D,D/d"
+Rh,-,"d/d"
+Xg,+,"+/+,+/-"
+Xg,-,"-/-"
+</code></pre>
+
+<h3>
+<a id="snp-definition-file" class="anchor" href="#snp-definition-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>SNP Definition File</h3>
+
+<p>Defines your SNPs with information such as SNP name, chromosome, position, allele names, allele frequencies. This may be a PLINK .bim format file.</p>
+
+<h3>
+<a id="snp-data-file" class="anchor" href="#snp-data-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>SNP Data File</h3>
+
+<p>Holds the genotypes for your data set. Must be a standard binary PLINK .bed file in SNP major format. If you have a SNP data file you must have a SNP definition file.</p>
+
+<p>The symbol for missing data is "" or "NA". The PLINK File missing data symbols are "0" or "-9"</p>
       </section>
     </div>
 
