@@ -2,7 +2,7 @@
 
 MendelBase includes all the base functions of [OpenMendel](https://openmendel.github.io). It includes useful utilities such as functions to process keywords that specify the data files to use and the analysis options to perform, and functions to read data from external files.
 
-[![](https://img.shields.io/badge/docs-latest-blue.svg)](https://OpenMendel.github.io/MendelBase.jl/latest)
+[![](https://img.shields.io/badge/docs-current-blue.svg)](https://OpenMendel.github.io/MendelBase.jl)
 
 ## Installation
 
@@ -18,7 +18,7 @@ This package supports Julia v0.4.
 
 If you use [OpenMendel](https://openmendel.github.io) analysis packages in your research, please cite the following reference in the resulting publications:
 
-Lange K, Papp JC, Sinsheimer JS, Sripracha R, Zhou H, Sobel EM (2013) Mendel: The Swiss army knife of genetic analysis programs. Bioinformatics 29:1568-1570.
+*Lange K, Papp JC, Sinsheimer JS, Sripracha R, Zhou H, Sobel EM (2013) Mendel: The Swiss army knife of genetic analysis programs. Bioinformatics 29:1568-1570.*
 
 <!--- ## Contributing
 We welcome contributions to this Open Source project. To contribute, follow this procedure ... --->

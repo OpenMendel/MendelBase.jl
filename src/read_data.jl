@@ -133,7 +133,8 @@ function read_plink_fam_file(plink_fam_file::AbstractString,
   column_types = [UTF8String, UTF8String, UTF8String, UTF8String,
     Int64, UTF8String]
   column_names = [:Pedigree, :Person, :Father, :Mother, :Sex, :Trait]
-  field_sep = keyword["field_separator"]
+##  field_sep = keyword["field_separator"]
+  field_sep = ' '
   fam_dframe = readtable(plink_fam_file, header = false, separator = field_sep,
     eltypes = column_types, names = column_names)
   for i = 1:size(fam_dframe, 1)
@@ -160,7 +161,8 @@ function read_plink_bim_file(plink_bim_file::AbstractString,
     UTF8String, UTF8String]
   column_names = [:Chromosome, :SNP, :CentiMorgans, :Basepairs, 
     :Allele1, :Allele2]
-  field_sep = keyword["field_separator"]
+##  field_sep = keyword["field_separator"]
+  field_sep = ' '
   bim_dframe = readtable(plink_bim_file, header = false, separator = field_sep,
     eltypes = column_types, names = column_names)
   return bim_dframe
