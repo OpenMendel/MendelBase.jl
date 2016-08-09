@@ -32,6 +32,21 @@
     <div id="main_content_wrap" class="outer">
       <section id="main_content" class="inner">
         <h3>
+<a id="overview" class="anchor" href="#overview" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Overview</h3>
+
+<p><a href="https://github.com/OpenMendel/MendelBase.jl">MendelBase</a> is a utility package that contains the base functions of <a href="https://openmendel.github.io">OpenMendel</a>. It provides the information needed to process keywords and read data from external files. MendelBase is necessary to run any analysis package, and you should install MendelBase first, before you install the other packages.</p>
+
+<h2>
+<a id="installation" class="anchor" href="#installation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Installation</h2>
+
+<p>Within Julia, use the package manager to install MendelBase:</p>
+
+<pre><code>Pkg.clone("git@github.com:OpenMendel/MendelBase.jl.git")
+</code></pre>
+
+<p>This package supports Julia v0.4.</p>
+
+<h3>
 <a id="input-files" class="anchor" href="#input-files" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Input Files</h3>
 
 <p>To make your genetic data available to OpenMendel, the various input files must be in a format
@@ -81,6 +96,8 @@ regression_formula = Trait ~ Sex
 <h3>
 <a id="keywords" class="anchor" href="#keywords" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Keywords<a id="keywords-table"></a>
 </h3>
+
+<p>This is a list of all OpenMendel keywords. Some keywords are basic to all analysis packages, and some apply only to certain options. The keywords specific to an analysis package are covered in detail in the documentation for each package.</p>
 
 <table>
 <thead>
@@ -337,6 +354,20 @@ Xg,-,"-/-"
 <p>Holds the genotypes for your data set. Must be a standard binary PLINK .bed file in SNP major format. If you have a SNP data file you must have a SNP definition file.</p>
 
 <p>The symbol for missing data is "" or "NA". The PLINK File missing data symbols are "0" or "-9"</p>
+
+<h2>
+<a id="citation" class="anchor" href="#citation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Citation</h2>
+
+<p>If you use this analysis package in your research, please cite the following reference in the resulting publications:</p>
+
+<p><em>Lange K, Papp JC, Sinsheimer JS, Sripracha R, Zhou H, Sobel EM (2013) Mendel: The Swiss army knife of genetic analysis programs. Bioinformatics 29:1568-1570.</em></p>
+
+
+
+<h2>
+<a id="acknowledgments" class="anchor" href="#acknowledgments" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Acknowledgments</h2>
+
+<p>This project is supported by the National Institutes of Health under NIGMS awards R01GM053275 and R25GM103774 and NHGRI award R01HG006139.</p>
       </section>
     </div>
 
