@@ -290,7 +290,7 @@ regression_formula = Trait ~ Sex
 <a id="locus-file" class="anchor" href="#locus-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Locus File<a id="locus-file"></a>
 </h3>
 
-<p>The Locus File must have a header row with the fieldnames (in any order): Locus, Allele, Chromosome, Frequency. If your samples come from different populations, instead of one column lableled Frequency, name the populations in the control file with the keyword <em>populations</em>, and give a frequency for each population, where the fieldnames are the population names specified in the control file. The population frequencies need not sum to 1.</p>
+<p>The Locus File must have a header row with the fieldnames (in any order): Locus, Allele, Chromosome, Frequency. If your samples come from different populations, instead of one column lableled Frequency, name the populations in the control file with the keyword <em>populations</em>, and give a frequency for each population, where the fieldnames are the population names specified in the control file. The population frequencies need not sum to 1, but will be normalized to 1 in the analysis.</p>
 
 <p><strong>Example</strong></p>
 
@@ -308,7 +308,7 @@ SNP,2,9,0,0.2,0.1,NA,NA,NA
 <a id="pedigree-file" class="anchor" href="#pedigree-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Pedigree File<a id="pedigree-file"></a>
 </h3>
 
-<p>A Pedigree file is always required. It can be in PLINK FAM file format, in which case it must have the extension .fam, or it can have the format of a required header rows with the following fieldnames (in any order): Pedigree,Person,Mother,Father,Sex,Twin, and optional columns such as populations ancestries.</p>
+<p>A Pedigree file is always required. It can be in PLINK FAM file format, in which case it must have the extension .fam, or it can have the format of a required header rows with the following fieldnames (in any order): Pedigree,Person,Mother,Father,Sex,Twin, and optional columns such as population ancestries. The fractional ancestries need not sum to 1, but will be normalized to 1 in the analysis.</p>
 
 <p><strong>Example</strong></p>
 
