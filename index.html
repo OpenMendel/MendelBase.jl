@@ -76,7 +76,7 @@ that OpenMendel can read. To provide OpenMendel with the information it needs to
 <pre><code>Keyword = Keyword_Value(s)
 </code></pre>
 
-<p>Below is an example Control file to run GWAS (text after "#" is commented out):</p>
+<p>Below is an example Control file to run GWAS (text after "#" is ignored and treated as comments):</p>
 
 <pre><code>#
 # Input and Output files.
@@ -85,7 +85,7 @@ plink_input_basename = gwas 1 data
 output_file = gwas 1 Output.txt
 manhattan_plot_file = ManPlotOutput_1.png
 #
-# Analysis parameters.
+# Analysis parameters for GWAS option.
 #
 regression = linear
 regression_formula = Trait ~ Sex
