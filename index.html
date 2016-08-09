@@ -39,21 +39,22 @@ that OpenMendel can read. To provide OpenMendel with the information it needs to
 
 <ul>
 <li>
-<strong>Control file:</strong> Specifies the names of your data input and output files and any optional parameters (<em>keywords</em>) for the analysis. (For a complete list of keywords, see <a href="#keywords-table">Keywords Table</a> below).</li>
+<a href="#control-file">Control File</a>: Specifies the names of your data input and output files and any optional parameters (<em>keywords</em>) for the analysis. (For a complete list of keywords, see <a href="#keywords-table">Keywords Table</a> below).</li>
 <li>
-<strong>Locus File:</strong> Names and describes the genetic loci in your data.</li>
+<a href="#locus-file">Locus File</a>: Names and describes the genetic loci in your data.</li>
 <li>
-<strong>Pedigree File:</strong> Gives information about your individuals, such as name, sex, family structure, and ancestry.</li>
+<a href="#pedigree-file">Pedigree File</a>: Gives information about your individuals, such as name, sex, family structure, and ancestry.</li>
 <li>
-<strong>Phenotype File:</strong> Lists the available phenotypes.</li>
+<a href="#phenotype-file">Phenotype File</a>: Lists the available phenotypes.</li>
 <li>
-<strong>SNP Definition File:</strong> Defines your SNPs with information such as SNP name, chromosome, position, allele names, allele frequencies. This may be a PLINK .bim format file.</li>
+<a href="#snp-definition-file">SNP Definition File</a>: Defines your SNPs with information such as SNP name, chromosome, position, allele names, allele frequencies. This may be a PLINK .bim format file.</li>
 <li>
-<strong>SNP Data File:</strong> Holds the genotypes for your data set. Must be a standard binary PLINK .bed file in SNP major format. If you have a SNP data file you must have a SNP definition file.</li>
+<a href="#snp-data-file">SNP Data File</a>: Holds the genotypes for your data set. Must be a standard binary PLINK .bed file in SNP major format. If you have a SNP data file you must have a SNP definition file.</li>
 </ul>
 
 <h3>
-<a id="control-files" class="anchor" href="#control-files" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Control files</h3>
+<a id="control-files" class="anchor" href="#control-files" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Control files<a id="control-file"></a>
+</h3>
 
 <p>The format of the Control file is</p>
 
@@ -239,7 +240,8 @@ regression_formula = Trait ~ Sex
 </table>
 
 <h3>
-<a id="locus-file" class="anchor" href="#locus-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Locus File</h3>
+<a id="locus-file" class="anchor" href="#locus-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Locus File<a id="locus-file"></a>
+</h3>
 
 <p>The Locus File must have a header row with the fieldnames (in any order): Locus, Allele, Chromosome, Frequency. If your samples come from different populations, instead of one column lablelled Frequency, name the populations in the control file with the keyword <em>populations</em>, and give a frequency for each population, where the fieldnames are the population names specified in the control file.</p>
 
@@ -256,7 +258,8 @@ SNP,2,9,0,0.2,0.1,NA,NA,NA
 </code></pre>
 
 <h3>
-<a id="pedigree-file" class="anchor" href="#pedigree-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Pedigree File</h3>
+<a id="pedigree-file" class="anchor" href="#pedigree-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Pedigree File<a id="pedigree-file"></a>
+</h3>
 
 <p>A Pedigree file is always required. It can be in PLINK FAM file format, in which case it must have the extension .fam, or it can have the format of a required header rows with the following fieldnames (in any order): Pedigree,Person,Mother,Father,Sex,Twin, and optional columns such as populations ancestries.</p>
 
@@ -273,7 +276,8 @@ Obama,Sasha,Michelle,Barack,female,0,2001.0,false,NA,NA,NA,B,+,+,1/2,NA
 </code></pre>
 
 <h3>
-<a id="phenotype-file" class="anchor" href="#phenotype-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Phenotype File</h3>
+<a id="phenotype-file" class="anchor" href="#phenotype-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Phenotype File<a id="phenotype-file"></a>
+</h3>
 
 <p>Format</p>
 
@@ -291,12 +295,14 @@ Xg,-,"-/-"
 </code></pre>
 
 <h3>
-<a id="snp-definition-file" class="anchor" href="#snp-definition-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>SNP Definition File</h3>
+<a id="snp-definition-file" class="anchor" href="#snp-definition-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>SNP Definition File<a id="snp-definition-file"></a>
+</h3>
 
 <p>Defines your SNPs with information such as SNP name, chromosome, position, allele names, allele frequencies. This may be a PLINK .bim format file.</p>
 
 <h3>
-<a id="snp-data-file" class="anchor" href="#snp-data-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>SNP Data File</h3>
+<a id="snp-data-file" class="anchor" href="#snp-data-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>SNP Data File<a id="snp-data-file"></a>
+</h3>
 
 <p>Holds the genotypes for your data set. Must be a standard binary PLINK .bed file in SNP major format. If you have a SNP data file you must have a SNP definition file.</p>
 
