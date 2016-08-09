@@ -112,7 +112,7 @@ regression_formula = Trait ~ Sex
 <tr>
 <td>affected_designator</td>
 <td>affected</td>
-<td>10 Characters</td>
+<td></td>
 <td>Disease phenotype designator</td>
 </tr>
 <tr>
@@ -123,9 +123,9 @@ regression_formula = Trait ~ Sex
 </tr>
 <tr>
 <td>allele_separator</td>
-<td>/ and \</td>
+<td>/</td>
 <td>1 Character</td>
-<td>Separates codominant alleles. First character is used in output</td>
+<td>Separates codominant alleles</td>
 </tr>
 <tr>
 <td>complexity_threshold</td>
@@ -136,14 +136,14 @@ regression_formula = Trait ~ Sex
 <tr>
 <td>disease_status</td>
 <td></td>
-<td>16 Characters</td>
-<td>Factor giving disease status</td>
+<td></td>
+<td>Name of column designating disease status</td>
 </tr>
 <tr>
 <td>distribution</td>
 <td>Normal()</td>
-<td>Binomial, Gamma, Normal, Poisson</td>
-<td>Distribution</td>
+<td>Binomial(), Gamma(), Normal(), or Poisson()</td>
+<td>Name of distribution</td>
 </tr>
 <tr>
 <td>eliminate_genotypes</td>
@@ -153,32 +153,32 @@ regression_formula = Trait ~ Sex
 </tr>
 <tr>
 <td>female</td>
-<td>Set{Any}(["female", "f", 'f', "2", '2', 2])</td>
-<td>6 Characters</td>
+<td>"female", "f", 'f', "2", '2', 2</td>
+<td></td>
 <td>Female designator</td>
 </tr>
 <tr>
 <td>field_separator</td>
 <td>','</td>
 <td>1 Character</td>
-<td>Character used to separates data elements</td>
+<td>Character used to separates values in data files</td>
 </tr>
 <tr>
 <td>genetic_map_function</td>
 <td>Haldane</td>
-<td>"Haldane" or "Kosambi"</td>
+<td>Haldane or Kosambi</td>
 <td>Genetic map units</td>
 </tr>
 <tr>
 <td>link</td>
 <td>IdentityLink()</td>
 <td></td>
-<td></td>
+<td>Name of link function</td>
 </tr>
 <tr>
 <td>locus_file</td>
 <td></td>
-<td>1024 Characters</td>
+<td></td>
 <td>Name of input locus file</td>
 </tr>
 <tr>
@@ -189,55 +189,55 @@ regression_formula = Trait ~ Sex
 </tr>
 <tr>
 <td>male</td>
-<td>Set{Any}(["male", "m", 'm', "1", '1', 1])</td>
-<td>6 Characters</td>
+<td>"male", "m", 'm', "1", '1', 1</td>
+<td></td>
 <td>Male designator</td>
 </tr>
 <tr>
 <td>new_pedigree_file</td>
 <td></td>
-<td>1024 Characters</td>
-<td>OpenMendel constructed pedigree file</td>
+<td></td>
+<td>OpenMendel generated output pedigree file</td>
 </tr>
 <tr>
 <td>ordered_allele_separator</td>
-<td></td>
+<td>/</td>
 <td></td>
 <td>1 Character</td>
 </tr>
 <tr>
 <td>output_file</td>
 <td>Mendel_Output.txt</td>
-<td>1024 Characters</td>
-<td>Name of standard output file</td>
+<td></td>
+<td>Name of standard results output file</td>
 </tr>
 <tr>
 <td>pedigree_file</td>
 <td></td>
-<td>1024 Characters</td>
+<td></td>
 <td>Name of input pedigree file</td>
 </tr>
 <tr>
 <td>phenotype_file</td>
 <td></td>
-<td>1024 Characters</td>
+<td></td>
 <td>Name of input phenotype file</td>
 </tr>
 <tr>
 <td>plink_input_basename</td>
 <td></td>
-<td>1024 Characters</td>
-<td>Name of plink input basename file</td>
+<td></td>
+<td>Basename of plink input files</td>
 </tr>
 <tr>
 <td>plink_output_basename</td>
 <td></td>
-<td>1024 Characters</td>
-<td>Name of plink output basename file</td>
+<td></td>
+<td>Basename of plink output files</td>
 </tr>
 <tr>
 <td>populations</td>
-<td>Set{ASCIIString}()</td>
+<td>1</td>
 <td>Integer</td>
 <td>Number of populations</td>
 </tr>
@@ -256,14 +256,14 @@ regression_formula = Trait ~ Sex
 <tr>
 <td>snpdata_file</td>
 <td></td>
-<td>1024 Characters</td>
-<td>Name of input snpdata file</td>
+<td></td>
+<td>Name of input SNP data file</td>
 </tr>
 <tr>
 <td>snpdefinition_file</td>
 <td></td>
-<td>1024 Characters</td>
-<td>Name of input snpdefinition_file</td>
+<td></td>
+<td>Name of input SNP definition_file</td>
 </tr>
 <tr>
 <td>trait</td>
