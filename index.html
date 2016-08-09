@@ -76,7 +76,7 @@ regression = linear
 regression_formula = Trait ~ Sex
 </code></pre>
 
-<p>In the example above, there are five keywords. The first three specify input and output files: <em>plink_input_basename</em>, <em>output_file</em>, <em>manhattan_plot_file</em>. The last two specify analysis parameters: <em>regression</em> and <em>regression_formula</em>. The text after the '=' are the keyword values.</p>
+<p>In the example above, there are five keywords. The first three specify input and output files: <em>plink_input_basename</em>, <em>output_file</em>, <em>manhattan_plot_file</em>. The last two specify analysis parameters: <em>regression</em> and <em>regression_formula</em>. The text after the '=' are the keyword values. For keywords that can take a set of values, list the values separated by commas.</p>
 
 <h3>
 <a id="keywords" class="anchor" href="#keywords" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Keywords<a id="keywords-table"></a>
@@ -88,153 +88,183 @@ regression_formula = Trait ~ Sex
 <th>Keyword</th>
 <th>Default</th>
 <th>Allowed Values</th>
+<th>Short Description</th>
 </tr>
 </thead>
 <tbody>
 <tr>
 <td>affected_designator</td>
-<td>"affected"</td>
-<td></td>
+<td>affected</td>
+<td>10 Characters</td>
+<td>Disease phenotype designator</td>
 </tr>
 <tr>
 <td>allele_pseudo_count</td>
 <td>0.1</td>
-<td></td>
+<td>Real</td>
+<td>Number of prior alleles or haplotypes</td>
 </tr>
 <tr>
 <td>allele_separator</td>
-<td>"/\"</td>
-<td>first character is used in output</td>
+<td>/ and \</td>
+<td>1 Character</td>
+<td>Separates codominant alleles. First character is used in output</td>
 </tr>
 <tr>
 <td>analysis_option</td>
-<td>""</td>
 <td></td>
+<td>50 Characters</td>
+<td>Package</td>
 </tr>
 <tr>
 <td>complexity_threshold</td>
-<td>5e7</td>
-<td></td>
+<td>5.00E+07</td>
+<td>Real</td>
+<td>Criterion for not analyzing pedigrees</td>
 </tr>
 <tr>
 <td>disease_status</td>
-<td>""</td>
 <td></td>
+<td>16 Characters</td>
+<td>Factor giving disease status</td>
 </tr>
 <tr>
 <td>distribution</td>
 <td>Normal()</td>
 <td>Binomial, Gamma, Normal, Poisson</td>
+<td>Distribution</td>
 </tr>
 <tr>
 <td>eliminate_genotypes</td>
-<td>false</td>
-<td></td>
+<td>FALSE</td>
+<td>TRUE, FALSE</td>
+<td>Whether or not genotypes are eliminated</td>
 </tr>
 <tr>
 <td>female</td>
 <td>Set{Any}(["female", "f", 'f', "2", '2', 2])</td>
-<td></td>
+<td>6 Characters</td>
+<td>Female designator</td>
 </tr>
 <tr>
 <td>field_separator</td>
 <td>','</td>
-<td></td>
+<td>1 Character</td>
+<td>Character used to separates data elements</td>
 </tr>
 <tr>
 <td>genetic_map_function</td>
-<td>"Haldane"</td>
+<td>Haldane</td>
 <td>"Haldane" or "Kosambi"</td>
+<td>Genetic map units</td>
 </tr>
 <tr>
 <td>link</td>
 <td>IdentityLink()</td>
 <td></td>
+<td></td>
 </tr>
 <tr>
 <td>locus_file</td>
-<td>""</td>
 <td></td>
+<td>1024 Characters</td>
+<td>Name of input locus file</td>
 </tr>
 <tr>
 <td>lump_alleles</td>
-<td>false</td>
-<td></td>
+<td>FALSE</td>
+<td>TRUE, FALSE</td>
+<td>Whether or not alleles are combined</td>
 </tr>
 <tr>
 <td>male</td>
 <td>Set{Any}(["male", "m", 'm', "1", '1', 1])</td>
-<td></td>
+<td>6 Characters</td>
+<td>Male designator</td>
 </tr>
 <tr>
 <td>new_pedigree_file</td>
-<td>""</td>
 <td></td>
+<td>1024 Characters</td>
+<td>OpenMendel constructed pedigree file</td>
 </tr>
 <tr>
 <td>ordered_allele_separator</td>
-<td>"</td>
-<td>"</td>
+<td></td>
+<td></td>
+<td>1 Character</td>
 </tr>
 <tr>
 <td>output_file</td>
-<td>"Mendel_Output.txt"</td>
-<td></td>
+<td>Mendel_Output.txt</td>
+<td>1024 Characters</td>
+<td>Name of standard output file</td>
 </tr>
 <tr>
 <td>pedigree_file</td>
-<td>""</td>
 <td></td>
+<td>1024 Characters</td>
+<td>Name of input pedigree file</td>
 </tr>
 <tr>
 <td>phenotype_file</td>
-<td>""</td>
 <td></td>
+<td>1024 Characters</td>
+<td>Name of input phenotype file</td>
 </tr>
 <tr>
 <td>plink_input_basename</td>
-<td>""</td>
 <td></td>
+<td>1024 Characters</td>
+<td>Name of plink input basename file</td>
 </tr>
 <tr>
 <td>plink_output_basename</td>
-<td>""</td>
 <td></td>
+<td>1024 Characters</td>
+<td>Name of plink output basename file</td>
 </tr>
 <tr>
 <td>populations</td>
 <td>Set{ASCIIString}()</td>
-<td></td>
+<td>Integer</td>
+<td>Number of populations</td>
 </tr>
 <tr>
 <td>product_mode</td>
-<td>true</td>
+<td>TRUE</td>
+<td>TRUE, FALSE</td>
 <td></td>
 </tr>
 <tr>
 <td>seed</td>
 <td>1234</td>
-<td></td>
+<td>Integer</td>
+<td>Random number generator seed</td>
 </tr>
 <tr>
 <td>snpdata_file</td>
-<td>""</td>
 <td></td>
+<td>1024 Characters</td>
+<td>Name of input snpdata file</td>
 </tr>
 <tr>
 <td>snpdefinition_file</td>
-<td>""</td>
 <td></td>
+<td>1024 Characters</td>
+<td>Name of input snpdefinition_file</td>
 </tr>
 <tr>
 <td>trait</td>
-<td>""</td>
+<td></td>
+<td></td>
 <td></td>
 </tr>
 <tr>
 <td>xlinked_analysis</td>
-<td>false</td>
-<td></td>
+<td>FALSE</td>
+<td>TRUE, FALSE</td>
+<td>Whether or not markers are on the X chromosome</td>
 </tr>
 </tbody>
 </table>
