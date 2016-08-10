@@ -265,7 +265,7 @@ standard_errors = true
 <a id="pedigree-file" class="anchor" href="#pedigree-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Pedigree File<a id="pedigree-file"></a>
 </h3>
 
-<p>A Pedigree file is always required. OpenMendel will accept <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> FAM Pedigree files, in which case the file must have the extension <em>.fam</em>. The OpenMendel Pedigree file format has a header row with the following field names (in any order): Pedigree,Person,Mother,Father,Sex,Twin. The only required column is one labeled either <em>“Individual”</em> or <em>“Person”</em>, giving the samples names. Each individual must either have <em>both</em> and mother <em>and</em> a father, or both mother and father must be blank. If the mother and father columns exist but both fields are missing for an individual, that individual is  treated as a founder. If the mother and father columns are missing, all individuals are founders. If the Pedigree column is missing, the data is treated as separate pedigrees of size one, and all individuals are unrelated. Within each pedigree, every person must have a unique name. If a set of individuals in the same pedigree all have the same (non-blank) value in the <em>"Twin"</em> field they are all considered monozygotic (MZ) siblings. If the sex field is missing, all individuals are treated as female. If a sex field exists but the sex is missing for an individual, that individual is  treated as female. If the analysis uses a <a href="#locus-file">Locus file</a> to describe the markers, the genotypes are contained in the Pedigree file, and the marker names in the Locus and Pedigree files must agree. If the analysis uses a <a href="#snp-definition-file">SNP Definition file</a> to describe the markers, the genotypes are contained in the <a href="#snp-data-file">SNP Data file</a>. The Pedigree file may also include optional columns such as traits and <a href="#%3Ca%20id=%22populations%22">population</a> ancestries.</p>
+<p>A Pedigree file is always required. OpenMendel will accept <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> FAM Pedigree files, in which case the file must have the extension <em>.fam</em>. The OpenMendel Pedigree file format has a header row with the following field names (in any order): Pedigree,Person,Mother,Father,Sex,Twin. The only required column is one labeled either <em>“Individual”</em> or <em>“Person”</em>, giving the samples names. Each individual must either have <em>both</em> and mother <em>and</em> a father, or both mother and father must be blank. If the Mother and Father columns exist but both fields are missing for an individual, that individual is  treated as a founder. If the Mother and Father columns are missing, all individuals are founders. If the Pedigree column is missing, the data is treated as separate pedigrees of size one, and all individuals are unrelated. Within each pedigree, every person must have a unique name. If a set of individuals in the same pedigree all have the same (non-blank) value in the Twin field they are all considered monozygotic (MZ) siblings. If the Sex field is missing, all individuals are treated as female. If a Sex column exists but the sex is missing for an individual, that individual is  treated as female. If the analysis uses a <a href="#locus-file">Locus file</a> to describe the markers, the genotypes are contained in the Pedigree file, and the marker names in the Locus and Pedigree files must agree. If the analysis uses a <a href="#snp-definition-file">SNP Definition file</a> to describe the markers, the genotypes are contained in the <a href="#snp-data-file">SNP Data file</a>. The Pedigree file may also include optional columns such as traits and <a href="#populations">population</a> ancestries.</p>
 
 <p><strong>Example Pedigree File</strong></p>
 
@@ -320,7 +320,7 @@ SNP,2,9,0,NA
 <a id="snp-definition-file" class="anchor" href="#snp-definition-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>SNP Definition File<a id="snp-definition-file"></a>
 </h3>
 
-<p>The SNP Definition file defines your SNPs with information such as SNP name, chromosome, position, and allele names. OpenMendel will accept <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> <em>BIM</em> Pedigree files, in which case the file must have the extension <em>.bim</em>. The OpenMendel SNP Definition file format has a header row with the field names: <em>SNP</em> or <em>Locus</em> (if this column is absent the SNPs are named 1,2,3..n); Chromosome (1-22,x; if column is absent assumed autosomal); Locus, CentiMorgans (if column is absent uses 0); Basepairs (if column is absent uses 0); Allele1, Allele2 = allele names. If allele names are absent OpenMendel uses "1" for Allele1 and "2" for Allele2.</p>
+<p>The SNP Definition file defines your SNPs with information such as SNP name, chromosome, position, and allele names. OpenMendel will accept <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> BIM files, in which case the file must have the extension <em>.bim</em>. The OpenMendel SNP Definition file format has a header row with the field names: <em>SNP</em> or <em>Locus</em> (if this column is absent the SNPs are named 1,2,3..n); Chromosome (1-22,x; if column is absent assumed autosomal); Locus, CentiMorgans (if column is absent uses 0); Basepairs (if column is absent uses 0); Allele1, Allele2 = allele names. If allele names are absent OpenMendel uses "1" for Allele1 and "2" for Allele2.</p>
 
 <p><strong>Example SNP Definition File</strong></p>
 
@@ -338,18 +338,18 @@ X,rs73433431,0,2702698,T,C
 <a id="snp-data-file" class="anchor" href="#snp-data-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>SNP Data File<a id="snp-data-file"></a>
 </h3>
 
-<p>SNP Data file holds the SNP genotypes for your data set. The SNP Data file must be a standard <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> binary <em>BED</em> file in SNP major format. If you have a SNP data file you must have a SNP definition file, but it does not need to be PLINK format. (There is no example SNP Data file because the SNP Data file is a binary file, and not human readable.</p>
+<p>The SNP Data file holds the SNP genotypes for your data set. The SNP Data file must be a standard <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> binary BED file in SNP major format. If you have a SNP data file you must have a SNP definition file, but it need not be in PLINK format. (There is no example SNP Data file because the SNP Data file is a binary file, and not human readable.)</p>
 
 <h3>
 <a id="plink-basename" class="anchor" href="#plink-basename" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>PLINK Basename</h3>
 
-<p>You may use the keyword <em>plink_input_basename</em> in the Control file to specify a name for your PLINK format files. If you use this keyword, you must supply 3 PLINK files with that name: <em>your_basename.bed</em> (SNP data file), <em>your_basename.bim</em> (SNP definition file), and <em>your_basename.fam</em> (pedigree file).</p>
+<p>You may use the keyword <em>plink_input_basename</em> in the Control file to specify a name for your PLINK format files. If you use this keyword you do not need to name each PLINK file in the Control file, but you must supply each of the three relevant PLINK files, using that basename:  <em>your_basename.bed</em> (SNP data file), <em>your_basename.bim</em> (SNP definition file), and <em>your_basename.fam</em> (pedigree file).</p>
 
 <h3>
 <a id="populations" class="anchor" href="#populations" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Populations<a id="populations"></a>
 </h3>
 
-<p>If your individuals are of mixed ethnicity, and thus have fractional ancestry, OpenMendel will allow you to adjust for this in your analysis by using the <em>populations</em> keyword. Your populations will be named in your control file, fractional ancestries assigned to your individuals in the Pedigree file](#pedigree-file), and population specific allele frequencies assigned to markers in your <a href="#locus-file">Locus file</a>.</p>
+<p>If your individuals are of mixed ethnicity, and thus have fractional ancestry, OpenMendel will allow you to adjust for this in your analysis by using the <em>populations</em> keyword. Your populations will be named in your control file, fractional ancestries assigned to your individuals in the <a href="#pedigree-file">Pedigree file</a>, and population specific allele frequencies assigned to markers in your <a href="#locus-file">Locus file</a>.</p>
 
 <p>For example, your <a href="#control-file">Control file</a> might look like this:</p>
 
@@ -359,7 +359,6 @@ locus_file = genedropping LocusFrame.txt
 pedigree_file = genedropping PedigreeFrame.txt
 phenotype_file = genedropping PhenotypeFrame.txt
 new_pedigree_file = genedropping NewPedigreeFrame.txt
-output_file = genedropping Output.txt
 #
 # Analysis parameters for GeneDropping option.
 #
@@ -381,7 +380,7 @@ Obama,Malia,Michelle,Barack,female,0,NA,NA,NA,O
 Obama,Sasha,Michelle,Barack,female,0,NA,NA,NA,B
 </code></pre>
 
-<p>Your <a href="#locus-file">Locus file</a>, instead of one column labeled <em>Frequency</em>, would have a frequency column for each population, where the header for the column is the name of that population. give an allele frequency for each population. The population frequency field names are the population names specified in the control file. In the example Locus file below, the Control file would include the line <em>"populations = European,African,Chinese"</em>. The population frequencies need not sum to 1, but will be normalized to 1 in the analysis. </p>
+<p>Your <a href="#locus-file">Locus file</a> would have, instead of one column labeled <em>Frequency</em>,  a frequency column for each population, where the header for the column is the name of that population, and loci have an allele frequency for each population. The population frequency field names are the population names specified in the control file. In the example Locus file below, the Control file would include the line <em>"populations = European,African,Chinese"</em>. The population frequencies need not sum to 1, but will be normalized to 1 in the analysis. </p>
 
 <p>An example <a href="#locus-file">Locus file</a> might look like this:</p>
 
