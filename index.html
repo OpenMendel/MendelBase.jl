@@ -371,14 +371,14 @@ populations = European, African, Chinese
 
 <p>An example <a href="#pedigree-file">Pedigree file</a> might look like this:</p>
 
-<pre><code>Pedigree,Person,Mother,Father,Sex,Twin,BirthYear,Politician,European,African,Chinese,ABO
-Clinton,Bill,,,male,0,1946,TRUE,1,0,0,A
-Clinton,Hillary,,,female,0,1947,TRUE,1,0,0,O
-Clinton,Chelsea,Hillary,Bill,female,0,1980,FALSE,NA,NA,NA,A
-Obama,Barack,,,male,0,1961,TRUE,0.5,0.5,0,O
-Obama,Michelle,,,female,0,1964,FALSE,0.3,0.7,0,B
-Obama,Malia,Michelle,Barack,female,0,1998,FALSE,NA,NA,NA,O
-Obama,Sasha,Michelle,Barack,female,0,2001,FALSE,NA,NA,NA,B
+<pre><code>Pedigree,Person,Mother,Father,Sex,Twin,European,African,Chinese,ABO
+Clinton,Bill,,,male,0,1,0,0,A
+Clinton,Hillary,,,female,0,1,0,0,O
+Clinton,Chelsea,Hillary,Bill,female,0,NA,NA,NA,A
+Obama,Barack,,,male,0,0.5,0.5,0,O
+Obama,Michelle,,,female,0,0.3,0.7,0,B
+Obama,Malia,Michelle,Barack,female,0,NA,NA,NA,O
+Obama,Sasha,Michelle,Barack,female,0,NA,NA,NA,B
 </code></pre>
 
 <p>Your <a href="#locus-file">Locus file</a>, instead of one column labeled <em>Frequency</em>, would have a frequency column for each population, where the header for the column is the name of that population. give an allele frequency for each population. The population frequency field names are the population names specified in the control file. In the example Locus file below, the Control file would include the line <em>"populations = European,African,Chinese"</em>. The population frequencies need not sum to 1, but will be normalized to 1 in the analysis. </p>
