@@ -113,8 +113,6 @@ function set_keyword_defaults!(keyword::Dict{ASCIIString, Any})
   keyword["seed"] = 1234
   keyword["snpdata_file"] = ""
   keyword["snpdefinition_file"] = ""
-  keyword["trait"] = ""
-  keyword["xlinked_analysis"] = false
 ## For imputation:
 ##  keyword["gradient_provided"] = false
 ##  keyword["reference_haplotypes"] = 0
@@ -318,18 +316,6 @@ function read_control_file!(keyword::Dict{ASCIIString, Any},
         """The specified keyword line "$keyline" contains no keyword.\n \n"""))
     end
     #
-    # Check whether the keyword value is valid,
-    # allow a blank value at the keyword "field_separator".
-    #
-    if length(value_string) == 0
-      if keyword_string == "field_separator"
-        value_string = " "
-      else
-        throw(ArgumentError(
-        """The keyword line "$keyline" contains no key-value.\n \n"""))
-      end
-    end
-    #
     # Test whether the keyword string is valid.
     #
     if !isascii(keyword_string)
@@ -341,6 +327,18 @@ function read_control_file!(keyword::Dict{ASCIIString, Any},
     if !haskey(keyword, keyword_string)
       throw(ArgumentError(
         "The specified keyword $keyword_string is not a known keyword.\n \n"))
+    end
+    #
+    # Check whether the keyword value is valid,
+    # allow a blank value at the keyword "field_separator".
+    #
+    if length(value_string) == 0
+      if keyword_string == "field_separator"
+        value_string = " "
+      else
+        throw(ArgumentError(
+        """The keyword line "$keyline" contains no key-value.\n \n"""))
+      end
     end
     #
     # To prevent possible infinite loops, ignore the keyword control_file.
