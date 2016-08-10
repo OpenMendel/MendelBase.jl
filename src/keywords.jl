@@ -92,12 +92,10 @@ function set_keyword_defaults!(keyword::Dict{ASCIIString, Any})
   keyword["complexity_threshold"] = 5e7
   keyword["control_file"] = ""
   keyword["disease_status"] = ""
-  keyword["distribution"] = Normal() # Binomial, Gamma, Normal, Poisson
   keyword["eliminate_genotypes"] = false
   keyword["female"] = Set{Any}(["female", "f", 'f', "2", '2', 2])
   keyword["field_separator"] = ','
   keyword["genetic_map_function"] = "Haldane" # "Haldane" or "Kosambi"
-  keyword["link"] = IdentityLink()
   keyword["locus_file"] = ""
   keyword["lump_alleles"] = false
   keyword["male"] = Set{Any}(["male", "m", 'm', "1", '1', 1])
@@ -206,7 +204,6 @@ function revise_keywords!(keyword::Dict{ASCIIString, Any},
   # set the field separator to a blank and set the appropriate filenames.
   #
   if "plink_input_basename" in set_of_modified_keywords
-    keyword["field_separator"] = ' '
     plink_basename = keyword["plink_input_basename"]
     keyword["snpdefinition_file"] = string(plink_basename, ".bim")
     push!(set_of_modified_keywords, "snpdefinition_file")

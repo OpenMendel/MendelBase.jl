@@ -127,14 +127,10 @@ substitutes blanks for missing values.
 function read_plink_fam_file(plink_fam_file::AbstractString,
   keyword::Dict{ASCIIString, Any})
 
-##
-# Problem using non-integers for sex names!
-##
-  column_types = [UTF8String, UTF8String, UTF8String, UTF8String,
-    Int64, UTF8String]
+  column_types = [UTF8String, UTF8String, UTF8String, UTF8String, UTF8String,
+                  Float64]
   column_names = [:Pedigree, :Person, :Father, :Mother, :Sex, :Trait]
-  field_sep = keyword["field_separator"]
-  fam_dframe = readtable(plink_fam_file, header = false, separator = field_sep,
+  fam_dframe = readtable(plink_fam_file, header = false, separator = ' ',
     eltypes = column_types, names = column_names)
   for i = 1:size(fam_dframe, 1)
     if fam_dframe[i, :Father] == "0"
@@ -156,12 +152,10 @@ Converts a Plink .bim file into a dataframe.
 function read_plink_bim_file(plink_bim_file::AbstractString,
   keyword::Dict{ASCIIString, Any})
 
-  column_types = [UTF8String, UTF8String, Float64, Int, 
-    UTF8String, UTF8String]
+  column_types = [UTF8String, UTF8String, Float64, Int, UTF8String, UTF8String]
   column_names = [:Chromosome, :SNP, :CentiMorgans, :Basepairs, 
-    :Allele1, :Allele2]
-  field_sep = keyword["field_separator"]
-  bim_dframe = readtable(plink_bim_file, header = false, separator = field_sep,
+                  :Allele1, :Allele2]
+  bim_dframe = readtable(plink_bim_file, header = false, separator = ' ',
     eltypes = column_types, names = column_names)
   return bim_dframe
 end # function read_plink_bim_file
@@ -212,6 +206,10 @@ function snp_information(snp_definition_frame::DataFrame, person::Person,
   end
   if :Basepairs in column_names
     basepairs = snp_definition_frame[:Basepairs]
+  elseif :Basepair in column_names
+    basepairs = snp_definition_frame[:Basepair]
+  elseif :bp in column_names
+    basepairs = snp_definition_frame[:bp]
   else
     basepairs = zeros(Int, snps)
   end
@@ -559,10 +557,25 @@ Some fields are supplied later.
 """
 function pedigree_information(pedigree_frame::DataFrame)
   #
+  # Count the number of individuals in the pedigree data.
+  #
+  pedigree_field = names(pedigree_frame)
+  if !(:Person in pedigree_field || :Individual in pedigree_field)
+    throw(ArgumentError("The pedigree data file does not contain a field\n" *
+      "labeled Person or Individual. One such field is required.\n"))
+  elseif :Person in pedigree_field && :Individual in pedigree_field
+    throw(ArgumentError("The pedigree data file contains a field\n" *
+      "labeled Person and a field labeled Individual.\n" *
+      "It is required to have only one such field.\n"))
+  end
+  if :Person in pedigree_field
+    people = length(pedigree_frame[:, :Person])
+  else
+    people = length(pedigree_frame[:, :Individual])
+  end
+  #
   # Initialize arrays.
   #
-  people = length(pedigree_frame[:, :Person])
-  pedigree_field = names(pedigree_frame)
   if :Pedigree in pedigree_field
     pedigrees = length(unique(pedigree_frame[:, :Pedigree]))
   else
@@ -633,7 +646,12 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   #
   # Initialize arrays by their default values.
   #
-  people = length(pedigree_frame[:, :Person])
+  pedigree_field = names(pedigree_frame)
+  if :Person in pedigree_field
+    people = length(pedigree_frame[:, :Person])
+  else
+    people = length(pedigree_frame[:, :Individual])
+  end
   pedigrees = pedigree.pedigrees
   allele_separator = keyword["allele_separator"]
   ordered_allele_separator = keyword["ordered_allele_separator"]
@@ -690,19 +708,26 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   for ped = 1:pedigrees
     for i = pedigree.start[ped]:pedigree.twin_finish[ped]
       pedigree_number[i] = ped
-      person_name[i] = string(pedigree_frame[i, :Person])
+      if :Person in pedigree_field
+        person_name[i] = string(pedigree_frame[i, :Person])
+      else
+        person_name[i] = string(pedigree_frame[i, :Individual])
+      end
       if parents_present
         mother_found = false
         father_found = false
         for j = pedigree.start[ped]:pedigree.twin_finish[ped]
           if j == i; continue; end
-          if !isna(mother_string[i]) && 
-            mother_string[i] == pedigree_frame[j, :Person]
+          if :Person in pedigree_field
+            name_j = pedigree_frame[j, :Person]
+          else
+            name_j = pedigree_frame[j, :Individual]
+          end
+          if !isna(mother_string[i]) && mother_string[i] == name_j
             mother[i] = j
             mother_found = true
           end
-          if !isna(father_string[i]) && 
-            father_string[i] == pedigree_frame[j, :Person]
+          if !isna(father_string[i]) && father_string[i] == name_j
             father[i] = j
             father_found = true
           end

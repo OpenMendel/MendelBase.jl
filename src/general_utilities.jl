@@ -3,10 +3,11 @@
 ################################################################################
 
 export empties, blanks, repeated_string, select_set_element, random_category
-export normalize!, print_sample_stats, sample_mean_std, sample_stats, simes_fdr
+export normalize!, print_sample_stats, sample_mean_std, sample_stats
+export simes_fdr, regress, glm_score_test
 
 """
-Create an array of blank ASCII strings.
+Creates an array of blank ASCII strings.
 """
 function blanks(n::Int)
 
@@ -18,7 +19,7 @@ function blanks(n::Int)
 end # function blanks
 
 """
-Create an array of empty integer sets.
+Creates an array of empty integer sets.
 """
 function empties(n::Int)
 
@@ -30,7 +31,7 @@ function empties(n::Int)
 end # function empties
 
 """
-Identify a repeated string in an array of strings.
+Identifies a repeated string in an array of strings.
 """
 function repeated_string(name::Vector{ASCIIString})
 
@@ -44,7 +45,7 @@ function repeated_string(name::Vector{ASCIIString})
 end # function repeated_string
 
 """
-Select element number k of the integer set S.
+Selects element number k of the integer set S.
 """
 function select_set_element(set_s::IntSet, k::Int)
 
@@ -60,7 +61,7 @@ function select_set_element(set_s::IntSet, k::Int)
 end # function select_set_element
 
 """
-Return a random category (numbered 1, 2, and so forth)
+Returns a random category (numbered 1, 2, and so forth)
 according to a vector of category frequencies.
 """
 function random_category(frequency::Vector{Float64})
@@ -77,7 +78,8 @@ function random_category(frequency::Vector{Float64})
 end # function random_category
 
 """
-Normalize the vector x. Missing values are ignored.
+Normalizes the vector x to have mean 0.0 and variance 1.0.
+Missing values are ignored.
 """
 function normalize!(x::Vector{Float64})
 
@@ -100,7 +102,7 @@ function normalize!(x::Vector{Float64})
 end # function normalize!
 
 """
-Compute a sample mean and standard deviation.
+Computes a sample mean and standard deviation.
 Missing values are ignored.
 """
 function sample_mean_std(x::Vector{Float64})
@@ -123,12 +125,12 @@ function sample_mean_std(x::Vector{Float64})
 end # function sample_mean_std
 
 """
-Compute sample statistics for the data vector x.
-Missing values equal NaN. The output consists
-of the number of values present, the number of values
-missing, the minimum, the 0.25 quantile, the median, the
-0.75 quantile, the maximum, the mean, the standard
-deviation, the skewness, and the excess kurtosis.
+Computes sample statistics for the data vector x.
+Missing values equal NaN. The output consists of
+the number of values present, the number of values missing,
+the minimum, the 0.25 quantile, the median, the 0.75 quantile,
+the maximum, the mean, the standard deviation, the skewness,
+and the excess kurtosis.
 """
 function sample_stats(x::Vector{Float64})
 
@@ -146,7 +148,7 @@ function sample_stats(x::Vector{Float64})
 end # function sample_stats
 
 """
-Print the sample statistics output by the function sample_stats.
+Prints the sample statistics output by the function sample_stats.
 """
 function print_sample_stats(s, io::IO = STDOUT)
 
@@ -165,7 +167,7 @@ function print_sample_stats(s, io::IO = STDOUT)
 end # function print_sample_stats
 
 """
-Perform the Simes false discovery rate (FDR) procedure discussed 
+Performs the Simes false discovery rate (FDR) procedure discussed 
 by Benjamini and Hochberg. All p-values at or below the threshold
 are declared significant for the given FDR rate and number of tests.
 """
@@ -188,6 +190,211 @@ function simes_fdr(pvalue::Vector{Float64}, fdr::Vector{Float64}, tests::Int)
   end
   return (number_passing, threshold)
 end # function simes_fdr
+
+"""
+Performs either linear, logistic, or Poisson regression with a canonical 
+link function. X is the design matrix, and y is the response vector.
+The parameter estimates and loglikelihood are returned.
+"""
+function regress(X::Matrix{Float64}, y::Vector{Float64}, model::ASCIIString)
+
+  if model != "linear" && model != "logistic" && model != "Poisson"
+    throw(ArgumentError(
+      "The only model choices are linear, logistic, and Poisson.\n \n"))
+  end
+  #
+  # Create the score vector, information matrix, estimate, a work
+  # vector z, and the loglikelihood.
+  #
+  (n, p) = size(X)
+  @assert n == length(y)
+  score = zeros(p)
+  information = zeros(p, p)
+  estimate = zeros(p)
+  z = zeros(n)
+  #
+  # Handle linear regression separately.
+  #
+  if model == "linear"
+    BLAS.gemv!('N', 1.0, X, estimate, 0.0, z) # z = X * estimate
+    BLAS.axpy!(n, -1.0, y, 1, z, 1) # z = z - y
+    score = BLAS.gemv('T', -1.0, X, z) # score = - X' * (z - y)
+    information = BLAS.gemm('T', 'N', X, X) # information = X' * X
+    estimate = information \ score
+    BLAS.gemv!('N', 1.0, X, estimate, 0.0, z) # z = X * estimate
+    obj = - 0.5 * n * log(sumabs2(y - z) / n) - 0.5 * n
+    return (estimate, obj)
+  end
+  #
+  # Prepare for logistic and Poisson regression by estimating the 
+  # intercept.
+  #
+  if model == "logistic"
+    estimate[1] = log(mean(y) / (1.0 - mean(y)))
+  elseif model == "Poisson"
+    estimate[1] = log(mean(y))
+  else
+    throw(ArgumentError(
+      "The only model choices are linear, logistic, and Poisson.\n \n"))
+  end
+  #
+  # Initialize the loglikelihood and the convergence criterion.
+  #
+  v = zeros(p)
+  obj = 0.0
+  old_obj = 0.0
+  epsilon = 1e-6
+  # 
+  #  Estimate parameters by the scoring algorithm.
+  #
+  for iteration = 1:10
+    #
+    # Initialize the score and information.
+    #
+    fill!(score, 0.0)
+    fill!(information, 0.0)
+    #
+    # Compute the score, information, and loglikelihood (obj).
+    #
+    BLAS.gemv!('N', 1.0, X, estimate, 0.0, z) # z = X * estimate
+    clamp!(z, -20.0, 20.0) 
+    if model == "logistic"
+      z = exp(-z)
+      z = 1.0 ./ (1.0 + z)
+      w = z .* (1.0 .- z)
+      BLAS.axpy!(n, -1.0, y, 1, z, 1) # z = z - y
+      score = BLAS.gemv('T', -1.0, X, z) # score = - X' * (z - y)
+      w = sqrt(w)
+      scale!(w, X) # diag(w) * X
+      information = BLAS.gemm('T', 'N', X, X) # information = X' * W * X
+      w = 1.0 ./ w
+      scale!(w, X)
+    elseif model == "Poisson"
+      z = exp(z)
+      w = copy(z)
+      BLAS.axpy!(n, -1.0, y, 1, z, 1) # z = z - y
+      score = BLAS.gemv('T', -1.0, X, z) # score = - X' * (z - y)
+      w = sqrt(w)
+      scale!(w, X) # diag(w) * X
+      information = BLAS.gemm('T', 'N', X, X) # information = X' * W * X
+      w = 1.0 ./ w
+      scale!(w, X)
+    end
+    #
+    # Compute the scoring increment.
+    #
+    increment = information \ score
+    #
+    # Step halve to produce an increase in the loglikelihood.
+    #
+    steps = -1
+    for step_halve = 0:3
+      steps = steps + 1
+      obj = 0.0
+      estimate = estimate + increment
+      BLAS.gemv!('N', 1.0, X, estimate, 0.0, z) # z = X * estimate
+      clamp!(z, -20.0, 20.0)
+      #
+      # Compute the loglikelihood under the appropriate model.
+      #
+      if model == "logistic"
+        z = exp(-z)
+        z = 1.0 ./ (1.0 + z)
+        for i = 1:n
+          if y[i] > 0.0
+            obj = obj + log(z[i])
+          else
+            obj = obj + log(1.0 - z[i])
+          end
+        end
+      elseif model == "Poisson"
+        for i = 1:n
+          q = exp(z[i])
+          obj = obj + y[i] * z[i] - q
+        end  
+      end
+      #
+      # Check for an increase in the loglikelihood.
+      #
+      if old_obj < obj
+        break
+      else
+        estimate = estimate - increment
+        increment = 0.5 * increment
+      end
+    end
+    #
+    # Check for convergence.
+    # 
+    if iteration > 1 && abs(obj - old_obj) < epsilon * (abs(old_obj) + 1.0)
+      return (estimate, obj)
+    else
+      old_obj = obj
+    end
+  end
+  return (estimate, obj)
+end # function regress
+
+"""
+Performs a score test for either linear, logistic, or Poisson regression 
+with a canonical link function. X is the design matrix, y is the 
+response vector, and estimate is the MLE under the null hypothesis.
+"""
+function glm_score_test(X::Matrix{Float64}, y::Vector{Float64}, 
+  estimate::Vector{Float64}, model::ASCIIString)
+
+  if model != "linear" && model != "logistic" && model != "Poisson"
+    throw(ArgumentError(
+      "The only model choices are linear, logistic, and Poisson.\n \n"))
+  end
+  #
+  # Initialize the score vector and information matrix.
+  #
+  (n, p) = size(X)
+  @assert n == length(y)
+  @assert p == length(estimate)
+  score = zeros(p)
+  information = zeros(p, p)
+  z = zeros(n)
+  #
+  # Handle each model separately.
+  #
+  BLAS.gemv!('N', 1.0, X, estimate, 0.0, z) # z = X * estimate
+  if model == "linear"
+    BLAS.axpy!(n, -1.0, y, 1, z, 1) # z = z - y
+    score = BLAS.gemv('T', -1.0, X, z) # score = - X' * (z - y)
+    information = BLAS.gemm('T', 'N', X, X) # information = X' * X
+  elseif model == "logistic"
+    clamp!(z, -20.0, 20.0)
+    z = exp(-z)
+    z = 1.0 ./ (1.0 + z)
+    w = z .* (1.0 .- z)
+    BLAS.axpy!(n, -1.0, y, 1, z, 1) # z = z - y
+    score = BLAS.gemv('T', -1.0, X, z) # score = - X' * (z - y)
+    w = sqrt(w)
+    scale!(w, X) # diag(w) * X
+    information = BLAS.gemm('T', 'N', X, X) # information = X' * W * X 
+    w = 1.0 ./ w
+    scale!(w, X)
+  elseif model == "Poisson"
+    clamp!(z, -20.0, 20.0) 
+    z = exp(z)
+    w = copy(z)
+    BLAS.axpy!(n, -1.0, y, 1, z, 1) # z = z - y
+    score = BLAS.gemv('T', -1.0, X, z) # score = - X' * (z - y)
+    w = sqrt(w)
+    scale!(w, X) # diag(w) * X
+    information = BLAS.gemm('T', 'N', X, X) # information = X' * W * X
+    w = 1.0 ./ w
+    scale!(w, X)
+  end
+  #
+  # Compute the score statistic from the score and information.
+  #
+  z = information \ score
+  score_test = dot(score, z)
+  return score_test
+end # function glm_score_test
 
 # using GeneralUtilities
 # n = 10
@@ -219,3 +426,30 @@ end # function simes_fdr
 # fdr = collect(0.1:0.1:0.5)
 # tests = 1000
 # (number_passing, threshold) = simes_fdr(pvalue, fdr, tests)
+# X = [68., 49, 60, 68, 97, 82, 59, 50, 73, 39, 71, 95, 61, 72, 87, 
+#   40, 66, 58, 58, 77]
+# y = [75., 63, 57, 88, 88, 79, 82, 73, 90, 62, 70, 96, 76, 75, 85,
+#   40, 74, 70, 75, 72]
+# X = [ones(size(X,1)) X]
+# (estimate, loglikelihood) = regress(X, y, "linear") # Jennrich section 1.4
+# println(estimate)
+# println(" ")
+# X = [0.50, 0.75, 1.00, 1.25, 1.50, 1.75, 1.75, 2.00, 2.25, 2.50, 2.75,
+#   3.00, 3.25, 3.50, 4.00, 4.25, 4.50, 4.75, 5.00, 5.50]
+# y = [0., 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1]
+# X = [ones(size(X,1)) X]
+# (estimate, loglikelihood) = regress(X, y, "logistic") # Wikipedia problem
+# println(estimate)
+# println(" ")
+# X = [1.0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
+# X = reshape(X, 14, 1)
+# y = [0., 1 ,2 ,3, 1, 4, 9, 18, 23, 31, 20, 25, 37, 45]
+# (estimate, loglikelihood) = regress(X, y, "Poisson") # Aids problem
+# estimate = [0.0; estimate]
+# println(estimate)
+# X = [ones(size(X,1)) X]
+# test = glm_score_test(X, y, estimate, "Poisson")
+# println("score test = ",test)
+# (estimate, loglikelihood) = regress(X, y, "Poisson") # Aids problem
+# println(" ")
+# println(estimate," ",loglikelihood) 
