@@ -279,17 +279,19 @@ regression_formula = Trait ~ Sex
 
 <p>The Locus file defines your genetic markers unless you are working with a dense SNP map, in which case you must use a SNP Definition. The Locus file must have a header row with the field names (in any order): Locus, Allele, Chromosome, Frequency. If your samples come from different populations, instead of one column labeled Frequency, you may name the populations in the control file with the keyword <em>populations</em>, and give an allele frequency for each population. The population frequency field names are the population names specified in the control file. The population frequencies need not sum to 1, but will be normalized to 1 in the analysis. You may also include locus position information with optional fields <strong>Morgans</strong>, <strong>FemaleMorgans</strong> and <strong>MaleMorgans</strong>, and <strong>Basepairs</strong>. For each locus there will be one line per locus allele.</p>
 
-<p><strong>Example</strong>
-    Locus,Allele,Chromosome,European,African,Chinese
-    ABO,A,9,0.27,0.18,0.19
-    ABO,B,9,0.06,0.11,0.17
-    ABO,O,9,NA,0.71,0.64
-    Rh,D,1,0.61,0.81,1
-    Rh,d,1,0.39,0.19,0
-    SNP,1,9,NA,NA,NA
-    SNP,2,9,NA,NA,NA
-    XSNP,1,X,0.3,0.4,0.5
-    XSNP,2,X,0.7,0.6,0.5</p>
+<p><strong>Example</strong></p>
+
+<pre><code>Locus,Allele,Chromosome,European,African,Chinese
+ABO,A,9,0.27,0.18,0.19
+ABO,B,9,0.06,0.11,0.17
+ABO,O,9,NA,0.71,0.64
+Rh,D,1,0.61,0.81,1
+Rh,d,1,0.39,0.19,0
+SNP,1,9,NA,NA,NA
+SNP,2,9,NA,NA,NA
+XSNP,1,X,0.3,0.4,0.5
+XSNP,2,X,0.7,0.6,0.5
+</code></pre>
 
 <h3>
 <a id="pedigree-file" class="anchor" href="#pedigree-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Pedigree File<a id="pedigree-file"></a>
