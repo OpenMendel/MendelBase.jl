@@ -277,7 +277,7 @@ regression_formula = Trait ~ Sex
 <a id="pedigree-file" class="anchor" href="#pedigree-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Pedigree File<a id="pedigree-file"></a>
 </h3>
 
-<p>A Pedigree file is always required. OpenMendel will accept <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> <em>FAM</em> Pedigree files, in which case the file must have the extension <em>.fam</em>. The OpenMendel Pedigree file format has a header row with the following required field names (in any order): Pedigree,Person,Mother,Father,Sex,Twin. If the analysis uses a <a href="#locus-file">Locus File</a> file to describe the markers, the genotypes are contained in the Pedigree file, and the marker names in the two files must agree. If the analysis uses a <a href="#snp-definition-file">SNP Definition File</a> file to describe the markers, the genotypes are contained in <a href="#snp-data-file">SNP Data File</a>. The Pedigree file may also include optional columns such as traits and population ancestries. The fractional ancestries need not sum to 1, but will be normalized to 1 in the analysis.</p>
+<p>A Pedigree file is always required. OpenMendel will accept <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> <em>FAM</em> Pedigree files, in which case the file must have the extension <em>.fam</em>. The OpenMendel Pedigree file format has a header row with the following required field names (in any order): Pedigree,Person,Mother,Father,Sex,Twin. If the analysis uses a <a href="#locus-file">Locus file</a> to describe the markers, the genotypes are contained in the Pedigree file, and the marker names in the Locus and Pedigree files must agree. If the analysis uses a <a href="#snp-definition-file">SNP Definition file</a> to describe the markers, the genotypes are contained in the <a href="#snp-data-file">SNP Data file</a>. The Pedigree file may also include optional columns such as traits and population ancestries. The fractional ancestries need not sum to 1, but will be normalized to 1 in the analysis.</p>
 
 <p><strong>Example Pedigree File</strong></p>
 
@@ -357,7 +357,7 @@ X,rs73433431,0,2702698,T,C
 <h3>
 <a id="plink-basename" class="anchor" href="#plink-basename" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>PLINK Basename</h3>
 
-<p>You may use the keyword <em>plink_input_basename</em> in the Control file to specify a name for your PLINK format files. If you use this keyword, you must supply 3 PLINK files with that name: <em>your_basename.bed</em> (SNP datafile), <em>your_basename.bim</em> (SNP definition file), and <em>your_basename.fam</em> (pedigree file).</p>
+<p>You may use the keyword <em>plink_input_basename</em> in the Control file to specify a name for your PLINK format files. If you use this keyword, you must supply 3 PLINK files with that name: <em>your_basename.bed</em> (SNP data file), <em>your_basename.bim</em> (SNP definition file), and <em>your_basename.fam</em> (pedigree file).</p>
 
 <h3>
 <a id="citation" class="anchor" href="#citation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Citation</h3>
