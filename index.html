@@ -380,7 +380,7 @@ Obama,Malia,Michelle,Barack,female,0,NA,NA,NA,O
 Obama,Sasha,Michelle,Barack,female,0,NA,NA,NA,B
 </code></pre>
 
-<p>Your <a href="#locus-file">Locus file</a> would have, instead of one column labeled <em>Frequency</em>,  a frequency column for each population, where the header for the column is the name of that population, and loci have an allele frequency for each population. The population frequency field names are the population names specified in the control file. In the example Locus file below, the Control file would include the line <em>"populations = European,African,Chinese"</em>. The population frequencies need not sum to 1, but will be normalized to 1 in the analysis. </p>
+<p>Your <a href="#locus-file">Locus file</a> would have, instead of one column labeled <em>Frequency</em>,  a frequency column for each population, where the header for the column is the name of that population, and loci have an allele frequency for each population. The population frequency field names are the population names specified in the control file. The population frequencies need not sum to 1, but will be normalized to 1 in the analysis. </p>
 
 <p>An example <a href="#locus-file">Locus file</a> might look like this:</p>
 
@@ -393,7 +393,7 @@ ABO,O,9,NA,0.71,0.64
 <h3>
 <a id="output-files" class="anchor" href="#output-files" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Output Files</h3>
 
-<p>All OpenMendel analysis options will create a results file. If no name is for this file is specified in the <a href="#control-file">Control</a>, it will be given the default name Mendel_Output.txt. A number of OpenMendel options give you the option of creating output files, such as plot files, or new pedigree, locus, or SNP input files based on the analysis results. These newly created input files can be used in subsequent analysis runs. To create these files, the file type is specified by a keyword in the control file, and a filename may be specified.</p>
+<p>All OpenMendel analysis options will create a results file. If no name for this file is specified in the <a href="#control-file">Control file</a>, it will be given the default name <em>Mendel_Output.txt</em>. A number of OpenMendel analysis options can create output files, such as plot files, or new pedigree, or SNP input files, based on the analysis results. These newly created input files can be used in subsequent analysis runs. To create these files, the file type is specified by a keyword in the control file and a filename is specified.</p>
 
 <p>For example:</p>
 
@@ -403,8 +403,9 @@ ABO,O,9,NA,0.71,0.64
 plink_input_basename = gwas 1 data
 output_file = gwas 1 Output.txt
 manhattan_plot_file = ManPlotOutput_1.png
+new_pedigree_file = NewPedigreeFrame.txt
 #
-# Analysis parameters for GWAS option.
+# Analysis parameters.
 #
 regression = linear
 regression_formula = Trait ~ Sex
