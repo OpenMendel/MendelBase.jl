@@ -353,6 +353,11 @@ XSNP,2,X,0.7,0.6,0.5
 <p>SNP Data file holds the SNP genotypes for your data set. The SNP Data file must be a standard <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> binary <em>BED</em> file in SNP major format. If you have a SNP data file you must have a SNP definition file, but it does not need to be PLINK format.</p>
 
 <h3>
+<a id="plink-basename" class="anchor" href="#plink-basename" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>PLINK Basename</h3>
+
+<p>You may use the keyword <em>plink_input_basename</em> in the Control file to specify a name for your PLINK format files. If you use this keyword, you must supply 3 PLINK files with that name: <em>your_basename.bed</em> (SNP datafile), <em>your_basename.bim</em> (SNP definition file), and <em>your_basename.fam</em> (pedigree file).</p>
+
+<h3>
 <a id="citation" class="anchor" href="#citation" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Citation</h3>
 
 <p>If you use this analysis package in your research, please cite the following reference in the resulting publications:</p>
