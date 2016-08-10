@@ -336,21 +336,23 @@ XSNP,2,X,0.7,0.6,0.5
 
 <p>SNP Definition file defines your SNPs with information such as SNP name, chromosome, position, allele names, allele frequencies. OpenMENDEL will accept <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> <em>BIM</em> Pedigree files, in which case the file must have the extension <em>.bim</em>. The OpenMendel SNP Definition file format has a header row with the field names: <em>SNP</em> or <em>Locus</em> (if this column is absent the SNPs are named 1,2,3..n); Chromosome (1-22,x; if column is absent assumed autosomal); Locus, CentiMorgans (if column is absent uses 0); Basepairs (if column is absent uses 0); Allele1, Allele2 = allele names. If absent uses "1" for Allele1 and "2" for Allele2.</p>
 
-<p><strong>Example SNP Definition File</strong>
-    Chromosome,Locus,CentiMorgans,Basepairs,Allele1,Allele2
-    X,rs311165,0,2699555,C,A
-    X,rs28579419,0,2699645,T,G
-    X,rs2306736,0,2700027,C,T
-    X,rs5939320,0,2700202,A,G
-    X,rs4892819,0,2700613,G,A
-    X,rs5982853,0,2702143,C,T
-    X,rs73433431,0,2702698,T,C</p>
+<p><strong>Example SNP Definition File</strong></p>
+
+<pre><code>Chromosome,Locus,CentiMorgans,Basepairs,Allele1,Allele2
+X,rs311165,0,2699555,C,A
+X,rs28579419,0,2699645,T,G
+X,rs2306736,0,2700027,C,T
+X,rs5939320,0,2700202,A,G
+X,rs4892819,0,2700613,G,A
+X,rs5982853,0,2702143,C,T
+X,rs73433431,0,2702698,T,C
+</code></pre>
 
 <h3>
 <a id="snp-data-file" class="anchor" href="#snp-data-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>SNP Data File<a id="snp-data-file"></a>
 </h3>
 
-<p>SNP Data file holds the SNP genotypes for your data set. The SNP Data file must be a standard <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> binary <em>BED</em> file in SNP major format. If you have a SNP data file you must have a SNP definition file, but it does not need to be PLINK format.</p>
+<p>SNP Data file holds the SNP genotypes for your data set. The SNP Data file must be a standard <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> binary <em>BED</em> file in SNP major format. If you have a SNP data file you must have a SNP definition file, but it does not need to be PLINK format. (There is no example SNP Data file because the SNP Data file is a binary file, and not human readable.</p>
 
 <h3>
 <a id="plink-basename" class="anchor" href="#plink-basename" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>PLINK Basename</h3>
