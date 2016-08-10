@@ -50,7 +50,7 @@
 <a id="input-files" class="anchor" href="#input-files" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Input Files</h3>
 
 <p>To make your genetic data available to OpenMendel, the various input files must be in a format
-that OpenMendel can read. To provide OpenMendel with the information it needs to perform its analysis you must prepare the following files. (An analysis option won't always need every file type.)</p>
+that OpenMendel can read. To provide OpenMendel with the information it needs to perform its analysis you must prepare the following files. Examples input files can be found in the docs subfolders of the different analysis packages. (An analysis option won't always need every file type.)</p>
 
 <ul>
 <li>
@@ -227,13 +227,13 @@ regression_formula = Trait ~ Sex
 <td>plink_input_basename</td>
 <td></td>
 <td></td>
-<td>Basename of plink input files</td>
+<td>Basename of PLINK input files</td>
 </tr>
 <tr>
 <td>plink_output_basename</td>
 <td></td>
 <td></td>
-<td>Basename of plink output files</td>
+<td>Basename of PLINK output files</td>
 </tr>
 <tr>
 <td>populations</td>
@@ -267,6 +267,11 @@ regression_formula = Trait ~ Sex
 </tr>
 </tbody>
 </table>
+
+<h3>
+<a id="general-data-file-format" class="anchor" href="#general-data-file-format" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>General Data File Format</h3>
+
+<p>All data files are in text file format with one exception: if you have dense SNP data, the SNP data should be in binary files in PLINK <strong>.bed</strong> file format. OpenMENDEL will also accept <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> <strong>.fam</strong> and <strong>.bim</strong>. All non-PLINK OpenMendel data files list data in columns, with a header row with field names for each column. The column need not be in any fixed order. Many column headers have required, case sensitive names. The column separators can be any single character, specified in the control file with the <strong>field_separator</strong>. The the default separator is <strong>comma</strong>. If a data element contains the field separator (e.g. comma) it must be enclosed in double quotes, or it will be read as a new field. Missing data is blank or "NA".</p>
 
 <h3>
 <a id="locus-file" class="anchor" href="#locus-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Locus File<a id="locus-file"></a>
