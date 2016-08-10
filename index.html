@@ -58,13 +58,13 @@ that OpenMendel can read. To provide OpenMendel with the information it needs to
 <li>
 <a href="#locus-file">Locus File</a>: Names and describes the genetic loci in your data.</li>
 <li>
-<a href="#pedigree-file">Pedigree File</a>: Gives information about your individuals, such as name, sex, family structure, and ancestry.</li>
+<a href="#pedigree-file">Pedigree File</a>: Gives information about your individuals, such as name, sex, family structure, and ancestry. This may be a PLINK FAM format file.</li>
 <li>
 <a href="#phenotype-file">Phenotype File</a>: Lists the available phenotypes.</li>
 <li>
-<a href="#snp-definition-file">SNP Definition File</a>: Defines your SNPs with information such as SNP name, chromosome, position, allele names, allele frequencies. This may be a PLINK .bim format file.</li>
+<a href="#snp-definition-file">SNP Definition File</a>: Defines your SNPs with information such as SNP name, chromosome, position, allele names. This may be a PLINK BIM format file.</li>
 <li>
-<a href="#snp-data-file">SNP Data File</a>: Holds the genotypes for your data set. Must be a standard binary PLINK .bed file in SNP major format. If you have a SNP data file you must have a SNP definition file.</li>
+<a href="#snp-data-file">SNP Data File</a>: Holds the genotypes for your data set. This must be a standard binary PLINK BED file in SNP major format. If you have a SNP data file you must have a SNP definition file.</li>
 </ul>
 
 <h3>
@@ -91,7 +91,7 @@ affected_designator = 1
 standard_errors = true
 </code></pre>
 
-<p>In the example above, there are five keywords. The first three specify input and output files: <em>plink_input_basename</em>, <em>output_file</em>, <em>manhattan_plot_file</em>. The last two specify analysis parameters: <em>regression</em> and <em>regression_formula</em>. The text after the '=' are the keyword values. For keywords that can take a set of values, the values are separated by commas.</p>
+<p>In the example above, there are five keywords. The first two specify input and output files: <em>gamete competition LocusFrame.txt</em>, <em>gamete competition PedigreeFrame.txt</em>. The last three specify analysis parameters: <em>disease_status</em>,  <em>affected_designator</em>, <em>standard_errors</em>. The text after the '=' are the keyword values: <em>ACE</em>, <em>1</em>, <em>true</em>. For keywords that can take a set of values, the values are separated by commas.</p>
 
 <h3>
 <a id="keywords" class="anchor" href="#keywords" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Keywords<a id="keywords-table"></a>
@@ -265,7 +265,7 @@ standard_errors = true
 <a id="pedigree-file" class="anchor" href="#pedigree-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Pedigree File<a id="pedigree-file"></a>
 </h3>
 
-<p>A Pedigree file is always required. OpenMendel will accept <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> <em>FAM</em> Pedigree files, in which case the file must have the extension <em>.fam</em>. The OpenMendel Pedigree file format has a header row with the following required field names (in any order): Pedigree,Person,Mother,Father,Sex,Twin. The only required column is one labeled either <em>“Individual”</em> or <em>“Person”</em>, giving the samples names. Each individual must either have <em>both</em> and mother <em>and</em> a father, or both mother and father must be blank. If the mother and father are missing, the individual is treated as a founder. If the Pedigree column is missing, the data is treated as separate pedigrees of size one, and all individuals are unrelated. Within each pedigree, every person must have a unique name. If a set of individuals in the same pedigree all have the same (non-blank) value in the <em>"Twin"</em> field they are all considered monozygotic (MZ) siblings. If the sex field is missing, all individuals are treated as female. If a sex field exists but the sex is missing for an individual, that individual is  treated as female. If the analysis uses a <a href="#locus-file">Locus file</a> to describe the markers, the genotypes are contained in the Pedigree file, and the marker names in the Locus and Pedigree files must agree. If the analysis uses a <a href="#snp-definition-file">SNP Definition file</a> to describe the markers, the genotypes are contained in the <a href="#snp-data-file">SNP Data file</a>. The Pedigree file may also include optional columns such as traits and <a href="#%3Ca%20id=%22populations%22">population</a> ancestries.</p>
+<p>A Pedigree file is always required. OpenMendel will accept <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> <em>FAM</em> Pedigree files, in which case the file must have the extension <em>.fam</em>. The OpenMendel Pedigree file format has a header row with the following field names (in any order): Pedigree,Person,Mother,Father,Sex,Twin. The only required column is one labeled either <em>“Individual”</em> or <em>“Person”</em>, giving the samples names. Each individual must either have <em>both</em> and mother <em>and</em> a father, or both mother and father must be blank. If the mother and father are missing, the individual is treated as a founder. If the Pedigree column is missing, the data is treated as separate pedigrees of size one, and all individuals are unrelated. Within each pedigree, every person must have a unique name. If a set of individuals in the same pedigree all have the same (non-blank) value in the <em>"Twin"</em> field they are all considered monozygotic (MZ) siblings. If the sex field is missing, all individuals are treated as female. If a sex field exists but the sex is missing for an individual, that individual is  treated as female. If the analysis uses a <a href="#locus-file">Locus file</a> to describe the markers, the genotypes are contained in the Pedigree file, and the marker names in the Locus and Pedigree files must agree. If the analysis uses a <a href="#snp-definition-file">SNP Definition file</a> to describe the markers, the genotypes are contained in the <a href="#snp-data-file">SNP Data file</a>. The Pedigree file may also include optional columns such as traits and <a href="#%3Ca%20id=%22populations%22">population</a> ancestries.</p>
 
 <p><strong>Example Pedigree File</strong></p>
 
