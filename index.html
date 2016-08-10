@@ -271,7 +271,7 @@ regression_formula = Trait ~ Sex
 <h3>
 <a id="general-data-file-format" class="anchor" href="#general-data-file-format" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>General Data File Format</h3>
 
-<p>All data files are in text file format with one exception: if you have dense SNP data, the SNP data should be in binary files in PLINK <strong>.bed</strong> file format. OpenMENDEL will also accept <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> <strong>.fam</strong> and <strong>.bim</strong>. All non-PLINK OpenMendel data files list data in columns, with a header row with field names for each column. The column need not be in any fixed order. Many column headers have required, case sensitive names. The column separators can be any single character, specified in the control file with the <strong>field_separator</strong>. The the default separator is <strong>comma</strong>. If a data element contains the field separator (e.g. comma) it must be enclosed in double quotes, or it will be read as a new field. Missing data is blank ("") or "NA". The PLINK file missing data symbols are "0" or "-9".</p>
+<p>All data files are in text file format with one exception: if you have dense SNP data, the SNP data should be in binary files in PLINK <strong>BED</strong> file format. OpenMENDEL will also accept <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> <strong>FAM</strong> and <strong>BIM</strong>. All non-PLINK OpenMendel data files list data in columns, with a header row with field names for each column. The column need not be in any fixed order. Many column headers have required, case sensitive names. The column separators can be any single character, specified in the control file with the <strong>field_separator</strong>. The the default separator is <strong>comma</strong>. If a data element contains the field separator (e.g. comma) it must be enclosed in double quotes, or it will be read as a new field. Missing data is blank ("") or "NA". The PLINK file missing data symbols are "0" or "-9".</p>
 
 <h3>
 <a id="locus-file" class="anchor" href="#locus-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Locus File<a id="locus-file"></a>
@@ -279,7 +279,7 @@ regression_formula = Trait ~ Sex
 
 <p>The Locus file defines your genetic markers unless you are working with a dense SNP map, in which case you must use a SNP Definition. The Locus file must have a header row with the field names (in any order): Locus, Allele, Chromosome, Frequency. If your samples come from different populations, instead of one column labeled Frequency, you may name the populations in the control file with the keyword <em>populations</em>, and give an allele frequency for each population. The population frequency field names are the population names specified in the control file. The population frequencies need not sum to 1, but will be normalized to 1 in the analysis. You may also include locus position information with optional fields <strong>Morgans</strong>, <strong>FemaleMorgans</strong> and <strong>MaleMorgans</strong>, and <strong>Basepairs</strong>. For each locus there will be one line per locus allele.</p>
 
-<p><strong>Example</strong></p>
+<p><strong>Example Locus File</strong></p>
 
 <pre><code>Locus,Allele,Chromosome,European,African,Chinese
 ABO,A,9,0.27,0.18,0.19
@@ -297,18 +297,18 @@ XSNP,2,X,0.7,0.6,0.5
 <a id="pedigree-file" class="anchor" href="#pedigree-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Pedigree File<a id="pedigree-file"></a>
 </h3>
 
-<p>A Pedigree file is always required. It can be in PLINK FAM file format, in which case it must have the extension .fam, or it can have the format of a required header rows with the following fieldnames (in any order): Pedigree,Person,Mother,Father,Sex,Twin, and optional columns such as population ancestries. The fractional ancestries need not sum to 1, but will be normalized to 1 in the analysis.</p>
+<p>A Pedigree file is always required. OpenMENDEL will accept <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> <strong>FAM</strong> Pedigree files, in which case the file must have the extension <strong>.fam</strong>. The OpenMendel Pedigree file format has a header row with the following required field names (in any order): Pedigree,Person,Mother,Father,Sex,Twin. The Pedigree file may also include optional columns such as traits and population ancestries. The fractional ancestries need not sum to 1, but will be normalized to 1 in the analysis.</p>
 
-<p><strong>Example</strong></p>
+<p><strong>Example Pedigree File</strong></p>
 
-<pre><code>Pedigree,Person,Mother,Father,Sex,Twin,BirthYear,Politician,European,African,Chinese,ABO,Rh,Xg,XSNP,HtMeters
-Clinton,Bill,,,male,0,1946.0,true,1.0,0.0,0.0,A,+,+,2/2,1.88
-Clinton,Hillary,,,female,0,1947.0,true,1.0,0.0,0.0,O,-,-,1/1,NA
-Clinton,Chelsea,Hillary,Bill,female,0,1980.0,false,NA,NA,NA,A,+,-,1/2,NA
-Obama,Barack,,,male,0,1961.0,true,0.5,0.5,0.0,O,+,NA,1/1,1.85
-Obama,Michelle,,,female,0,1964.0,false,0.3,0.7,0.0,B,+,NA,2/2,NA
-Obama,Malia,Michelle,Barack,female,0,1998.0,false,NA,NA,NA,O,-,+,1/2,NA
-Obama,Sasha,Michelle,Barack,female,0,2001.0,false,NA,NA,NA,B,+,+,1/2,NA
+<pre><code>Pedigree,Person,Mother,Father,Sex,Twin,ABO,HtMeters
+Clinton,Bill,,,male,0,A,1.88
+Clinton,Hillary,,,female,0,O,NA
+Clinton,Chelsea,Hillary,Bill,female,0,A,NA
+Obama,Barack,,,male,0,O,1.85
+Obama,Michelle,,,female,0,B,NA
+Obama,Malia,Michelle,Barack,female,0,O,NA
+Obama,Sasha,Michelle,Barack,female,0,B,NA
 </code></pre>
 
 <h3>
