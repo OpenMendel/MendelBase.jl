@@ -54,7 +54,7 @@ that OpenMendel can read. To provide OpenMendel with the information it needs to
 
 <ul>
 <li>
-<a href="#control-file">Control File</a>: Specifies the names of your data input and output files and any optional parameters (<em>keywords</em>) for the analysis. (For a complete list of keywords, see <a href="#keywords-table">Keywords Table</a> below).</li>
+<a href="#control-file">Control File</a>: Specifies the names of your data input and output files and any optional parameters (<em>keywords</em>) for the analysis. (For a list of common keywords, see <a href="#keywords-table">Keywords Table</a> below).</li>
 <li>
 <a href="#locus-file">Locus File</a>: Names and describes the genetic loci in your data.</li>
 <li>
@@ -71,12 +71,12 @@ that OpenMendel can read. To provide OpenMendel with the information it needs to
 <a id="control-files" class="anchor" href="#control-files" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Control files<a id="control-file"></a>
 </h3>
 
-<p>The format of the Control file is</p>
+<p>The Control file is a text file consisting of keywords and their assigned values. The format of the Control file is:</p>
 
 <pre><code>Keyword = Keyword_Value(s)
 </code></pre>
 
-<p>Below is an example Control file to run GWAS (text after "#" is ignored and treated as comments):</p>
+<p>Below is an example Control file to run GWAS (text after "#" is ignored, and treated as comments):</p>
 
 <pre><code>#
 # Input and Output files.
@@ -91,7 +91,7 @@ regression = linear
 regression_formula = Trait ~ Sex
 </code></pre>
 
-<p>In the example above, there are five keywords. The first three specify input and output files: <em>plink_input_basename</em>, <em>output_file</em>, <em>manhattan_plot_file</em>. The last two specify analysis parameters: <em>regression</em> and <em>regression_formula</em>. The text after the '=' are the keyword values. For keywords that can take a set of values, list the values separated by commas.</p>
+<p>In the example above, there are five keywords. The first three specify input and output files: <em>plink_input_basename</em>, <em>output_file</em>, <em>manhattan_plot_file</em>. The last two specify analysis parameters: <em>regression</em> and <em>regression_formula</em>. The text after the '=' are the keyword values. For keywords that can take a set of values, the values are separated by commas.</p>
 
 <h3>
 <a id="keywords" class="anchor" href="#keywords" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Keywords<a id="keywords-table"></a>
@@ -277,7 +277,7 @@ regression_formula = Trait ~ Sex
 <a id="pedigree-file" class="anchor" href="#pedigree-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Pedigree File<a id="pedigree-file"></a>
 </h3>
 
-<p>A Pedigree file is always required. OpenMENDEL will accept <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> <em>FAM</em> Pedigree files, in which case the file must have the extension <em>.fam</em>. The OpenMendel Pedigree file format has a header row with the following required field names (in any order): Pedigree,Person,Mother,Father,Sex,Twin. The Pedigree file may also include optional columns such as traits and population ancestries. The fractional ancestries need not sum to 1, but will be normalized to 1 in the analysis.</p>
+<p>A Pedigree file is always required. OpenMENDEL will accept <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> <em>FAM</em> Pedigree files, in which case the file must have the extension <em>.fam</em>. The OpenMendel Pedigree file format has a header row with the following required field names (in any order): Pedigree,Person,Mother,Father,Sex,Twin. If the analysis uses a <a href="#locus-file">Locus File</a> file to describe the markers, the genotypes are contained in the Pedigree file, and the marker names in the two files must agree. If the analysis uses a <a href="#snp-definition-file">SNP Definition File</a> file to describe the markers, the genotypes are contained in <a href="#snp-data-file">SNP Data File</a>. The Pedigree file may also include optional columns such as traits and population ancestries. The fractional ancestries need not sum to 1, but will be normalized to 1 in the analysis.</p>
 
 <p><strong>Example Pedigree File</strong></p>
 
