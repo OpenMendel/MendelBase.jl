@@ -76,19 +76,19 @@ that OpenMendel can read. To provide OpenMendel with the information it needs to
 <pre><code>Keyword = Keyword_Value(s)
 </code></pre>
 
-<p>Below is an example Control file to run GWAS (text after "#" is ignored, and treated as comments):</p>
+<p>Below is an example Control file to run Gamete Competition (text after "#" is ignored, and treated as comments):</p>
 
 <pre><code>#
-# Input and Output files.
+# Input files.
 #
-plink_input_basename = gwas 1 data
-output_file = gwas 1 Output.txt
-manhattan_plot_file = ManPlotOutput_1.png
+locus_file = gamete competition LocusFrame.txt
+pedigree_file = gamete competition PedigreeFrame.txt
 #
-# Analysis parameters for GWAS option.
+# Analysis parameters.
 #
-regression = linear
-regression_formula = Trait ~ Sex
+disease_status = ACE
+affected_designator = 1
+standard_errors = true
 </code></pre>
 
 <p>In the example above, there are five keywords. The first three specify input and output files: <em>plink_input_basename</em>, <em>output_file</em>, <em>manhattan_plot_file</em>. The last two specify analysis parameters: <em>regression</em> and <em>regression_formula</em>. The text after the '=' are the keyword values. For keywords that can take a set of values, the values are separated by commas.</p>
@@ -349,7 +349,7 @@ X,rs73433431,0,2702698,T,C
 <a id="populations" class="anchor" href="#populations" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Populations<a id="populations"></a>
 </h3>
 
-<p>If your individuals are of mixed ethnicity, and thus have fractional ancestry, OpenMendel will allow you to adjust for this in your analysis by using the <em>populations</em> keyword. Your populations will be named in your control file, fractional ancestries assigned to your individuals in the Pedigree file](#pedigree-file), and population specific allele frequencies assigned to markers in your your <a href="#locus-file">Locus file</a>.</p>
+<p>If your individuals are of mixed ethnicity, and thus have fractional ancestry, OpenMendel will allow you to adjust for this in your analysis by using the <em>populations</em> keyword. Your populations will be named in your control file, fractional ancestries assigned to your individuals in the Pedigree file](#pedigree-file), and population specific allele frequencies assigned to markers in your <a href="#locus-file">Locus file</a>.</p>
 
 <p>For example, your <a href="#control-file">Control file</a> might look like this:</p>
 
@@ -389,6 +389,26 @@ Obama,Sasha,Michelle,Barack,female,0,2001,FALSE,NA,NA,NA,B
 ABO,A,9,0.27,0.18,0.19
 ABO,B,9,0.06,0.11,0.17
 ABO,O,9,NA,0.71,0.64
+</code></pre>
+
+<h3>
+<a id="output-files" class="anchor" href="#output-files" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Output Files</h3>
+
+<p>All OpenMendel analysis options will create a results file. If no name is for this file is specified in the <a href="#control-file">Control</a>, it will be given the default name Mendel_Output.txt. A number of OpenMendel options give you the option of creating output files, such as plot files, or new pedigree, locus, or SNP input files based on the analysis results. These newly created input files can be used in subsequent analysis runs. To create these files, the file type is specified by a keyword in the control file, and a filename may be specified.</p>
+
+<p>For example:</p>
+
+<pre><code>#
+# Input and Output files.
+#
+plink_input_basename = gwas 1 data
+output_file = gwas 1 Output.txt
+manhattan_plot_file = ManPlotOutput_1.png
+#
+# Analysis parameters for GWAS option.
+#
+regression = linear
+regression_formula = Trait ~ Sex
 </code></pre>
 
 <h3>
