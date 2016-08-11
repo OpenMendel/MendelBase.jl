@@ -87,7 +87,7 @@ function read_external_data_files(keyword::Dict{ASCIIString, Any})
   #
   if (keyword["snpdefinition_file"] == "") != (keyword["snpdata_file"] == "")
     throw(ArgumentError(
-      "Either the SNP definition or SNP data file was not specified."))
+      "Either the SNP definition or SNP data file was not specified.\n \n"))
   end
   if keyword["snpdefinition_file"] == ""
     #
@@ -177,11 +177,11 @@ function snp_information(snp_definition_frame::DataFrame, person::Person,
   (snps, columns) = size(snp_definition_frame)
   column_names = names(snp_definition_frame)
   snp_name = blanks(snps)
-  if :Locus in column_names
-    for snp = 1:snps
-      snp_name[snp] = string(snp_definition_frame[snp, :Locus])
-    end
-  elseif :SNP in column_names
+  if :Locus in column_names && !(:SNP in column_names)
+    rename!(snp_definition_frame, :Locus, :SNP)
+    column_names = names(snp_definition_frame)
+  end
+  if :SNP in column_names
     for snp = 1:snps
       snp_name[snp] = string(snp_definition_frame[snp, :SNP])
     end
@@ -204,12 +204,22 @@ function snp_information(snp_definition_frame::DataFrame, person::Person,
   else
     centimorgans = zeros(Float64, snps)
   end
+  if !(:Basepairs in column_names)
+    if :BasePair in column_names
+      rename!(snp_definition_frame, :BasePair, :Basepairs)
+    elseif :BasePairs in column_names
+      rename!(snp_definition_frame, :BasePairs, :Basepairs)
+    elseif :Basepair in column_names
+      rename!(snp_definition_frame, :Basepair, :Basepairs)
+    elseif :BP in column_names
+      rename!(snp_definition_frame, :BP, :Basepairs)
+    elseif :bp in column_names
+      rename!(snp_definition_frame, :bp, :Basepairs)
+    end
+  end
+  column_names = names(snp_definition_frame)
   if :Basepairs in column_names
     basepairs = snp_definition_frame[:Basepairs]
-  elseif :Basepair in column_names
-    basepairs = snp_definition_frame[:Basepair]
-  elseif :bp in column_names
-    basepairs = snp_definition_frame[:bp]
   else
     basepairs = zeros(Int, snps)
   end
@@ -247,7 +257,7 @@ First extract relevant dimensions and fields.
 function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
                            keyword::Dict{ASCIIString, Any})
   #
-  # Create a null locus structure.
+  # If the locus_frame is empty, create a null locus structure.
   #
   if length(locus_frame) == 0
     a = Array(Array{ASCIIString, 1}, 1); a[1] = blanks(1)
@@ -259,20 +269,39 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
     return locus
   end
   #
-  # Otherwise, create a regular locus structure.
+  # Fix some possible field naming issues.
   #
+  locus_field = names(locus_frame)
+  if :Morgans in locus_field && !(:FemaleMorgans in locus_field)
+    rename!(locus_frame, :Morgans, :FemaleMorgans)
+  end
+  if !(:Basepairs in locus_field)
+    if :BasePair in locus_field
+      rename!(locus_frame, :BasePair, :Basepairs)
+    elseif :BasePairs in locus_field
+      rename!(locus_frame, :BasePairs, :Basepairs)
+    elseif :Basepair in locus_field
+      rename!(locus_frame, :Basepair, :Basepairs)
+    elseif :BP in locus_field
+      rename!(locus_frame, :BP, :Basepairs)
+    elseif :bp in locus_field
+      rename!(locus_frame, :bp, :Basepairs)
+    end
+  end
+  if :SNP in locus_field && !(:Locus in locus_field)
+    rename!(locus_frame, :SNP, :Locus)
+  end
+  #
+  # Determine some dimensions for the regular locus structure.
+  #
+  locus_field = names(locus_frame)
   pedigree_field = names(pedigree_frame)
   rows = length(locus_frame[:, :Locus])
-  locus_field = names(locus_frame)
   columns = length(locus_field)
   locus_name = unique(locus_frame[:, :Locus])
   #
   # Check for errors and omissions.
   #
-  if :Morgans in locus_field && !(:FemaleMorgans in locus_field)
-    rename!(locus_frame, :Morgans, :FemaleMorgans)
-    locus_field = names(locus_frame)
-  end
   loci = 1
   for i = 2:rows
     if locus_frame[i, :Locus] != locus_frame[i - 1, :Locus]
@@ -290,10 +319,10 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
         throw(ArgumentError(
           "The chromosome of locus $a is inconsistent.\n \n"))
       end
-      if :BasesPairs in locus_field
-        if locus_frame[i, :BasesPairs] != locus_frame[i - 1, :BasesPairs]
+      if :Basepairs in locus_field
+        if locus_frame[i, :Basepairs] != locus_frame[i - 1, :Basepairs]
           throw(ArgumentError(
-            "The bp position of locus $a is inconsistent.\n \n"))
+            "The basepairs position of locus $a is inconsistent.\n \n"))
         end
       end
       if :FemaleMorgans in locus_field
@@ -311,9 +340,9 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
     end
   end
   #
-  # Sort the locus frame by chromosome and location. Warning:
-  # Chromosome names should be 1, 2, ... 22, or X without further
-  # adornment.
+  # Sort the locus frame by chromosome and location.
+  # Warning: Chromosome names should be 1, 2, ... 22, or X
+  # without further adornment.
   #
   if :Basepairs in locus_field
     sort!(locus_frame::DataFrame, cols = [:Chromosome, :Basepairs])
@@ -338,10 +367,10 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
       loc = loc + 1
       chromosome[loc] = string(locus_frame[i, :Chromosome])
       #
-      # When only base pair distances are available, equate 1e6
-      # base pairs to a centiMorgan.
+      # When only basepair distances are available,
+      # equate 1e6 base pairs to a centiMorgan.
       #
-      if :BasesPairs in locus_field
+      if :Basepairs in locus_field
         bases_pairs[loc] = locus_frame[i, :Basepairs]
         if !(:FemaleMorgans in locus_field)
           morgans[:, loc] = bases_pairs[loc] / 1e8
@@ -508,7 +537,7 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   # equal to 0.5.
   #
   if loci > 1
-    if :BasesPairs in locus_field || :FemaleMorgans in locus_field
+    if :Basepairs in locus_field || :FemaleMorgans in locus_field
       theta = zeros(2, loci - 1)
       for loc = 1:loci - 1
         d = abs(morgans[1, loc + 1] - morgans[1, loc])
@@ -562,11 +591,11 @@ function pedigree_information(pedigree_frame::DataFrame)
   pedigree_field = names(pedigree_frame)
   if !(:Person in pedigree_field || :Individual in pedigree_field)
     throw(ArgumentError("The pedigree data file does not contain a field\n" *
-      "labeled Person or Individual. One such field is required.\n"))
+      "labeled Person or Individual. One such field is required.\n \n"))
   elseif :Person in pedigree_field && :Individual in pedigree_field
     throw(ArgumentError("The pedigree data file contains a field\n" *
       "labeled Person and a field labeled Individual.\n" *
-      "It is required to have only one such field.\n"))
+      "It is required to have only one such field.\n \n"))
   end
   if :Person in pedigree_field
     people = length(pedigree_frame[:, :Person])
@@ -593,7 +622,6 @@ function pedigree_information(pedigree_frame::DataFrame)
   families = zeros(Int, pedigrees)
   #
   # Check whether each pedigree occupies a contiguous block.
-  # If not, throw an error.
   #
   if :Pedigree in pedigree_field
     ped = 1
@@ -604,7 +632,7 @@ function pedigree_information(pedigree_frame::DataFrame)
     end
     if ped > pedigrees
 #      throw(ArgumentError("Some pedigrees are not in a contiguous block." *
-#      " Please fix the data files.\n"))
+#      " Please fix the data files.\n \n"))
       sort!(pedigree_frame, cols = order(:Pedigree))
     end
     #
@@ -1674,7 +1702,7 @@ function check_populations(locus_frame::DataFrame, pedigree_frame::DataFrame,
     if symbol(pop) in pedigree_field
       continue
     else
-      throw(ArgumentError("Population $pop is not in the pedigree frame."))
+      throw(ArgumentError("Population $pop is not in the pedigree frame.\n \n"))
     end
   end
   if length(locus_frame) != 0
@@ -1683,7 +1711,7 @@ function check_populations(locus_frame::DataFrame, pedigree_frame::DataFrame,
       if symbol(pop) in locus_field
         continue
       else
-        throw(ArgumentError("Population $pop is not in the locus frame."))
+        throw(ArgumentError("Population $pop is not in the locus frame.\n \n"))
       end
     end
   end
