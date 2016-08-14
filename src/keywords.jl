@@ -91,7 +91,6 @@ function set_keyword_defaults!(keyword::Dict{ASCIIString, Any})
   keyword["analysis_option"] = ""
   keyword["complexity_threshold"] = 5e7
   keyword["control_file"] = ""
-  keyword["disease_status"] = ""
   keyword["eliminate_genotypes"] = false
   keyword["female"] = Set{Any}(["female", "f", 'f', "2", '2', 2])
   keyword["field_separator"] = ','
@@ -111,6 +110,7 @@ function set_keyword_defaults!(keyword::Dict{ASCIIString, Any})
   keyword["seed"] = 1234
   keyword["snpdata_file"] = ""
   keyword["snpdefinition_file"] = ""
+  keyword["trait"] = ""
 ## For imputation:
 ##  keyword["gradient_provided"] = false
 ##  keyword["reference_haplotypes"] = 0

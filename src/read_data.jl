@@ -911,7 +911,7 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   #
   # Record the disease status of each person.
   #
-  disease_field = keyword["disease_status"]
+  disease_field = keyword["trait"]
   if disease_field != ""
     disease_field = symbol(disease_field)
     if disease_field in pedigree_field
@@ -925,7 +925,7 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
         end
       end
     else
-      disease_field = keyword["disease_status"]
+      disease_field = keyword["trait"]
       throw(ArgumentError(
         "Specified disease status field ($disease_field) " *
         "is not in the pedigree frame.\n \n"))
