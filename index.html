@@ -50,7 +50,7 @@
 <a id="input-files" class="anchor" href="#input-files" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Input Files</h3>
 
 <p>To make your genetic data available to OpenMendel, the various input files must be in a format
-that OpenMendel can read. Listed here are all of OpenMendel's input file types, however, not every analysis option will use every type. (Examples input files can be found in the docs subfolders of each of the analysis packages.)</p>
+that OpenMendel can read. Listed here are all of OpenMendel's input file types. However, not every analysis option will use every type. (Examples input files can be found in the docs subfolders of each of the analysis packages.)</p>
 
 <ul>
 <li>
@@ -64,8 +64,10 @@ that OpenMendel can read. Listed here are all of OpenMendel's input file types, 
 <li>
 <a href="#snp-definition-file">SNP Definition File</a>: Defines your SNPs with information such as SNP name, chromosome, position, allele names. This may be a PLINK BIM format file.</li>
 <li>
-<a href="#snp-data-file">SNP Data File</a>: Holds the genotypes for your data set. This must be a standard binary PLINK BED file in SNP major format. If you have a SNP data file you must have a SNP definition file.</li>
+<a href="#snp-data-file">SNP Data File</a>: Holds the genotypes for your data set. This must be a standard binary PLINK BED file in SNP major format. If you have a SNP data file, you must also have a SNP definition file.</li>
 </ul>
+
+<p>If an analysis option uses a SNP Data file (and thus also a SNP Definition file), then it does <em>not</em> use a Locus file (and thus it also does not use a Phenotype file). Similarly, if an analysis option uses a Locus file, then it does not use a SNP Data nor SNP Definition file.</p>
 
 <h3>
 <a id="control-files" class="anchor" href="#control-files" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Control files<a id="control-file"></a>
