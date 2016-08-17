@@ -64,7 +64,7 @@ that OpenMendel can read. Listed here are all of OpenMendel's input file types. 
 <li>
 <a href="#snp-definition-file">SNP Definition File</a>: Defines your SNPs with information such as SNP name, chromosome, position, allele names. This may be a PLINK BIM format file.</li>
 <li>
-<a href="#snp-data-file">SNP Data File</a>: Holds the genotypes for your data set. This must be a standard binary PLINK BED file in SNP major format. If you have a SNP data file, you must also have a SNP definition file.</li>
+<a href="#snp-data-file">SNP Data File</a>: Holds the genotypes for your data set. This must be a standard binary PLINK BED file in SNP-major format. If you have a SNP data file, you must also have a SNP definition file.</li>
 </ul>
 
 <p>If an analysis option uses a SNP Data file (and thus also a SNP Definition file), then it does <em>not</em> use a Locus file (and thus it also does not use a Phenotype file). Similarly, if an analysis option uses a Locus file, then it does not use a SNP Data nor SNP Definition file.</p>
@@ -73,33 +73,33 @@ that OpenMendel can read. Listed here are all of OpenMendel's input file types. 
 <a id="control-files" class="anchor" href="#control-files" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Control files<a id="control-file"></a>
 </h3>
 
-<p>The Control file is a text file consisting of keywords and their assigned values. The format of the Control file is:</p>
+<p>The Control file is a text file consisting of keywords and their assigned values. The format for each line of the Control file is:</p>
 
 <pre><code>Keyword = Keyword_Value(s)
 </code></pre>
 
-<p>Below is an example Control file to run Gamete Competition (text after "#" is ignored, and treated as comments):</p>
+<p>The names of keywords are <em>not</em> case sensitive, but the keyword values <em>may</em> be case sensitive. Below is an example Control file (any text after "#" is treated as comments and ignored):</p>
 
-<pre><code>#
-# Input files.
+<pre><code># Input and Output files.
 #
 locus_file = gamete competition LocusFrame.txt
 pedigree_file = gamete competition PedigreeFrame.txt
+output_file = gamete competition Output.txt
 #
-# Analysis parameters.
+# Analysis parameters for the Gamete Competition option.
 #
 trait = ACE
 affected_designator = 1
 standard_errors = true
 </code></pre>
 
-<p>In the example above, there are five keywords. The first two specify input and output files: <em>"gamete competition LocusFrame.txt"</em>, <em>"gamete competition PedigreeFrame.txt"</em>. The last three specify analysis parameters: <em>trait</em>,  <em>affected_designator</em>, <em>standard_errors</em>. The text after the '=' are the keyword values: <em>ACE</em>, <em>1</em>, <em>true</em>. For keywords that can take a set of values, the values are separated by commas.</p>
+<p>In the example above, there are six keywords. The first three specify input and output filenames: <em>locus_file</em>, <em>pedigree_file</em>, and <em>output_file</em>. The last three specify analysis parameters: <em>trait</em>,  <em>affected_designator</em>, <em>standard_errors</em>. The text after the '=' are the keyword values: <em>ACE</em>, <em>1</em>, <em>true</em>. For keywords that can take a set of values, the values are separated by commas.</p>
 
 <h3>
 <a id="keywords" class="anchor" href="#keywords" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Keywords<a id="keywords-table"></a>
 </h3>
 
-<p>This is a list of the general OpenMendel keywords common to most analysis package. The keywords specific to an analysis package are covered in detail in the documentation for each package. The names of keywords are <em>not</em> case sensitive. (The keyword values <em>may</em> be case sensitive.)</p>
+<p>This is a list of the general OpenMendel keywords common to most analysis package. The keywords specific to an analysis package are covered in detail in the documentation for each package. Again, the names of keywords are <em>not</em> case sensitive, but the keyword values <em>may</em> be case sensitive.</p>
 
 <table>
 <thead>
