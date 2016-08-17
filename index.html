@@ -313,7 +313,7 @@ SNP,2,9,0,NA
 <a id="phenotype-file" class="anchor" href="#phenotype-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Phenotype File<a id="phenotype-file"></a>
 </h3>
 
-<p>If there are loci in the locus file that are non-codominant, then the relationships between the genotypes and the phenotypes for these loci are listed in the Phenotype File. The Phenotype File is in the standard table format with a header row. The header row must have the required field names <em>Locus, Phenotype, Genotypes</em> in any order. Each line names a locus and a phenotype used at that locus. Also listed on that line are all the genotypes consistent with that phenotype, in a quoted list. For example, the line <code>ABO,A,"A/A,A/O"</code> indicates the genotypes A/A and A/O are both valid for the phenotype A at the ABO locus.</p>
+<p>If there are loci in the Locus file that are non-codominant, then the relationships between the genotypes and the phenotypes for these loci are listed in the Phenotype File. The Phenotype File is in the standard table format with a header row. The header row must have the required field names <em>Locus</em>, <em>Phenotype</em>, and <em>Genotypes</em> in any order. Each line names a locus and a phenotype used at that locus. Also listed on that line are all the genotypes consistent with that phenotype, in a quoted list. For example, the line <code>ABO,A,"A/A,A/O"</code> indicates the genotypes A/A and A/O are both valid for the phenotype A at the ABO locus.</p>
 
 <p><strong>Example Phenotype File</strong></p>
 
@@ -332,11 +332,11 @@ Xg,-,"-/-"
 <a id="snp-definition-file" class="anchor" href="#snp-definition-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>SNP Definition File<a id="snp-definition-file"></a>
 </h3>
 
-<p>The SNP Definition file defines the SNPs with information such as SNP name, chromosome, position, and allele names. OpenMendel will accept <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> BIM files, in which case the file must have the extension <em>.bim</em>. The OpenMendel SNP Definition file format has a header row with field names: <em>SNP</em> or <em>Locus</em> (if this column is absent, the n SNPs are named 1,2,3,..n); <em>Chromosome</em> (1-22, X; if this column is absent, all SNPs are assumed to be autosomal); <em>CentiMorgans</em> (if this column is absent, all are assigned 0); <em>Basepairs</em> (if this column is absent, all are assigned 0); <em>Allele1</em>, <em>Allele2</em> (these list the allele names; if allele names are absent, Allele1 is assigned "1" and Allele2 "2").</p>
+<p>The SNP Definition file defines the SNPs with information such as SNP name, chromosome, position, and allele names. OpenMendel will accept <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> BIM files, in which case the file must have the extension <em>.bim</em>. The OpenMendel SNP Definition file format has a header row (in any order) with some of the field names: <em>SNP</em> or <em>Locus</em>, <em>Chromosome</em>, <em>CentiMorgans</em>, <em>Basepairs</em>, <em>Allele1</em>, and <em>Allele2</em> (these last two list the allele names). If neither a SNP nor Locus field is present, then the n SNPs are named 1, 2, 3, ..., n. If the Chromosome field is missing altogether or contains a missing value at some SNP, it is assumed to be autosomal. If present, the Chromosome field should have a value from 1 to 22 or the value X. If the CentiMorgan or Basepair fields are missing, they take the value 0. If Allele1 is missing it is assigned the value "1"; a missing Allele2 becomes "2".</p>
 
 <p><strong>Example SNP Definition File</strong></p>
 
-<pre><code>Chromosome,Locus,CentiMorgans,Basepairs,Allele1,Allele2
+<pre><code>Chromosome,SNP,CentiMorgans,Basepairs,Allele1,Allele2
 X,rs311165,0,2699555,C,A
 X,rs28579419,0,2699645,T,G
 X,rs2306736,0,2700027,C,T
@@ -350,7 +350,7 @@ X,rs73433431,0,2702698,T,C
 <a id="snp-data-file" class="anchor" href="#snp-data-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>SNP Data File<a id="snp-data-file"></a>
 </h3>
 
-<p>The SNP Data file holds the SNP genotypes. The SNP Data file must be a standard <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> binary BED file in SNP major format. If you have a SNP data file, you must have a SNP definition file, but it need not be in PLINK format. (We do not list an example SNP Data file because they are binary files, and thus not human readable.)</p>
+<p>The SNP Data file holds the SNP genotypes. The SNP Data file must be a standard <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> binary BED file in SNP-major format. If you have a SNP data file, you must have a SNP definition file, but it need not be in PLINK format. (We do not list here an example SNP Data file because they are binary files, and thus not human readable.)</p>
 
 <h3>
 <a id="plink-basename" class="anchor" href="#plink-basename" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>PLINK Basename</h3>
