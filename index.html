@@ -58,7 +58,7 @@ that OpenMendel can read. To provide OpenMendel with the information it needs to
 <li>
 <a href="#locus-file">Locus File</a>: Names and describes the genetic loci in your data.</li>
 <li>
-<a href="#pedigree-file">Pedigree File</a>: Gives information about your individuals, such as name, sex, family structure, and ancestry. This may be a PLINK FAM format file.</li>
+<a href="#pedigree-file">Pedigree File</a>: Gives information about your individuals, such as name, parents' names, and sex. This may be a PLINK FAM format file.</li>
 <li>
 <a href="#phenotype-file">Phenotype File</a>: Lists the relationships between the genotypes and the phenotypes at the loci in the locus file.</li>
 <li>
@@ -86,12 +86,12 @@ pedigree_file = gamete competition PedigreeFrame.txt
 #
 # Analysis parameters.
 #
-disease_status = ACE
+trait = ACE
 affected_designator = 1
 standard_errors = true
 </code></pre>
 
-<p>In the example above, there are five keywords. The first two specify input and output files: <em>"gamete competition LocusFrame.txt"</em>, <em>"gamete competition PedigreeFrame.txt"</em>. The last three specify analysis parameters: <em>disease_status</em>,  <em>affected_designator</em>, <em>standard_errors</em>. The text after the '=' are the keyword values: <em>ACE</em>, <em>1</em>, <em>true</em>. For keywords that can take a set of values, the values are separated by commas.</p>
+<p>In the example above, there are five keywords. The first two specify input and output files: <em>"gamete competition LocusFrame.txt"</em>, <em>"gamete competition PedigreeFrame.txt"</em>. The last three specify analysis parameters: <em>trait</em>,  <em>affected_designator</em>, <em>standard_errors</em>. The text after the '=' are the keyword values: <em>ACE</em>, <em>1</em>, <em>true</em>. For keywords that can take a set of values, the values are separated by commas.</p>
 
 <h3>
 <a id="keywords" class="anchor" href="#keywords" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Keywords<a id="keywords-table"></a>
@@ -113,7 +113,7 @@ standard_errors = true
 <td>affected_designator</td>
 <td>affected</td>
 <td></td>
-<td>Disease phenotype designator</td>
+<td>Value used to designate affecteds at trait field</td>
 </tr>
 <tr>
 <td>allele_pseudo_count</td>
@@ -125,25 +125,19 @@ standard_errors = true
 <td>allele_separator</td>
 <td>/</td>
 <td>1 Character</td>
-<td>Separates codominant alleles</td>
+<td>Separates alleles in unordered genotypes</td>
 </tr>
 <tr>
 <td>complexity_threshold</td>
 <td>5.00E+07</td>
 <td>Real</td>
-<td>Criterion for not analyzing pedigrees</td>
-</tr>
-<tr>
-<td>disease_status</td>
-<td></td>
-<td></td>
-<td>Name of column designating disease status</td>
+<td>Criterion for which pedigrees not to analyze because the computation would take too long</td>
 </tr>
 <tr>
 <td>eliminate_genotypes</td>
 <td>FALSE</td>
 <td>TRUE, FALSE</td>
-<td>Whether or not genotypes are eliminated</td>
+<td>Indicator of whether genotypes should be eliminated</td>
 </tr>
 <tr>
 <td>female</td>
@@ -155,25 +149,25 @@ standard_errors = true
 <td>field_separator</td>
 <td>','</td>
 <td>1 Character</td>
-<td>Character used to separates values in data files</td>
+<td>Character used to separate values in data files</td>
 </tr>
 <tr>
 <td>genetic_map_function</td>
 <td>Haldane</td>
 <td>Haldane or Kosambi</td>
-<td>Genetic map units</td>
+<td>Function for converting Morgans to recombination fractions</td>
 </tr>
 <tr>
 <td>locus_file</td>
 <td></td>
-<td></td>
-<td>Name of input locus file</td>
+<td>Name of existing Locus file</td>
+<td>Name of input Locus file</td>
 </tr>
 <tr>
 <td>lump_alleles</td>
 <td>FALSE</td>
 <td>TRUE, FALSE</td>
-<td>Whether or not alleles are combined</td>
+<td>Indicator of whether alleles should be combined</td>
 </tr>
 <tr>
 <td>male</td>
@@ -184,43 +178,43 @@ standard_errors = true
 <tr>
 <td>new_pedigree_file</td>
 <td></td>
-<td>User defined output file name</td>
-<td>OpenMendel generated output pedigree file</td>
+<td>Filename</td>
+<td>Name of file that will hold OpenMendel generated pedigree data</td>
 </tr>
 <tr>
 <td>ordered_allele_separator</td>
 <td>| (vertical bar)</td>
 <td>1 Character</td>
-<td>Separates ordered codominant alleles</td>
+<td>Separates alleles in ordered genotypes</td>
 </tr>
 <tr>
 <td>output_file</td>
 <td>Mendel_Output.txt</td>
-<td>User defined output file name</td>
-<td>Name of standard results output file</td>
+<td>Filename</td>
+<td>Name of file that will hold OpenMendel analysis results</td>
 </tr>
 <tr>
 <td>pedigree_file</td>
 <td></td>
-<td></td>
-<td>Name of input pedigree file</td>
+<td>Name of existing Pedigree file</td>
+<td>Name of input Pedigree file</td>
 </tr>
 <tr>
 <td>phenotype_file</td>
 <td></td>
-<td></td>
-<td>Name of input phenotype file</td>
+<td>Name of existing Phenotype file</td>
+<td>Name of input Phenotype file</td>
 </tr>
 <tr>
 <td>plink_input_basename</td>
 <td></td>
-<td></td>
+<td>Basename of existing .bed, .bim, and .fam files</td>
 <td>Basename of PLINK input files</td>
 </tr>
 <tr>
 <td>plink_output_basename</td>
 <td></td>
-<td>User defined output file name</td>
+<td></td>
 <td>Basename of PLINK output files</td>
 </tr>
 <tr>
@@ -239,25 +233,31 @@ standard_errors = true
 <td>seed</td>
 <td>1234</td>
 <td>Integer</td>
-<td>Random number generator seed</td>
+<td>Seed value for random number generator</td>
 </tr>
 <tr>
 <td>snpdata_file</td>
 <td></td>
-<td></td>
-<td>Name of input SNP data file</td>
+<td>Name of existing SNP Data file (in .bed format)</td>
+<td>Name of input SNP Data file</td>
 </tr>
 <tr>
 <td>snpdefinition_file</td>
 <td></td>
-<td></td>
-<td>Name of input SNP definition_file</td>
+<td>Name of existing SNP Definition file</td>
+<td>Name of input SNP Definition file</td>
 </tr>
 <tr>
 <td>standard_errors</td>
+<td>FALSE</td>
+<td>TRUE, FALSE</td>
+<td>Indicator whether standard errors should be output</td>
+</tr>
+<tr>
+<td>trait</td>
 <td></td>
 <td></td>
-<td></td>
+<td>Name of trait column in pedigree file (use Trait for .fam files)</td>
 </tr>
 </tbody>
 </table>
@@ -265,13 +265,13 @@ standard_errors = true
 <h3>
 <a id="general-data-file-format" class="anchor" href="#general-data-file-format" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>General Data File Format</h3>
 
-<p>All data files are in text file format with one exception: if you have dense SNP data, the SNP data should be in binary files in PLINK BED file format. OpenMendel will also accept <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> FAM and BIM files. All non-PLINK OpenMendel data files list data in columns, with a header row with field names for each column. The columns need not be in any fixed order. Many column headers have required, case sensitive names. The column separators can be any single character, specified in the control file with the keyword <em>field_separator</em>. The default separator is <em>comma</em>. If a data element contains the field separator (e.g. comma) it must be enclosed in double quotes, or it will be read as a new field. Missing data is blank ("") or "NA". The PLINK file missing data symbols are "0" or "-9".</p>
+<p>All data files are text files with one exception: if used, the SNP data file should be a binary file in PLINK BED file format. OpenMendel will accept <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> FAM and BIM files. All non-PLINK OpenMendel data files list their data in columns, with a header row with field names for each column. The columns need not be in any fixed order. Many column headers have required, case sensitive names. The column separators can be any single character, specified in the control file with the keyword <em>field_separator</em>. The default separator is <em>comma</em>. If a data element contains the field separator (e.g. comma) it must be enclosed in double quotes, or it will be read as multiple field, for example, "A/A, A/O". Missing data is blank ("") or "NA". In PLINK files the missing data symbols are "0" or "-9".</p>
 
 <h3>
 <a id="pedigree-file" class="anchor" href="#pedigree-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Pedigree File<a id="pedigree-file"></a>
 </h3>
 
-<p>A Pedigree file is always required. OpenMendel will accept <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> FAM Pedigree files, in which case the file must have the extension <em>.fam</em>. The OpenMendel Pedigree file format has a header row with the following field names (in any order): Pedigree,Person,Mother,Father,Sex,Twin. The only required column is one labeled either <em>“Individual”</em> or <em>“Person”</em>, giving the samples names. Each individual must either have <em>both</em> and mother <em>and</em> a father, or both mother and father must be blank. If the Mother and Father columns exist but both fields are missing for an individual, that individual is  treated as a founder. If the Mother and Father columns are missing, all individuals are founders. If the Pedigree column is missing, the data is treated as separate pedigrees of size one, and all individuals are unrelated. Within each pedigree, every person must have a unique name. If a set of individuals in the same pedigree all have the same (non-blank) value in the Twin field they are all considered monozygotic (MZ) siblings. If the Sex field is missing, all individuals are treated as female. If a Sex column exists but the sex is missing for an individual, that individual is  treated as female. If the analysis uses a <a href="#locus-file">Locus file</a> to describe the markers, the genotypes are contained in the Pedigree file, and the marker names in the Locus and Pedigree files must agree. If the analysis uses a <a href="#snp-definition-file">SNP Definition file</a> to describe the markers, the genotypes are contained in the <a href="#snp-data-file">SNP Data file</a>. The Pedigree file may also include optional columns such as traits and <a href="#populations">population</a> ancestries.</p>
+<p>A Pedigree file is always required. OpenMendel will accept <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> FAM pedigree files, in which case the file must have the extension <em>.fam</em>. The OpenMendel pedigree file format has a header row with some of the following field names (in any order): Pedigree, Individual (or Person), Mother, Father, Sex, and Twin. The only required column is the one labeled either <em>“Individual”</em> or <em>“Person”</em>, giving the samples names. Each individual must either have <em>both</em> a mother <em>and</em> a father named, or both parental name fields must be blank. If the Mother and Father columns exist but both fields are missing for an individual, that individual is treated as a founder. If the Mother and Father columns are missing, all individuals are founders. If the Pedigree column is missing, all rows are treated as separate pedigrees of size one, and all individuals are unrelated. Within each pedigree, every person must have a unique name. If a set of individuals in the same pedigree all have the same non-blank value in the Twin field, they are all considered monozygotic (MZ) siblings. If the Sex field is missing, all individuals are treated as female. If a Sex column exists but the sex is missing for an individual, that individual is treated as female. If the analysis uses a <a href="#locus-file">Locus file</a> to describe the markers, the genotypes are contained in the Pedigree file, and the marker names in the Locus and Pedigree files must agree. If the analysis uses a <a href="#snp-definition-file">SNP Definition file</a> to describe the markers, the genotypes are contained in the <a href="#snp-data-file">SNP Data file</a>. The Pedigree file may also include optional columns such as traits and <a href="#populations">population</a> ancestries.</p>
 
 <p><strong>Example Pedigree File</strong></p>
 
@@ -283,25 +283,6 @@ Obama,Barack,,,male,0,O,1.85
 Obama,Michelle,,,female,0,B,NA
 Obama,Malia,Michelle,Barack,female,0,O,NA
 Obama,Sasha,Michelle,Barack,female,0,B,NA
-</code></pre>
-
-<h3>
-<a id="phenotype-file" class="anchor" href="#phenotype-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Phenotype File<a id="phenotype-file"></a>
-</h3>
-
-<p>If there are loci in the locus file that are non-codominant then the relationships between the genotypes and the phenotypes for that locus are listed in the Phenotype File. The Phenotype File is the standard table format with a header row. The header row has the required field names <em>Locus, Phenotype, Genotypes</em>. Each line names a locus and a  phenotype used at that locus. Also listed on that line are all the genotypes consistent with that phenotype in a quoted list. For example, the line <code>ABO,A,"A/A,A/O"</code> indicates the genotypes A/A and A/O are both valid for the phenotype A at the ABO locus.</p>
-
-<p><strong>Example Phenotype File</strong></p>
-
-<pre><code>Locus,Phenotype,Genotypes
-ABO,A,"A/A,A/O"
-ABO,B,"B/B,B/O"
-ABO,AB,"A/B"
-ABO,O,"O/O"
-Rh,+,"D/D,D/d"
-Rh,-,"d/d"
-Xg,+,"+/+,+/-"
-Xg,-,"-/-"
 </code></pre>
 
 <h3>
@@ -323,10 +304,29 @@ SNP,2,9,0,NA
 </code></pre>
 
 <h3>
+<a id="phenotype-file" class="anchor" href="#phenotype-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Phenotype File<a id="phenotype-file"></a>
+</h3>
+
+<p>If there are loci in the locus file that are non-codominant, then the relationships between the genotypes and the phenotypes for these loci are listed in the Phenotype File. The Phenotype File is in the standard table format with a header row. The header row must have the required field names <em>Locus, Phenotype, Genotypes</em> in any order. Each line names a locus and a phenotype used at that locus. Also listed on that line are all the genotypes consistent with that phenotype, in a quoted list. For example, the line <code>ABO,A,"A/A,A/O"</code> indicates the genotypes A/A and A/O are both valid for the phenotype A at the ABO locus.</p>
+
+<p><strong>Example Phenotype File</strong></p>
+
+<pre><code>Locus,Phenotype,Genotypes
+ABO,A,"A/A,A/O"
+ABO,B,"B/B,B/O"
+ABO,AB,"A/B"
+ABO,O,"O/O"
+Rh,+,"D/D,D/d"
+Rh,-,"d/d"
+Xg,+,"+/+,+/-"
+Xg,-,"-/-"
+</code></pre>
+
+<h3>
 <a id="snp-definition-file" class="anchor" href="#snp-definition-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>SNP Definition File<a id="snp-definition-file"></a>
 </h3>
 
-<p>The SNP Definition file defines your SNPs with information such as SNP name, chromosome, position, and allele names. OpenMendel will accept <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> BIM files, in which case the file must have the extension <em>.bim</em>. The OpenMendel SNP Definition file format has a header row with the field names: <em>SNP</em> or <em>Locus</em> (if this column is absent the SNPs are named 1,2,3..n); Chromosome (1-22,x; if column is absent assumed autosomal); Locus, CentiMorgans (if column is absent uses 0); Basepairs (if column is absent uses 0); Allele1, Allele2 = allele names. If allele names are absent OpenMendel uses "1" for Allele1 and "2" for Allele2.</p>
+<p>The SNP Definition file defines the SNPs with information such as SNP name, chromosome, position, and allele names. OpenMendel will accept <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> BIM files, in which case the file must have the extension <em>.bim</em>. The OpenMendel SNP Definition file format has a header row with field names: <em>SNP</em> or <em>Locus</em> (if this column is absent, the n SNPs are named 1,2,3,..n); <em>Chromosome</em> (1-22, X; if this column is absent, all SNPs are assumed to be autosomal); <em>CentiMorgans</em> (if this column is absent, all are assigned 0); <em>Basepairs</em> (if this column is absent, all are assigned 0); <em>Allele1</em>, <em>Allele2</em> (these list the allele names; if allele names are absent, Allele1 is assigned "1" and Allele2 "2").</p>
 
 <p><strong>Example SNP Definition File</strong></p>
 
@@ -344,7 +344,7 @@ X,rs73433431,0,2702698,T,C
 <a id="snp-data-file" class="anchor" href="#snp-data-file" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>SNP Data File<a id="snp-data-file"></a>
 </h3>
 
-<p>The SNP Data file holds the SNP genotypes for your data set. The SNP Data file must be a standard <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> binary BED file in SNP major format. If you have a SNP data file you must have a SNP definition file, but it need not be in PLINK format. (There is no example SNP Data file because the SNP Data file is a binary file, and not human readable.)</p>
+<p>The SNP Data file holds the SNP genotypes. The SNP Data file must be a standard <a href="http://pngu.mgh.harvard.edu/%7Epurcell/plink/data.shtml">PLINK format</a> binary BED file in SNP major format. If you have a SNP data file, you must have a SNP definition file, but it need not be in PLINK format. (We do not list an example SNP Data file because they are binary files, and thus not human readable.)</p>
 
 <h3>
 <a id="plink-basename" class="anchor" href="#plink-basename" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>PLINK Basename</h3>
@@ -355,9 +355,9 @@ X,rs73433431,0,2702698,T,C
 <a id="populations" class="anchor" href="#populations" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Populations<a id="populations"></a>
 </h3>
 
-<p>If your individuals are of mixed ethnicity, and thus have fractional ancestry, OpenMendel will allow you to adjust for this in your analysis by using the <em>populations</em> keyword. Your populations will be named in your control file, fractional ancestries assigned to your individuals in the <a href="#pedigree-file">Pedigree file</a>, and population specific allele frequencies assigned to markers in your <a href="#locus-file">Locus file</a>.</p>
+<p>If your individuals are of mixed ethnicity, and thus have fractional ancestry, OpenMendel will allow you to adjust for this in your analysis by using the <em>populations</em> keyword. The relevant populations should be named in your control file, fractional ancestries should be assigned to the individuals in the <a href="#pedigree-file">Pedigree file</a>, and population specific allele frequencies should be assigned to the markers in the <a href="#locus-file">Locus file</a>.</p>
 
-<p>For example, your <a href="#control-file">Control file</a> might look like this:</p>
+<p>For example, the <a href="#control-file">Control file</a> might be:</p>
 
 <pre><code># Input and Output files.
 #
@@ -366,15 +366,13 @@ pedigree_file = genedropping PedigreeFrame.txt
 phenotype_file = genedropping PhenotypeFrame.txt
 new_pedigree_file = genedropping NewPedigreeFrame.txt
 #
-# Analysis parameters for GeneDropping option.
+# Analysis parameters for the Gene Dropping option.
 #
 repetitions = 2
 populations = European, African, Chinese
 </code></pre>
 
-<p>Your <a href="#pedigree-file">Pedigree file</a> would have a column for each population, with a fractional ancestry assigned. The fractional ancestries need not sum to 1, but will be normalized to 1 in the analysis.</p>
-
-<p>An example <a href="#pedigree-file">Pedigree file</a> might look like this:</p>
+<p>The <a href="#pedigree-file">Pedigree file</a> should have a column for each population, with fractional ancestries assigned at each individual. The fractional ancestries need not sum to 1, but will be normalized to 1 in the analysis. An example <a href="#pedigree-file">Pedigree file</a> is:</p>
 
 <pre><code>Pedigree,Person,Mother,Father,Sex,Twin,European,African,Chinese,ABO
 Clinton,Bill,,,male,0,1,0,0,A
@@ -386,9 +384,7 @@ Obama,Malia,Michelle,Barack,female,0,NA,NA,NA,O
 Obama,Sasha,Michelle,Barack,female,0,NA,NA,NA,B
 </code></pre>
 
-<p>Your <a href="#locus-file">Locus file</a> would have, instead of one column labeled <em>Frequency</em>,  a frequency column for each population, where the header for the column is the name of that population, and loci have an allele frequency for each population. The population frequency field names are the population names specified in the control file. The population frequencies need not sum to 1, but will be normalized to 1 in the analysis. </p>
-
-<p>An example <a href="#locus-file">Locus file</a> might look like this:</p>
+<p>The <a href="#locus-file">Locus file</a> should have, instead of one column labeled <em>Frequency</em>, a frequency column for each population, where the header for the column is the name of that population as listed in the Control file. Each row then lists for that locus the allele frequencies for each population. The population frequencies need not sum to 1, but will be normalized to 1 in the analysis. An example <a href="#locus-file">Locus file</a> is:</p>
 
 <pre><code>Locus,Allele,Chromosome,European,African,Chinese
 ABO,A,9,0.27,0.18,0.19
@@ -399,9 +395,7 @@ ABO,O,9,NA,0.71,0.64
 <h3>
 <a id="output-files" class="anchor" href="#output-files" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Output Files</h3>
 
-<p>All OpenMendel analysis options will create a results file. If no name for this file is specified in the <a href="#control-file">Control file</a>, it will be given the default name <em>Mendel_Output.txt</em>. A number of OpenMendel analysis options can create output files, such as plot files, or new pedigree, or SNP input files, based on the analysis results. These newly created input files can be used in subsequent analysis runs. To create these files, the file type is specified by a keyword in the control file and a filename is specified.</p>
-
-<p>For example:</p>
+<p>All OpenMendel analysis options will create a results file. If no name for this file is specified in the <a href="#control-file">Control file</a>, it will be given the default name <em>Mendel_Output.txt</em>. A number of OpenMendel analysis options can create additional output files, such as plot files, or new pedigree files, based on the analysis. These newly created data files can be used as input files in subsequent analyses. To create these additional output files, the filename is specified by a keyword in the Control file. For example:</p>
 
 <pre><code>#
 # Input and Output files.
@@ -411,7 +405,7 @@ output_file = gwas 1 Output.txt
 manhattan_plot_file = ManPlotOutput_1.png
 new_pedigree_file = NewPedigreeFrame.txt
 #
-# Analysis parameters.
+# Analysis parameters for the GWAS option.
 #
 regression = linear
 regression_formula = Trait ~ Sex
