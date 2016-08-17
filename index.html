@@ -50,7 +50,7 @@
 <a id="input-files" class="anchor" href="#input-files" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Input Files</h3>
 
 <p>To make your genetic data available to OpenMendel, the various input files must be in a format
-that OpenMendel can read. Listed here are all of OpenMendel's input file types. However, not every analysis option will use every type. (Examples input files can be found in the docs subfolders of each of the analysis packages.)</p>
+that OpenMendel can read. Listed here are all of OpenMendel's input file types. However, not every analysis option will use every type. (Example input files can be found in the docs subfolder of each of the analysis packages.)</p>
 
 <ul>
 <li>
@@ -361,7 +361,7 @@ X,rs73433431,0,2702698,T,C
 <a id="populations" class="anchor" href="#populations" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Populations<a id="populations"></a>
 </h3>
 
-<p>If your individuals are of mixed ethnicity, and thus have fractional ancestry, OpenMendel will allow you to adjust for this in your analysis by using the <em>populations</em> keyword. The relevant populations should be named in your control file, fractional ancestries should be assigned to the individuals in the <a href="#pedigree-file">Pedigree file</a>, and population specific allele frequencies should be assigned to the markers in the <a href="#locus-file">Locus file</a>.</p>
+<p>If your individuals are of known mixed ethnicity, OpenMendel will allow you to adjust for this in your analysis by using the <em>populations</em> keyword. The relevant populations should be named in your <a href="#control-file">Control file</a>, fractional ancestries should be assigned to the individuals in the <a href="#pedigree-file">Pedigree file</a>, and population-specific allele frequencies should be assigned to the markers in the <a href="#locus-file">Locus file</a>.</p>
 
 <p>For example, the <a href="#control-file">Control file</a> might be:</p>
 
@@ -390,7 +390,7 @@ Obama,Malia,Michelle,Barack,female,0,NA,NA,NA,O
 Obama,Sasha,Michelle,Barack,female,0,NA,NA,NA,B
 </code></pre>
 
-<p>The <a href="#locus-file">Locus file</a> should have, instead of one column labeled <em>Frequency</em>, a frequency column for each population, where the header for the column is the name of that population as listed in the Control file. Each row then lists for that locus the allele frequencies for each population. The population frequencies need not sum to 1, but will be normalized to 1 in the analysis. An example <a href="#locus-file">Locus file</a> is:</p>
+<p>The <a href="#locus-file">Locus file</a> should have, instead of one column labeled <em>Frequency</em>, a frequency column for each population, where the header for the column is the name of that population as listed in the Control file. Each row then lists for that allele its frequency in each population. The population frequencies need not sum to 1, but will be normalized to 1 in the analysis. An example <a href="#locus-file">Locus file</a> is:</p>
 
 <pre><code>Locus,Allele,Chromosome,European,African,Chinese
 ABO,A,9,0.27,0.18,0.19
@@ -401,10 +401,9 @@ ABO,O,9,NA,0.71,0.64
 <h3>
 <a id="output-files" class="anchor" href="#output-files" aria-hidden="true"><span aria-hidden="true" class="octicon octicon-link"></span></a>Output Files</h3>
 
-<p>All OpenMendel analysis options will create a results file. If no name for this file is specified in the <a href="#control-file">Control file</a>, it will be given the default name <em>Mendel_Output.txt</em>. A number of OpenMendel analysis options can create additional output files, such as plot files, or new pedigree files, based on the analysis. These newly created data files can be used as input files in subsequent analyses. To create these additional output files, the filename is specified by a keyword in the Control file. For example:</p>
+<p>All OpenMendel analysis options will create a results file. If no name for this file is specified in the <a href="#control-file">Control file</a>, it will be given the default name <em>Mendel_Output.txt</em>. A number of OpenMendel analysis options can create additional output files, such as a plot file or a new pedigree data file, based on the analysis. Newly created data files can be used as input files in subsequent analyses. To create these additional output files, the filename is specified by a keyword in the Control file. For example:</p>
 
-<pre><code>#
-# Input and Output files.
+<pre><code># Input and Output files.
 #
 plink_input_basename = gwas 1 data
 output_file = gwas 1 Output.txt
