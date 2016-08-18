@@ -1,6 +1,6 @@
 # MendelBase
 
-MendelBase includes all the base functions of [OpenMendel](https://openmendel.github.io). It includes useful utilities such as functions to process keywords that specify the data files to use and the analysis options to perform, and functions to read data from external files.
+MendelBase includes all the base functions of [OpenMendel](https://openmendel.github.io). MendelBase includes useful utilities such as functions to process keywords that specify the data files to use and the analysis options to perform, and functions to read data from external files.
 
 [![](https://img.shields.io/badge/docs-current-blue.svg)](https://OpenMendel.github.io/MendelBase.jl)
 
