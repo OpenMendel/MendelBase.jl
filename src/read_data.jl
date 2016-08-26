@@ -371,9 +371,9 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
       # equate 1e6 base pairs to a centiMorgan.
       #
       if :Basepairs in locus_field
-        bases_pairs[loc] = locus_frame[i, :Basepairs]
+        base_pairs[loc] = locus_frame[i, :Basepairs]
         if !(:FemaleMorgans in locus_field)
-          morgans[:, loc] = bases_pairs[loc] / 1e8
+          morgans[:, loc] = base_pairs[loc] / 1e8
         end
       end
       if :FemaleMorgans in locus_field
