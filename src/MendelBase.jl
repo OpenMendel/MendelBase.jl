@@ -41,7 +41,7 @@ include("read_data.jl")
 #
 include("model_construction.jl")
 #
-# Include functions to prepare for and carryout a pedigree likelihood evaluation
+# Include functions to prepare for and carry out a pedigree likelihood evaluation
 # via the Elston-Stewart algorithm.
 #
 include("elston_stewart_preparation.jl")
