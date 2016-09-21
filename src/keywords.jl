@@ -85,7 +85,7 @@ function set_keyword_defaults!(keyword::Dict{ASCIIString, Any})
   # Set the user-modifiable keywords using the format:
   # keyword["some_keyword_name"] = default_value
   #
-  keyword["affected_designator"] = "affected"
+  keyword["affected_designator"] = "1"
   keyword["allele_pseudo_count"] = 0.1
   keyword["allele_separator"] = "/\\" # first character is used in output
   keyword["analysis_option"] = ""
@@ -170,12 +170,6 @@ function revise_keywords!(keyword::Dict{ASCIIString, Any},
 
   const DOUBLE_QUOTE_CHAR :: Char = Char(34) # to avoid coloring bugs in editors
   #
-  # If the affected designator has been modified, make sure it is a string.
-  #
-  if "affected_designator" in set_of_modified_keywords
-    keyword["affected_designator"] = string(keyword["affected_designator"])
-  end
-  #
   # Turn strings containing the names of distribution or link functions
   # into the named functions themselves.
   #
@@ -209,6 +203,17 @@ function revise_keywords!(keyword::Dict{ASCIIString, Any},
     push!(set_of_modified_keywords, "snpdata_file")
     keyword["pedigree_file"] = string(plink_basename, ".fam")
     push!(set_of_modified_keywords, "pedigree_file")
+  end
+  #
+  # If the affected designator has been modified, make sure it is a string.
+  # If it's not been modified and the pedigree is a Plink .fam file,
+  # then change the affected designator to "2".
+  #
+  if "affected_designator" in set_of_modified_keywords
+    keyword["affected_designator"] = string(keyword["affected_designator"])
+  elseif contains(keyword["pedigree_file"], ".fam")
+    keyword["affected_designator"] = "2"
+    push!(set_of_modified_keywords, "affected_designator")
   end
   #
   # If the user has modified any of the keywords that take a set of strings
