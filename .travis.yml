@@ -7,7 +7,17 @@ julia:
   - release
   - nightly
 notifications:
-  email: false
+  email:
+    on_success: change
+    on_failure: always 
+  recipients:
+    - esobel@ucla.edu
+    
+install:
+  - julia -e 'ENV["PYTHON"]=""; Pkg.add("PyCall"); Pkg.build("PyCall")'
+  - julia -e 'Pkg.clone("https://github.com/OpenMendel/SnpArrays.jl.git")'
+  - julia -e 'Pkg.clone("https://github.com/OpenMendel/Search.jl.git")'
+  
 # uncomment the following lines to override the default test script
 #script:
 #  - if [[ -a .git/shallow ]]; then git fetch --unshallow; fi
