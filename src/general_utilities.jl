@@ -7,11 +7,11 @@ export normalize!, print_sample_stats, sample_mean_std, sample_stats
 export simes_fdr, regress, glm_score_test
 
 """
-Creates an array of blank ASCII strings.
+Creates an array of blank strings.
 """
 function blanks(n::Int)
 
-  blank = Array(ASCIIString, n)
+  blank = Array(AbstractString, n)
   for i = 1:n
     blank[i] = ""
   end
@@ -33,7 +33,7 @@ end # function empties
 """
 Identifies a repeated string in an array of strings.
 """
-function repeated_string(name::Vector{ASCIIString})
+function repeated_string(name::Vector{AbstractString})
 
   sorted = sort(name)
   for i = 2:length(name)
@@ -196,7 +196,7 @@ Performs either linear, logistic, or Poisson regression with a canonical
 link function. X is the design matrix, and y is the response vector.
 The parameter estimates and loglikelihood are returned.
 """
-function regress(X::Matrix{Float64}, y::Vector{Float64}, model::ASCIIString)
+function regress(X::Matrix{Float64}, y::Vector{Float64}, model::AbstractString)
 
   if model != "linear" && model != "logistic" && model != "Poisson"
     throw(ArgumentError(
@@ -341,7 +341,7 @@ with a canonical link function. X is the design matrix, y is the
 response vector, and estimate is the MLE under the null hypothesis.
 """
 function glm_score_test(X::Matrix{Float64}, y::Vector{Float64}, 
-  estimate::Vector{Float64}, model::ASCIIString)
+  estimate::Vector{Float64}, model::AbstractString)
 
   if model != "linear" && model != "logistic" && model != "Poisson"
     throw(ArgumentError(

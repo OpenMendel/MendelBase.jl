@@ -40,7 +40,8 @@ Orchestrate allele lumping, genotype consolidation,
 and creation of the Elston-Stewart instructions.
 """
 function orchestrate_likelihood(pedigree::Pedigree, person::Person,
-  nuclear_family::NuclearFamily, locus::Locus, keyword::Dict{ASCIIString, Any})
+  nuclear_family::NuclearFamily, locus::Locus,
+  keyword::Dict{AbstractString, Any})
 
   pedigrees = pedigree.pedigrees
   populations = person.populations
@@ -1110,7 +1111,7 @@ end # function product_weights
 Compute recombination fractions between adjacent model loci.
 """
 function model_recombination_fractions(locus::Locus,
-  keyword::Dict{ASCIIString, Any})
+  keyword::Dict{AbstractString, Any})
 
   n = locus.model_loci - 1
   theta = zeros(2, n)

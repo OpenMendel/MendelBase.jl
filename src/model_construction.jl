@@ -21,7 +21,7 @@ multiplicative penetrances and fully penetrant loci.
 """
 function penetrance(person::Person, locus::Locus,
   multi_genotype::Matrix{Int},
-  par::Vector{Float64}, keyword::Dict{ASCIIString, Any},
+  par::Vector{Float64}, keyword::Dict{AbstractString, Any},
   start::Int, finish::Int, i::Int)
 
   pen = 1.0
@@ -43,7 +43,7 @@ Hardy-Weinberg and linkage equilibrium.
 """
 function prior(person::Person, locus::Locus,
   multi_genotype::Matrix{Int},
-  par::Vector{Float64}, keyword::Dict{ASCIIString, Any},
+  par::Vector{Float64}, keyword::Dict{AbstractString, Any},
   start::Int, finish::Int, i::Int)
 
   prior_prob = 1.0
@@ -81,7 +81,7 @@ no chiasma interference.
 """
 function transmission(person::Person, locus::Locus, gamete::Vector{Int},
   multi_genotype::Matrix{Int}, par::Vector{Float64}, 
-  keyword::Dict{ASCIIString, Any}, start::Int, finish::Int, i::Int, j::Int)
+  keyword::Dict{AbstractString, Any}, start::Int, finish::Int, i::Int, j::Int)
 
   loc = locus.model_locus[start]
   xlinked = locus.xlinked[loc]
@@ -206,7 +206,7 @@ end # function transmission
 Initialize a minimization problem.
 """
 function initialize_optimization(locus::Locus, parameter::Parameter,
-  keyword::Dict{ASCIIString, Any})
+  keyword::Dict{AbstractString, Any})
   #
   # Redefine the defaults as needed.
   # Set the values for Gamete Competition.

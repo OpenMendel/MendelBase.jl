@@ -20,7 +20,7 @@ by the Elston-Stewart algorithm.
 """
 function elston_stewart_loglikelihood(pedigree::Pedigree, person::Person,
   locus::Locus, parameter::Parameter, instruction::Instruction,
-  keyword::Dict{ASCIIString, Any})
+  keyword::Dict{AbstractString, Any})
 
   loglikelihood = 0.0
   fill!(pedigree.loglikelihood[:, 2], 0.0)
@@ -61,7 +61,7 @@ Various operations are performed on an array of arrays.
 """
 function compute_likelihood(person::Person, locus::Locus,
   instruction::Instruction, par::Vector{Float64},
-  keyword::Dict{ASCIIString, Any}, ped::Int)
+  keyword::Dict{AbstractString, Any}, ped::Int)
   #
   # Initialize the loglikelihood, the number of arrays, and the
   # array of arrays.
@@ -183,7 +183,7 @@ penetrance and prior array.
 """
 function construct_penetrance_prior(person::Person, locus::Locus,
   instruction::Instruction, par::Vector{Float64},
-  keyword::Dict{ASCIIString, Any}, array::Vector{Float64}, n::Int)
+  keyword::Dict{AbstractString, Any}, array::Vector{Float64}, n::Int)
 
   start = instruction.extra[n][1]
   finish = instruction.extra[n][2]
@@ -240,7 +240,7 @@ Construct a transmission array from parent i to child j.
 """
 function construct_transmission(person::Person, locus::Locus,
   instruction::Instruction, par::Vector{Float64},
-  keyword::Dict{ASCIIString, Any}, array::Vector{Float64}, n::Int)
+  keyword::Dict{AbstractString, Any}, array::Vector{Float64}, n::Int)
   #
   # Fetch the starting & finishing loci and i & j.
   #

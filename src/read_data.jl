@@ -20,7 +20,7 @@ export count_homozygotes!, read_external_data_files
 This function organizes reading in the data from external files.
 All names of data files are stored in the relevant keyword values.
 """
-function read_external_data_files(keyword::Dict{ASCIIString, Any})
+function read_external_data_files(keyword::Dict{AbstractString, Any})
   #
   # Set the field separator used in the data files.
   #
@@ -125,10 +125,18 @@ Converts a Plink .fam file into a dataframe and
 substitutes blanks for missing values.
 """
 function read_plink_fam_file(plink_fam_file::AbstractString,
-  keyword::Dict{ASCIIString, Any})
-
-  column_types = [UTF8String, UTF8String, UTF8String, UTF8String, UTF8String,
-                  Float64]
+  keyword::Dict{AbstractString, Any})
+  #
+  # The following works around an incompatibility in readtable()
+  # between VERSION's 0.4 and 0.5.
+  #
+  column_types = []
+#  if VERSION ≥ v"0.5.0"
+#    column_types = [String, String, String, String, String, Float64]
+#  else
+#    column_types = [UTF8String, UTF8String, UTF8String,
+#                    UTF8String, UTF8String, Float64]
+#  end
   column_names = [:Pedigree, :Person, :Father, :Mother, :Sex, :Trait]
   fam_dframe = readtable(plink_fam_file, header = false, separator = ' ',
     eltypes = column_types, names = column_names)
@@ -150,9 +158,18 @@ end # function read_plink_fam_file
 Converts a Plink .bim file into a dataframe.
 """
 function read_plink_bim_file(plink_bim_file::AbstractString,
-  keyword::Dict{ASCIIString, Any})
-
-  column_types = [UTF8String, UTF8String, Float64, Int, UTF8String, UTF8String]
+  keyword::Dict{AbstractString, Any})
+  #
+  # The following works around an incompatibility in readtable()
+  # between VERSION's 0.4 and 0.5.
+  #
+  column_types = []
+#  if VERSION ≥ v"0.5.0"
+#    column_types = [String, String, Float64, Int64, String, String]
+#  else
+#    column_types = [UTF8String, UTF8String, Float64,
+#                    Int64, UTF8String, UTF8String]
+#  end
   column_names = [:Chromosome, :SNP, :CentiMorgans, :Basepairs, 
                   :Allele1, :Allele2]
   bim_dframe = readtable(plink_bim_file, header = false, separator = ' ',
@@ -165,7 +182,7 @@ Copies information from a SNP definition dataframe into
 the SNP data structure.
 """
 function snp_information(snp_definition_frame::DataFrame, person::Person,
-  snpmatrix, keyword::Dict{ASCIIString, Any})
+  snpmatrix, keyword::Dict{AbstractString, Any})
 
   if keyword["snpdefinition_file"] == ""
     snpdata = SnpData(0, 0, Vector{AbstractString}(), Vector{AbstractString}(),
@@ -255,12 +272,12 @@ Extracts locus information from the locus frame.
 First extract relevant dimensions and fields.
 """
 function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
-                           keyword::Dict{ASCIIString, Any})
+                           keyword::Dict{AbstractString, Any})
   #
   # If the locus_frame is empty, create a null locus structure.
   #
   if length(locus_frame) == 0
-    a = Array(Array{ASCIIString, 1}, 1); a[1] = blanks(1)
+    a = Array(Array{AbstractString, 1}, 1); a[1] = blanks(1)
     b = Array(Array{Float64, 2}, 1); b[1] = zeros(1, 1)
     c = zeros(1, 1, 1)
     locus = Locus(0, 0, 0, true, blanks(0), blanks(0), zeros(Int, 0),
@@ -403,7 +420,7 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   if populations == 0
     for i = 1:columns
       if typeof(locus_frame[i]) == DataArray{Float64, 1}
-        s = symbol(locus_field[i])
+        s = Symbol(locus_field[i])
         if s != :FemaleMorgans && s != :MaleMorgans
           populations = 1
           push!(population_names, string(locus_field[i]))
@@ -456,10 +473,9 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   xlinked = getindex(xlinked, observed_locus)
   alleles = getindex(alleles, observed_locus)
   #
-  # Collect the allele names and population frequencies for each
-  # observed locus.
+  # Collect the allele names and population frequencies for each observed locus.
   #
-  allele_name = Array(Array{ASCIIString, 1}, loci)
+  allele_name = Array(Array{AbstractString, 1}, loci)
   frequency = Array(Array{Float64, 2}, loci)
   loc = 0
   n = 0
@@ -469,7 +485,7 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
       n = 1
       l = findfirst(observed_locus, loc)
       if l != 0
-        allele_name[l] = Array(ASCIIString, alleles[l])
+        allele_name[l] = Array(AbstractString, alleles[l])
         if populations == 0
           frequency[l] = zeros(1, alleles[l] + 1)
         else
@@ -488,10 +504,10 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
       j = 0
       for pop in population_names
         j = j + 1
-        if isna(locus_frame[i, symbol(pop)])
+        if isna(locus_frame[i, Symbol(pop)])
           frequency[l][j, n] = 0.0
         else
-          frequency[l][j, n] = locus_frame[i, symbol(pop)]
+          frequency[l][j, n] = locus_frame[i, Symbol(pop)]
         end
       end
     end
@@ -670,7 +686,7 @@ Extracts person information from the pedigree frame.
 """
 function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   phenotype_frame::DataFrame, locus::Locus, pedigree::Pedigree,
-  keyword::Dict{ASCIIString, Any})
+  keyword::Dict{AbstractString, Any})
   #
   # Initialize arrays by their default values.
   #
@@ -691,11 +707,11 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   #
   pedigree_field = names(pedigree_frame)
   parents_present = false
-  if symbol(:Mother) in pedigree_field
+  if Symbol(:Mother) in pedigree_field
     mother_string = pedigree_frame[:, :Mother]
     parents_present = true
   end
-  if symbol(:Father) in pedigree_field
+  if Symbol(:Father) in pedigree_field
     father_string = pedigree_frame[:, :Father]
   else
     parents_present = false
@@ -705,7 +721,7 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   #
   next_twin = zeros(Int, people)
   primary_twin = zeros(Int, people)
-  twins_present = symbol(:Twin) in pedigree_field
+  twins_present = Symbol(:Twin) in pedigree_field
   if twins_present
   #
   # Create pointers from one twin in a twin set to the next
@@ -846,7 +862,7 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   #
   male_symbols = keyword["male"]
   female_symbols = keyword["female"]
-  if symbol(:Sex) in pedigree_field
+  if Symbol(:Sex) in pedigree_field
     for i = 1:people
       if isna(pedigree_frame[i, :Sex]); continue; end
       s = pedigree_frame[i, :Sex]
@@ -913,7 +929,7 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   #
   disease_field = keyword["trait"]
   if disease_field != ""
-    disease_field = symbol(disease_field)
+    disease_field = Symbol(disease_field)
     if disease_field in pedigree_field
       disease_status = blanks(people)
       status = pedigree_frame[:, disease_field]
@@ -941,8 +957,8 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
     loci = length(locus_name)
     rows = length(phenotype_frame[:, :Locus])
     phenotypes = zeros(Int, loci)
-    phenotype = Array(Array{ASCIIString, 1}, loci)
-    genotype_string = Array(Array{ASCIIString, 1}, loci)
+    phenotype = Array(Array{AbstractString, 1}, loci)
+    genotype_string = Array(Array{AbstractString, 1}, loci)
     #
     # Find the number of phenotypes corresponding to each locus.
     #
@@ -1013,12 +1029,13 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
         # genotype set.
         #
         for g in split_string
-          (double, a1, a2) = fetch_genotype(locus.allele_name[cor_loc], g,
+          g_string = convert(AbstractString, g)
+          (double, a1, a2) = fetch_genotype(locus.allele_name[cor_loc], g_string,
             allele_separator, ordered_allele_separator)
           if a1 == 0
             locname = locus_name[loc]
             throw(ArgumentError(
-              "Invalid genotype $g at locus $locname.\n \n"))
+              "Invalid genotype $g_string at locus $locname.\n \n"))
           end
           push!(genotype[loc][n], (a1, a2))
           if double; push!(genotype[loc][n], (a2, a1)); end
@@ -1060,7 +1077,7 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
         #
         else
           if j != 0
-            phen = convert(ASCIIString, phen)
+            phen = convert(AbstractString, phen)
             for n = 1:phenotypes[j]
               p = phenotype[j][n]
               if isequal(phen, p)
@@ -1130,10 +1147,10 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
     for i = 1:people
       j = 1
       for pop in population_names
-        if isna(pedigree_frame[i, symbol(pop)])
+        if isna(pedigree_frame[i, Symbol(pop)])
           admixture[i, j] = 0.0
         else
-          admixture[i, j] = pedigree_frame[i, symbol(pop)]
+          admixture[i, j] = pedigree_frame[i, Symbol(pop)]
         end
         j = j + 1
       end
@@ -1245,7 +1262,8 @@ Start by eliminating heterozygous genotypes in a hemizygote,
 counting homozygotes, and filling in ethnic admixture fractions.
 """
 function check_data_structures!(pedigree::Pedigree, person::Person,
-  locus::Locus, nuclear_family::NuclearFamily, keyword::Dict{ASCIIString, Any})
+  locus::Locus, nuclear_family::NuclearFamily,
+  keyword::Dict{AbstractString, Any})
   #
   # Check for pedigree and person errors.
   #
@@ -1410,8 +1428,9 @@ end # function full_genotype_set
 """
 Recover the constituent alleles from a genotype.
 """
-function fetch_genotype(allele::Vector{ASCIIString}, genotype::AbstractString,
-  allele_separator::ASCIIString, ordered_allele_separator::ASCIIString)
+function fetch_genotype(allele::Vector{AbstractString},
+         genotype::AbstractString, allele_separator::AbstractString,
+	 ordered_allele_separator::AbstractString)
   #
   # Split the string genotype into two string alleles.
   #
@@ -1695,11 +1714,11 @@ Check that ancestral populations are present in both the pedigree
 and locus frames.
 """
 function check_populations(locus_frame::DataFrame, pedigree_frame::DataFrame,
-                           keyword::Dict{ASCIIString, Any})
+                           keyword::Dict{AbstractString, Any})
 
   pedigree_field = names(pedigree_frame)
   for pop in keyword["populations"]
-    if symbol(pop) in pedigree_field
+    if Symbol(pop) in pedigree_field
       continue
     else
       throw(ArgumentError("Population $pop is not in the pedigree frame.\n \n"))
@@ -1708,7 +1727,7 @@ function check_populations(locus_frame::DataFrame, pedigree_frame::DataFrame,
   if length(locus_frame) != 0
     locus_field = names(locus_frame)
     for pop in keyword["populations"]
-      if symbol(pop) in locus_field
+      if Symbol(pop) in locus_field
         continue
       else
         throw(ArgumentError("Population $pop is not in the locus frame.\n \n"))
