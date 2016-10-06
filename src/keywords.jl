@@ -20,8 +20,8 @@ export process_keywords!, set_keyword_defaults!
 """
 This function processes the keywords from the control file or command line.
 """
-function process_keywords!(keyword::Dict{ASCIIString, Any},
-                           control_file::ASCIIString, args)
+function process_keywords!(keyword::Dict{AbstractString, Any},
+                           control_file::AbstractString, args)
   #
   # If the user did not specify any control file or keywords as command line
   # arguments, then simply write out a logo and quit.
@@ -41,7 +41,7 @@ function process_keywords!(keyword::Dict{ASCIIString, Any},
   #
   # Start the set of modified_keywords at the empty set.
   #
-  set_of_modified_keywords = Set{ASCIIString}()
+  set_of_modified_keywords = Set{AbstractString}()
   #
   # Modify the keywords using the commands in the Control file. This will
   # change the working directory to the directory containing the Control file.
@@ -80,7 +80,7 @@ and assignes them their default values. Keywords specific
 to an analysis option should be first declared at the marked position
 in the source code for that analysis option.
 """
-function set_keyword_defaults!(keyword::Dict{ASCIIString, Any})
+function set_keyword_defaults!(keyword::Dict{AbstractString, Any})
   #
   # Set the user-modifiable keywords using the format:
   # keyword["some_keyword_name"] = default_value
@@ -105,7 +105,7 @@ function set_keyword_defaults!(keyword::Dict{ASCIIString, Any})
   keyword["phenotype_file"] = ""
   keyword["plink_input_basename"] = ""
   keyword["plink_output_basename"] = ""
-  keyword["populations"] = Set{ASCIIString}()
+  keyword["populations"] = Set{AbstractString}()
   keyword["product_mode"] = true
   keyword["seed"] = 1234
   keyword["snpdata_file"] = ""
@@ -122,8 +122,10 @@ function set_keyword_defaults!(keyword::Dict{ASCIIString, Any})
   #
   # Non-user-modifiable keywords.
   #
-  keyword["keywords_naming_general_sets"] = Set{ASCIIString}(["female", "male"])
-  keyword["keywords_naming_string_sets"] = Set{ASCIIString}(["populations"])
+  keyword["keywords_naming_general_sets"] =
+    Set{AbstractString}(["female", "male"])
+  keyword["keywords_naming_string_sets"] =
+    Set{AbstractString}(["populations"])
 
   return keyword
 end # function set_keyword_defaults!
@@ -131,8 +133,8 @@ end # function set_keyword_defaults!
 """
 This function reads the keywords from the command line arguments.
 """
-function read_args!(keyword::Dict{ASCIIString, Any},
-                    set_of_modified_keywords::Set{ASCIIString}, args)
+function read_args!(keyword::Dict{AbstractString, Any},
+                    set_of_modified_keywords::Set{AbstractString}, args)
 
   for arg in args
     (keyword_symbol, value) = arg
@@ -165,8 +167,8 @@ end # function read_args!
 """
 This function revises the keywords based on the set of modified keywords.
 """
-function revise_keywords!(keyword::Dict{ASCIIString, Any},
-                          set_of_modified_keywords::Set{ASCIIString})
+function revise_keywords!(keyword::Dict{AbstractString, Any},
+                          set_of_modified_keywords::Set{AbstractString})
 
   const DOUBLE_QUOTE_CHAR :: Char = Char(34) # to avoid coloring bugs in editors
   #
@@ -224,8 +226,8 @@ function revise_keywords!(keyword::Dict{ASCIIString, Any},
   for keyword_string in
     intersect(keyword["keywords_naming_string_sets"], set_of_modified_keywords)
     set_of_strings =
-      Set{ASCIIString}(split(keyword[keyword_string], ','; keep = false))
-    new_set = Set{ASCIIString}()
+      Set{AbstractString}(split(keyword[keyword_string], ','; keep = false))
+    new_set = Set{AbstractString}()
     for element_string in set_of_strings
       element_string = strip(element_string, ' ')
       element_string = strip(element_string, DOUBLE_QUOTE_CHAR)
@@ -243,7 +245,7 @@ function revise_keywords!(keyword::Dict{ASCIIString, Any},
   for keyword_string in
     intersect(keyword["keywords_naming_general_sets"], set_of_modified_keywords)
     set_of_strings =
-      Set{ASCIIString}(split(keyword[keyword_string], ','; keep = false))
+      Set{AbstractString}(split(keyword[keyword_string], ','; keep = false))
     new_set = Set{Any}()
     for element_string in set_of_strings
       element_string = strip(element_string, ' ')
@@ -277,10 +279,10 @@ end # function revise_keywords!
 """
 This function reads the keywords from the Control file.
 """
-function read_control_file!(keyword::Dict{ASCIIString, Any},
-                    set_of_modified_keywords::Set{ASCIIString})
+function read_control_file!(keyword::Dict{AbstractString, Any},
+                    set_of_modified_keywords::Set{AbstractString})
 
-  const COMMENT_CHARS :: ASCIIString = "#!"
+  const COMMENT_CHARS :: AbstractString = "#!"
   const DOUBLE_QUOTE_CHAR :: Char = Char(34) # to avoid coloring bugs in editors
 
   control_unit = keyword["control_unit"]
@@ -386,13 +388,13 @@ This function opens the Control file for reading.
 It also sets the current working directory to
 the directory that contains the Control file.
 """
-function open_control_file!(keyword::Dict{ASCIIString, Any})
+function open_control_file!(keyword::Dict{AbstractString, Any})
 
   control_file = keyword["control_file"]
   #
   # First, check that the named control file exists and is readable.
   #
-  if isfile(control_file) && isreadable(control_file)
+  if isfile(control_file)
     #
     # Second, close any previously opened control file.
     #
@@ -417,32 +419,36 @@ end # function open_control_file!
 """
 This function opens the output file.
 """
-function open_output_file!(keyword::Dict{ASCIIString, Any})
+function open_output_file!(keyword::Dict{AbstractString, Any})
   #
   #  Check that the output file is writable. If so, open it.
   #
   output_file = keyword["output_file"]
-  if isfile(output_file) && iswritable(output_file)
+  if output_file != ""
     output_unit = open(output_file, "w")
     keyword["output_unit"] = output_unit
-  elseif isfile(output_file) && !iswriteable(output_file)
-    throw(ArgumentError(
-      """The named output file "$output_file" is not writable.\n \n"""))
-  elseif iswritable(pwd())
-    output_unit = open(output_file, "w")
-    keyword["output_unit"] = output_unit
-  else
-    throw(ArgumentError(
-      """The named output file "$output_file" is not writable.\n \n"""))
   end
+##  if isfile(output_file) && iswritable(output_file)
+##    output_unit = open(output_file, "w")
+##    keyword["output_unit"] = output_unit
+##  elseif isfile(output_file) && !iswriteable(output_file)
+##    throw(ArgumentError(
+##      """The named output file "$output_file" is not writable.\n \n"""))
+##  elseif iswritable(pwd())
+##    output_unit = open(output_file, "w")
+##    keyword["output_unit"] = output_unit
+##  else
+##    throw(ArgumentError(
+##      """The named output file "$output_file" is not writable.\n \n"""))
+##  end
   return
 end # function open_output_file!
 
 """
 This function outputs the list of user-modified keywords.
 """
-function list_modified_keywords(keyword::Dict{ASCIIString, Any},
-                    set_of_modified_keywords::Set{ASCIIString})
+function list_modified_keywords(keyword::Dict{AbstractString, Any},
+                    set_of_modified_keywords::Set{AbstractString})
 
   output_unit = keyword["output_unit"]
   #

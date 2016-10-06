@@ -37,10 +37,6 @@ include("genetic_utilities.jl")
 #
 include("read_data.jl")
 #
-# Include functions to construct the likelihood model to analyze.
-#
-include("model_construction.jl")
-#
 # Include functions to prepare for and carry out a pedigree likelihood evaluation
 # via the Elston-Stewart algorithm.
 #

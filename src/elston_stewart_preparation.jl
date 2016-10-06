@@ -21,8 +21,8 @@ type Instruction
   extra :: Array{Vector{Int}, 1}
 end
 
-export allele_consolidation, genotype_elimination!, orchestrate_likelihood
 export Instruction
+export allele_consolidation, genotype_elimination!, orchestrate_likelihood
 
 penetrance_and_prior_array = 1
 transmission_array         = 2
@@ -40,7 +40,8 @@ Orchestrate allele lumping, genotype consolidation,
 and creation of the Elston-Stewart instructions.
 """
 function orchestrate_likelihood(pedigree::Pedigree, person::Person,
-  nuclear_family::NuclearFamily, locus::Locus, keyword::Dict{ASCIIString, Any})
+  nuclear_family::NuclearFamily, locus::Locus,
+  keyword::Dict{AbstractString, Any})
 
   pedigrees = pedigree.pedigrees
   populations = person.populations
@@ -1110,7 +1111,7 @@ end # function product_weights
 Compute recombination fractions between adjacent model loci.
 """
 function model_recombination_fractions(locus::Locus,
-  keyword::Dict{ASCIIString, Any})
+  keyword::Dict{AbstractString, Any})
 
   n = locus.model_loci - 1
   theta = zeros(2, n)

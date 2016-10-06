@@ -18,9 +18,10 @@ export elston_stewart_loglikelihood
 Evaluate the loglikelihood of a collection of independent pedigrees
 by the Elston-Stewart algorithm.
 """
-function elston_stewart_loglikelihood(pedigree::Pedigree, person::Person,
+function elston_stewart_loglikelihood(penetrance::Function, prior::Function, 
+  transmission::Function, pedigree::Pedigree, person::Person,
   locus::Locus, parameter::Parameter, instruction::Instruction,
-  keyword::Dict{ASCIIString, Any})
+  keyword::Dict{AbstractString, Any})
 
   loglikelihood = 0.0
   fill!(pedigree.loglikelihood[:, 2], 0.0)
@@ -39,11 +40,12 @@ function elston_stewart_loglikelihood(pedigree::Pedigree, person::Person,
       end
     end
     #
-    # Compute the likelihood of the current pedigree. Throw an error
-    # when the likelihood is 0.
+    # Compute the likelihood of the current pedigree.
+    # Throw an error when the likelihood is 0.
     #
     (inconsistent, pedigree.loglikelihood[ped, 2]) =
-      compute_likelihood(person, locus, instruction, par, keyword, ped)
+      compute_likelihood(penetrance, prior, transmission, person, 
+      locus, instruction, par, keyword, ped)
     if inconsistent
       name = pedigree.name[ped]
       throw(ArgumentError(
@@ -59,9 +61,10 @@ Compute the likelihood of a single pedigree
 by the Elston-Stewart algorithm.
 Various operations are performed on an array of arrays.
 """
-function compute_likelihood(person::Person, locus::Locus,
+function compute_likelihood(penetrance::Function, prior::Function, 
+  transmission::Function, person::Person, locus::Locus,
   instruction::Instruction, par::Vector{Float64},
-  keyword::Dict{ASCIIString, Any}, ped::Int)
+  keyword::Dict{AbstractString, Any}, ped::Int)
   #
   # Initialize the loglikelihood, the number of arrays, and the
   # array of arrays.
@@ -100,8 +103,8 @@ function compute_likelihood(person::Person, locus::Locus,
       #
       # Create a penetrance and prior array.
       #
-      array[k] = construct_penetrance_prior(person, locus, instruction,
-        par, keyword, array[k], n)
+      array[k] = construct_penetrance_prior!(penetrance, prior, person, 
+        locus, instruction, par, keyword, array[k], n)
       (negative_entry, no_positive_entry) = check_array_entries(array[k])
       if negative_entry || no_positive_entry
         inconsistent = true
@@ -112,8 +115,8 @@ function compute_likelihood(person::Person, locus::Locus,
     # Create a transmission array. 
     #
     elseif operation == transmission_array
-      array[k] = construct_transmission(person, locus, instruction,
-        par, keyword, array[k], n)
+      array[k] = construct_transmission!(transmission, person, locus, 
+        instruction, par, keyword, array[k], n)
       (negative_entry, no_positive_entry) = check_array_entries(array[k])
       if negative_entry || no_positive_entry
         inconsistent = true
@@ -160,7 +163,7 @@ function compute_likelihood(person::Person, locus::Locus,
       # Perform the operation.
       #
       (loglikelihood, zero_likelihood, array[k]) = 
-        multiply_add_operation(array[i], array[j], array[k], extent, increment1,
+        multiply_add_operation!(array[i], array[j], array[k], extent, increment1,
         increment2, rank, pivot_range, stride1, stride2, loglikelihood)
       if zero_likelihood
         inconsistent = true
@@ -181,9 +184,9 @@ end # function compute_likelihood
 Construct a penetrance array or the product of a
 penetrance and prior array.
 """
-function construct_penetrance_prior(person::Person, locus::Locus,
-  instruction::Instruction, par::Vector{Float64},
-  keyword::Dict{ASCIIString, Any}, array::Vector{Float64}, n::Int)
+function construct_penetrance_prior!(penetrance::Function, prior::Function,
+  person::Person, locus::Locus, instruction::Instruction, par::Vector{Float64},
+  keyword::Dict{AbstractString, Any}, array::Vector{Float64}, n::Int)
 
   start = instruction.extra[n][1]
   finish = instruction.extra[n][2]
@@ -233,14 +236,14 @@ function construct_penetrance_prior(person::Person, locus::Locus,
     array[j] = a
   end
   return array
-end # function construct_penetrance_prior
+end # function construct_penetrance_prior!
 
 """
 Construct a transmission array from parent i to child j.
 """
-function construct_transmission(person::Person, locus::Locus,
-  instruction::Instruction, par::Vector{Float64},
-  keyword::Dict{ASCIIString, Any}, array::Vector{Float64}, n::Int)
+function construct_transmission!(transmission::Function, person::Person, 
+  locus::Locus, instruction::Instruction, par::Vector{Float64},
+  keyword::Dict{AbstractString, Any}, array::Vector{Float64}, n::Int)
   #
   # Fetch the starting & finishing loci and i & j.
   #
@@ -279,7 +282,7 @@ function construct_transmission(person::Person, locus::Locus,
     end
   end
   return array
-end # function construct_transmission
+end # function construct_transmission!
 
 """
 Count i's possible multilocus genotypes between loci start and finish.
@@ -326,7 +329,7 @@ Multiply array1 times array2 and sum on the pivot index if required.
 Inserts the result in array3 and rescales to avoid underflows and overflows.
 ?? Can this be recoded to call a LAPACK routine??
 """
-function multiply_add_operation(array1::Vector{Float64},
+function multiply_add_operation!(array1::Vector{Float64},
   array2::Vector{Float64}, array3::Vector{Float64},
   extent::Vector{Int}, increment1::Vector{Int}, increment2::Vector{Int},
   rank::Int, pivot_range::Int, stride1::Int, stride2::Int,
@@ -385,7 +388,7 @@ function multiply_add_operation(array1::Vector{Float64},
     array3 = array3 / big
   end
   return (loglikelihood, zero_likelihood, array3)
-end # function multiply_add_operation
+end # function multiply_add_operation!
 
 """
 Create the multi-locus genotypes for person i from the single locus genotypes.

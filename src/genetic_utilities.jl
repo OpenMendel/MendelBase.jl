@@ -12,7 +12,7 @@ export hardy_weinberg_test, xlinked_hardy_weinberg_test
 """
 Calculate recombination fractions based on Haldane's or Kosambi's formula.
 """
-function map_function(d::Float64, choice::ASCIIString)
+function map_function(d::Float64, choice::AbstractString)
 
   if choice == "Haldane"
     theta = 0.5 * (1.0 - exp(-2d))
@@ -28,7 +28,7 @@ end # function map_function
 """
 Calculates genetic map distances based on Haldane's or Kosambi's formula.
 """
-function inverse_map_function(theta::Float64, choice::ASCIIString)
+function inverse_map_function(theta::Float64, choice::AbstractString)
 
   if choice == "Haldane"
     if theta >= 0.5
