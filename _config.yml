@@ -1,0 +1,8 @@
+title: MendelBase.jl
+description: MendelBase contains the base functions of OpenMendel.
+google_analytics: 
+show_downloads: true
+theme: jekyll-theme-slate
+
+gems:
+  - jekyll-mentions
