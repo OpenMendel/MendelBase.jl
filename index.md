@@ -6,7 +6,7 @@ Within Julia, use the package manager to install MendelBase:
 
     Pkg.clone("https://github.com/OpenMendel/MendelBase.jl.git")
 
-This package supports Julia v0.4.
+This package supports Julia v0.4 and v0.5.
 
 ### Input Files
 To make your genetic data available to OpenMendel, the various input files must be in a format
