@@ -6,13 +6,14 @@ MendelBase includes all the base functions of [OpenMendel](https://openmendel.gi
 
 ## Installation
 
-*Note: Three OpenMendel packages - [SnpArrays](https://github.com/OpenMendel/SnpArrays.jl), [Search](https://github.com/OpenMendel/Search.jl), and [MendelBase](https://github.com/OpenMendel/MendelBase.jl) must be installed before any Mendel analysis packages will run.*
+*Note: Three OpenMendel packages - (1) [SnpArrays](https://openmendel.github.io/SnpArrays.jl/latest/), (2) [Search](https://openmendel.github.io/Search.jl), and (3) [MendelBase](https://openmendel.github.io/MendelBase.jl) must be installed before any Mendel analysis packages will run. It is easiest to install if these three packages are installed in the above order and before any other OpenMendel packages.*
+
 
 Within Julia, use the package manager to install MendelBase:
 
     Pkg.clone("https://github.com/OpenMendel/MendelBase.jl.git")
 
-This package supports Julia v0.4.
+This package supports Julia v0.4 and v0.5.
 
 ## Citation
 
