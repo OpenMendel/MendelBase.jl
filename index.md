@@ -126,7 +126,7 @@ If there are loci in the Locus file that are non-codominant, then the relationsh
 	Xg,+,"+/+,+/-"
 	Xg,-,"-/-"
 
-###SNP Definition File<a id="snp-definition-file">
+### SNP Definition File<a id="snp-definition-file">
 The SNP Definition file defines the SNPs with information such as SNP name, chromosome, position, and allele names. OpenMendel will accept [PLINK format](http://pngu.mgh.harvard.edu/~purcell/plink/data.shtml) BIM files, in which case the file must have the extension *.bim*. The OpenMendel SNP Definition file format has a header row (in any order) with some of the field names: *SNP* or *Locus*, *Chromosome*, *CentiMorgans*, *Basepairs*, *Allele1*, and *Allele2* (these last two list the allele names). If neither a SNP nor Locus field is present, then the n SNPs are named 1, 2, 3, ..., n. If the Chromosome field is missing altogether or contains a missing value at some SNP, it is assumed to be autosomal. If present, the Chromosome field should have a value from 1 to 22 or the value X. If the CentiMorgan or Basepair fields are missing, they take the value 0. If Allele1 is missing it is assigned the value "1"; a missing Allele2 becomes "2".
 
 **Example SNP Definition File**
@@ -140,10 +140,10 @@ The SNP Definition file defines the SNPs with information such as SNP name, chro
 	X,rs5982853,0,2702143,C,T
 	X,rs73433431,0,2702698,T,C
 
-###SNP Data File<a id="snp-data-file">
+### SNP Data File<a id="snp-data-file">
 The SNP Data file holds the SNP genotypes. The SNP Data file must be a standard [PLINK format](http://pngu.mgh.harvard.edu/~purcell/plink/data.shtml) binary BED file in SNP-major format. If you have a SNP data file, you must have a SNP definition file, but it need not be in PLINK format. (We do not list here an example SNP Data file because they are binary files, and thus not human readable.)
 
-###PLINK Basename
+### PLINK Basename
 You may use the keyword *plink_input_basename* in the Control file to specify a name for your PLINK format files. If you use this keyword you do not need to name each PLINK file in the Control file, but you must supply each of the three relevant PLINK files, using that basename:  *your_basename.bed* (SNP data file), *your_basename.bim* (SNP definition file), and *your_basename.fam* (pedigree file).
 
 ### Populations<a id="populations">
