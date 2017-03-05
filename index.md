@@ -23,7 +23,8 @@ that OpenMendel can read. Listed here are all of OpenMendel's input file types. 
 
 If an analysis option uses a SNP Data file (and thus also a SNP Definition file), then it does *not* use a Locus file (and thus it also does not use a Phenotype file). Similarly, if an analysis option uses a Locus file, then it does not use a SNP Data nor SNP Definition file.
 
-### Control files<a id="control-file"></a>
+<a id="control-file"></a>
+### Control files
 The Control file is a text file consisting of keywords and their assigned values. The format for each line of the Control file is:
 
 	Keyword = Keyword_Value(s)
