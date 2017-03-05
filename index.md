@@ -96,7 +96,7 @@ If the analysis uses a [Locus file](#locus-file) to describe the markers, the ma
 	Obama,Malia,Michelle,Barack,female,0,O,NA
 	Obama,Sasha,Michelle,Barack,female,0,B,NA
 
-### Locus File<a id="locus-file">
+### Locus File<a id="locus-file"></a>
 The Locus file defines your genetic markers if you are working with a relatively small number of markers. (If you have a dense, genome-wide set of SNPs, then you should use a [SNP Definition file](#snp-definition-file) to define your SNPs.) The Locus file must have a header row with the field names (in any order): *Locus*, *Allele*, *Chromosome*, and *Frequency*. You may also include locus position information with the optional fields *Morgans*, *FemaleMorgans* and *MaleMorgans*, and *Basepairs*. The Locus file contains one line for each allele at each locus. The lines for all the alleles for a particular locus should be contiguous.
 
 **Example Locus File**
@@ -110,7 +110,7 @@ The Locus file defines your genetic markers if you are working with a relatively
 	SNP,1,9,0,NA
 	SNP,2,9,0,NA
 
-### Phenotype File<a id="phenotype-file">
+### Phenotype File<a id="phenotype-file"></a>
 
 If there are loci in the Locus file that are non-codominant, then the relationships between the genotypes and the phenotypes for these loci are listed in the Phenotype File. The Phenotype File is in the standard table format with a header row. The header row must have the required field names *Locus*, *Phenotype*, and *Genotypes* in any order. Each line names a locus and a phenotype used at that locus. Also listed on that line are all the genotypes consistent with that phenotype, in a quoted list. For example, the line `ABO,A,"A/A,A/O"` indicates the genotypes A/A and A/O are both valid for the phenotype A at the ABO locus.
 
@@ -126,7 +126,7 @@ If there are loci in the Locus file that are non-codominant, then the relationsh
 	Xg,+,"+/+,+/-"
 	Xg,-,"-/-"
 
-### SNP Definition File<a id="snp-definition-file">
+### SNP Definition File<a id="snp-definition-file"></a>
 The SNP Definition file defines the SNPs with information such as SNP name, chromosome, position, and allele names. OpenMendel will accept [PLINK format](http://zzz.bwh.harvard.edu/plink) BIM files, in which case the file must have the extension *.bim*. The OpenMendel SNP Definition file format has a header row (in any order) with some of the field names: *SNP* or *Locus*, *Chromosome*, *CentiMorgans*, *Basepairs*, *Allele1*, and *Allele2* (these last two list the allele names). If neither a SNP nor Locus field is present, then the n SNPs are named 1, 2, 3, ..., n. If the Chromosome field is missing altogether or contains a missing value at some SNP, it is assumed to be autosomal. If present, the Chromosome field should have a value from 1 to 22 or the value X. If the CentiMorgan or Basepair fields are missing, they take the value 0. If Allele1 is missing it is assigned the value "1"; a missing Allele2 becomes "2".
 
 **Example SNP Definition File**
@@ -140,13 +140,13 @@ The SNP Definition file defines the SNPs with information such as SNP name, chro
 	X,rs5982853,0,2702143,C,T
 	X,rs73433431,0,2702698,T,C
 
-### SNP Data File<a id="snp-data-file">
+### SNP Data File<a id="snp-data-file"></a>
 The SNP Data file holds the SNP genotypes. The SNP Data file must be a standard [PLINK format](http://zzz.bwh.harvard.edu/plink) binary BED file in SNP-major format. If you have a SNP data file, you must have a SNP definition file, but it need not be in PLINK format. (We do not list here an example SNP Data file because they are binary files, and thus not human readable.)
 
 ### PLINK Basename
 You may use the keyword *plink_input_basename* in the Control file to specify a name for your PLINK format files. If you use this keyword you do not need to name each PLINK file in the Control file, but you must supply each of the three relevant PLINK files, using that basename:  *your_basename.bed* (SNP data file), *your_basename.bim* (SNP definition file), and *your_basename.fam* (pedigree file).
 
-### Populations<a id="populations">
+### Populations<a id="populations"></a>
 If your individuals are of known mixed ethnicity, OpenMendel will allow you to adjust for this in your analysis by using the *populations* keyword. The relevant populations should be named in your [Control file](#control-file), fractional ancestries should be assigned to the individuals in the [Pedigree file](#pedigree-file), and population-specific allele frequencies should be assigned to the markers in the [Locus file](#locus-file).
 
 For example, the [Control file](#control-file) might be:
