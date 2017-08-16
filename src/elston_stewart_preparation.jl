@@ -321,7 +321,7 @@ function genotype_elimination!(pedigree::Pedigree, person::Person,
       ped = nuclear_family.pedigree[fam]
       stable_pedigree[ped] = stable_pedigree[ped] && stable_family[fam]
     end
-    progress = any(.!(stable_pedigree))
+    progress = !all(stable_pedigree)
   end # progress loop
   #
   # Recount the number of homozygous genotypes per person.
