@@ -277,8 +277,8 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   # If the locus_frame is empty, create a null locus structure.
   #
   if length(locus_frame) == 0
-    a = Array(Array{AbstractString, 1}, 1); a[1] = blanks(1)
-    b = Array(Array{Float64, 2}, 1); b[1] = zeros(1, 1)
+    a = Array{Array{AbstractString, 1}}(1); a[1] = blanks(1)
+    b = Array{Array{Float64, 2}}(1); b[1] = zeros(1, 1)
     c = zeros(1, 1, 1)
     locus = Locus(0, 0, 0, true, blanks(0), blanks(0), zeros(Int, 0),
                   zeros(2, 0), zeros(2, 0), trues(0), zeros(Int, 0),
@@ -475,8 +475,8 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   #
   # Collect the allele names and population frequencies for each observed locus.
   #
-  allele_name = Array(Array{AbstractString, 1}, loci)
-  frequency = Array(Array{Float64, 2}, loci)
+  allele_name = Array{Array{AbstractString, 1}}(loci)
+  frequency = Array{Array{Float64, 2}}(loci)
   loc = 0
   n = 0
   for i = 1:rows
@@ -485,7 +485,7 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
       n = 1
       l = findfirst(observed_locus, loc)
       if l != 0
-        allele_name[l] = Array(AbstractString, alleles[l])
+        allele_name[l] = Array{AbstractString}(alleles[l])
         if populations == 0
           frequency[l] = zeros(1, alleles[l] + 1)
         else
@@ -957,8 +957,8 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
     loci = length(locus_name)
     rows = length(phenotype_frame[:, :Locus])
     phenotypes = zeros(Int, loci)
-    phenotype = Array(Array{AbstractString, 1}, loci)
-    genotype_string = Array(Array{AbstractString, 1}, loci)
+    phenotype = Array{Array{AbstractString, 1}}(loci)
+    genotype_string = Array{Array{AbstractString, 1}}(loci)
     #
     # Find the number of phenotypes corresponding to each locus.
     #
@@ -1007,13 +1007,13 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
     # Reduce each phenotype to a set of integer pairs. Each integer
     # represents a numbered allele in the Locus frame.
     #
-    genotype = Array(Array{Set{Tuple{Int, Int}}, 1}, loci)
+    genotype = Array{Array{Set{Tuple{Int, Int}}, 1}}(loci)
     #
     # Loop over all loci in the Phenotype frame.
     #
     for loc = 1:loci
       cor_loc = correspond[loc]
-      genotype[loc] = Array(Set{Tuple{Int, Int}}, phenotypes[loc])
+      genotype[loc] = Array{Set{Tuple{Int, Int}}}(phenotypes[loc])
       #
       # Loop over all phenotypes at the current locus.
       #
@@ -1047,7 +1047,7 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   # Create the genotype sets for the observed loci.
   #
   observed_loci = locus.loci
-  observed_genotype = Array(Set{Tuple{Int, Int}}, people, observed_loci)
+  observed_genotype = Array{Set{Tuple{Int, Int}}}(people, observed_loci)
   #
   # Loop over all observed loci.
   #
