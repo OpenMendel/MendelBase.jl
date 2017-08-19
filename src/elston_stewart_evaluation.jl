@@ -72,7 +72,7 @@ function compute_likelihood(penetrance::Function, prior::Function,
   inconsistent = false
   loglikelihood = 0.0
   arrays = instruction.finish[ped] - instruction.start[ped]
-  array = Array(Array{Float64, 1}, arrays)
+  array = Array{Array{Float64, 1}}(arrays)
   #
   # Now proceed instruction by instruction.
   #
@@ -467,4 +467,3 @@ function construct_gametes(person::Person, locus::Locus,
   end
   return gamete
 end # function construct_gametes
-
