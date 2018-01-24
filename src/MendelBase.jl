@@ -5,6 +5,7 @@ module MendelBase
 #
 # Required external packages.
 #
+using CSV           # From package CSV.
 using DataFrames    # From package DataFrames.
 using Distributions # From package Distributions.
 using GLM           # From package GLM.
