@@ -79,7 +79,7 @@ end
     computed_locus = computed[4]
     @test computed_locus.loci == 10
     @test computed_locus.model_loci == 10
-    @test computed_locus.trait == 0 # this is always zero, as defined last line of locus_information...?
+    @test computed_locus.trait == 0 
     @test computed_locus.free_recombination == false #since all on the same chromosome
     @test length(computed_locus.name) == 10
     @test all(computed_locus.chromosome .== "AUTOSOME")

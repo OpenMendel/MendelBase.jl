@@ -187,7 +187,6 @@ penetrance and prior array.
 function construct_penetrance_prior!(penetrance::Function, prior::Function,
   person::Person, locus::Locus, instruction::Instruction, par::Vector{Float64},
   keyword::Dict{AbstractString, Any}, array::Vector{Float64}, n::Int)
-
   start = instruction.extra[n][1]
   finish = instruction.extra[n][2]
   i = instruction.extra[n][3]
@@ -396,7 +395,6 @@ Only model loci between positions start and finish are considered.
 """
 function construct_multigenotypes(person::Person, locus::Locus,
   start::Int, finish::Int, genotypes::Int, i::Int)
-
   multi_genotype = zeros(Int, 2, locus.model_loci, genotypes)
   #
   # Create the multiple locus genotypes by taking the appropriate
