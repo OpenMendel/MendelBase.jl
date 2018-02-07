@@ -5,6 +5,7 @@
 #
 # Required external modules.
 #
+# using CSV           # From package CSV.
 # using DataFrames    # From package DataFrames.
 #
 # Required OpenMendel pacakges and modules.
@@ -77,7 +78,8 @@ function read_external_data_files(keyword::Dict{AbstractString, Any})
   #
   # Add a column recording the order of entry of each person.
   #
-  pedigree_frame[:EntryOrder] = @data(collect(1:size(pedigree_frame, 1)))
+  pedigree_frame[:EntryOrder] =
+    collect(Union{Int64, Missings.Missing}, 1:size(pedigree_frame, 1))
   #
   # Check that ancestral populations are present in both the
   # pedigree and locus frames.
@@ -145,17 +147,11 @@ substitutes blanks for missing values.
 """
 function read_plink_fam_file(plink_fam_file::AbstractString,
   keyword::Dict{AbstractString, Any})
-  #
-  # The following works around an incompatibility in readtable()
-  # between VERSION's 0.4 and 0.5.
-  #
-  column_types = []
-#  if VERSION ≥ v"0.5.0"
-#    column_types = [String, String, String, String, String, Float64]
-#  else
-#    column_types = [UTF8String, UTF8String, UTF8String,
-#                    UTF8String, UTF8String, Float64]
-#  end
+
+  column_types = [String, String, String, String, String, Float64]
+#  column_names = ["Pedigree", "Person", "Father", "Mother", "Sex", "Trait"]
+#  fam_dframe = CSV.read(plink_fam_file, delim = ' ',
+#    types = column_types, header = column_names)
   column_names = [:Pedigree, :Person, :Father, :Mother, :Sex, :Trait]
   fam_dframe = readtable(plink_fam_file, header = false, separator = ' ',
     eltypes = column_types, names = column_names)
@@ -178,17 +174,12 @@ Converts a Plink .bim file into a dataframe.
 """
 function read_plink_bim_file(plink_bim_file::AbstractString,
   keyword::Dict{AbstractString, Any})
-  #
-  # The following works around an incompatibility in readtable()
-  # between VERSION's 0.4 and 0.5.
-  #
-  column_types = []
-#  if VERSION ≥ v"0.5.0"
-#    column_types = [String, String, Float64, Int64, String, String]
-#  else
-#    column_types = [UTF8String, UTF8String, Float64,
-#                    Int64, UTF8String, UTF8String]
-#  end
+
+  column_types = [String, String, Float64, Int64, String, String]
+#  column_names = ["Chromosome", "SNP", "CentiMorgans", "Basepairs", 
+#                  "Allele1", "Allele2"]
+#  fam_dframe = CSV.read(plink_bim_file, delim = ' ',
+#    types = column_types, header = column_names)
   column_names = [:Chromosome, :SNP, :CentiMorgans, :Basepairs, 
                   :Allele1, :Allele2]
   bim_dframe = readtable(plink_bim_file, header = false, separator = ' ',
@@ -214,7 +205,7 @@ function snp_information(snp_definition_frame::DataFrame, person::Person,
   column_names = names(snp_definition_frame)
   snp_name = blanks(snps)
   if :Locus in column_names && !(:SNP in column_names)
-    rename!(snp_definition_frame, :Locus, :SNP)
+    rename!(snp_definition_frame, :Locus => :SNP)
     column_names = names(snp_definition_frame)
   end
   if :SNP in column_names
@@ -242,15 +233,15 @@ function snp_information(snp_definition_frame::DataFrame, person::Person,
   end
   if !(:Basepairs in column_names)
     if :BasePair in column_names
-      rename!(snp_definition_frame, :BasePair, :Basepairs)
+      rename!(snp_definition_frame, :BasePair => :Basepairs)
     elseif :BasePairs in column_names
-      rename!(snp_definition_frame, :BasePairs, :Basepairs)
+      rename!(snp_definition_frame, :BasePairs => :Basepairs)
     elseif :Basepair in column_names
-      rename!(snp_definition_frame, :Basepair, :Basepairs)
+      rename!(snp_definition_frame, :Basepair => :Basepairs)
     elseif :BP in column_names
-      rename!(snp_definition_frame, :BP, :Basepairs)
+      rename!(snp_definition_frame, :BP => :Basepairs)
     elseif :bp in column_names
-      rename!(snp_definition_frame, :bp, :Basepairs)
+      rename!(snp_definition_frame, :bp => :Basepairs)
     end
   end
   column_names = names(snp_definition_frame)
@@ -309,23 +300,23 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   #
   locus_field = names(locus_frame)
   if :Morgans in locus_field && !(:FemaleMorgans in locus_field)
-    rename!(locus_frame, :Morgans, :FemaleMorgans)
+    rename!(locus_frame, :Morgans => :FemaleMorgans)
   end
   if !(:Basepairs in locus_field)
     if :BasePair in locus_field
-      rename!(locus_frame, :BasePair, :Basepairs)
+      rename!(locus_frame, :BasePair => :Basepairs)
     elseif :BasePairs in locus_field
-      rename!(locus_frame, :BasePairs, :Basepairs)
+      rename!(locus_frame, :BasePairs => :Basepairs)
     elseif :Basepair in locus_field
-      rename!(locus_frame, :Basepair, :Basepairs)
+      rename!(locus_frame, :Basepair => :Basepairs)
     elseif :BP in locus_field
-      rename!(locus_frame, :BP, :Basepairs)
+      rename!(locus_frame, :BP => :Basepairs)
     elseif :bp in locus_field
-      rename!(locus_frame, :bp, :Basepairs)
+      rename!(locus_frame, :bp => :Basepairs)
     end
   end
   if :SNP in locus_field && !(:Locus in locus_field)
-    rename!(locus_frame, :SNP, :Locus)
+    rename!(locus_frame, :SNP => :Locus)
   end
   #
   # Determine some dimensions for the regular locus structure.
@@ -438,7 +429,7 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   #
   if populations == 0
     for i = 1:columns
-      if typeof(locus_frame[i]) == DataArray{Float64, 1}
+      if typeof(locus_frame[i]) == Array{Union{Float64, Missings.Missing}, 1}
         s = Symbol(locus_field[i])
         if s != :FemaleMorgans && s != :MaleMorgans
           populations = 1
@@ -523,7 +514,7 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
       j = 0
       for pop in population_names
         j = j + 1
-        if isna(locus_frame[i, Symbol(pop)])
+        if ismissing(locus_frame[i, Symbol(pop)])
           frequency[l][j, n] = 0.0
         else
           frequency[l][j, n] = locus_frame[i, Symbol(pop)]
@@ -751,7 +742,7 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
     for t in twin_group
       if typeof(t) == Int && t == 0
         continue
-      elseif isna(t)
+      elseif ismissing(t)
         continue
       else
         twin_list = findin(pedigree_frame[:, :Twin], t)
@@ -786,11 +777,11 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
           else
             name_j = pedigree_frame[j, :Individual]
           end
-          if !isna(mother_string[i]) && mother_string[i] == name_j
+          if !ismissing(mother_string[i]) && mother_string[i] == name_j
             mother[i] = j
             mother_found = true
           end
-          if !isna(father_string[i]) && father_string[i] == name_j
+          if !ismissing(father_string[i]) && father_string[i] == name_j
             father[i] = j
             father_found = true
           end
@@ -827,7 +818,7 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
     #
     # Find the inverse permutation.
     #
-    inverse_perm = collect(1:people)
+    inverse_perm = collect(Union{Int64, Missings.Missing}, 1:people)
     for i = 1:people
       inverse_perm[perm[i]] = i
     end
@@ -872,9 +863,10 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
     #
     # Sort the pedigree dataframe according to the inverse permutation.
     #
-    pedigree_frame = hcat(pedigree_frame, inverse_perm)
-    last = size(pedigree_frame, 2)
-    sort!(pedigree_frame::DataFrame, cols = last)
+#    pedigree_frame = hcat(pedigree_frame, inverse_perm)
+#    last = size(pedigree_frame, 2)
+    pedigree_frame[:Inverse_Perm] = inverse_perm
+    sort!(pedigree_frame, cols = [:Inverse_Perm])
   end
   #
   # Record who is male.
@@ -883,7 +875,7 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   female_symbols = keyword["female"]
   if Symbol(:Sex) in pedigree_field
     for i = 1:people
-      if isna(pedigree_frame[i, :Sex]); continue; end
+      if ismissing(pedigree_frame[i, :Sex]); continue; end
       s = pedigree_frame[i, :Sex]
       if !isa(parse(string(s), raise=false), Number); s = lowercase(s); end
       if s in male_symbols
@@ -916,8 +908,8 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   #
   variables = 0
   for i = 1:length(pedigree_field)
-    if typeof(pedigree_frame[i]) == DataArray{Float64, 1}
-      if !(pedigree_field[i] in keyword["populations"])
+    if typeof(pedigree_frame[i]) == Array{Union{Float64, Missings.Missing},1}
+      if !(string(pedigree_field[i]) in keyword["populations"])
         variables = variables + 1
       end
     end
@@ -929,12 +921,12 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   variable_name = blanks(variables)
   variables = 0
   for i = 1:length(pedigree_field)
-    if typeof(pedigree_frame[i]) == DataArray{Float64, 1}
-      if !(pedigree_field[i] in keyword["populations"])
+    if typeof(pedigree_frame[i]) == Array{Union{Float64, Missings.Missing},1}
+      if !(string(pedigree_field[i]) in keyword["populations"])
         variables = variables + 1
         variable_name[variables] = string(pedigree_field[i])
         for per = 1:people
-          if isna(pedigree_frame[per, i])
+          if ismissing(pedigree_frame[per, i])
             variable[per, variables] = NaN
           else
             variable[per, variables] = pedigree_frame[per, i]
@@ -953,7 +945,7 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
       disease_status = blanks(people)
       status = pedigree_frame[:, disease_field]
       for i = 1:people
-        if isna(status[i])
+        if ismissing(status[i])
           disease_status[i] = ""
         else
           disease_status[i] = string(status[i])
@@ -1087,7 +1079,7 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
         #
         observed_genotype[i, loc] = Set{Tuple{Int, Int}}()
         phen = pedigree_frame[i, locus.locus_field_in_pedigree_frame[loc]]
-        if isna(phen) || phen == ""
+        if ismissing(phen) || phen == ""
           hemizygous = locus.xlinked[loc] && male[i]
           observed_genotype[i, loc] = full_genotype_set(m, hemizygous)
           match = true
@@ -1113,7 +1105,7 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
       #
       if !match
         g = pedigree_frame[i, locus.locus_field_in_pedigree_frame[loc]]
-        if isna(g)
+        if ismissing(g)
           g = ""
         else
           g = string(g)
@@ -1166,7 +1158,7 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
     for i = 1:people
       j = 1
       for pop in population_names
-        if isna(pedigree_frame[i, Symbol(pop)])
+        if ismissing(pedigree_frame[i, Symbol(pop)])
           admixture[i, j] = 0.0
         else
           admixture[i, j] = pedigree_frame[i, Symbol(pop)]
@@ -1627,7 +1619,7 @@ function ethnic_admixture!(person::Person)
     else
 ##       for j = 1:length(person.admixture[i, :])
       for j = 1:populations
-        if isna(person.admixture[i, j])
+        if ismissing(person.admixture[i, j])
           person.admixture[i, j] = 0.0
         end
       end
