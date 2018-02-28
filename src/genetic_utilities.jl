@@ -13,6 +13,10 @@ export hardy_weinberg_test, xlinked_hardy_weinberg_test
 Calculate recombination fractions based on Haldane's or Kosambi's formula.
 """
 function map_function(d::Float64, choice::AbstractString)
+    
+  if d < 0.0 
+    throw(DomainError())
+  end
 
   if choice == "Haldane"
     theta = 0.5 * (1.0 - exp(-2d))
@@ -20,7 +24,7 @@ function map_function(d::Float64, choice::AbstractString)
     theta = 0.5 * tanh(2d)
   else
   throw(ArgumentError(
-    "Only Haldane's or Kosambi's map function is allowed.\n \n"))
+    "only Haldane's or Kosambi's map function is allowed.\n \n"))
   end
   return theta
 end # function map_function
@@ -29,6 +33,10 @@ end # function map_function
 Calculates genetic map distances based on Haldane's or Kosambi's formula.
 """
 function inverse_map_function(theta::Float64, choice::AbstractString)
+
+  if theta < 0.0 || theta > 1.0 
+    throw(DomainError())
+  end
 
   if choice == "Haldane"
     if theta >= 0.5
@@ -44,7 +52,7 @@ function inverse_map_function(theta::Float64, choice::AbstractString)
     end
   else
     throw(ArgumentError(
-      "Only Haldane's or Kosambi's map function is allowed.\n \n"))
+      "only Haldane's or Kosambi's map function is allowed.\n \n"))
   end
   return d
 end # function inverse_map_function

@@ -1,0 +1,9 @@
+Locus,Phenotype,Genotypes
+ABO,A,"A/A,A/O"
+ABO,B,"B/B,B/O"
+ABO,AB,"A/B"
+ABO,O,"O/O"
+Rh,+,"D/D,D/d"
+Rh,-,"d/d"
+Xg,+,"+/+,+/-"
+Xg,-,"-/-"

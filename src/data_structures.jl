@@ -9,7 +9,7 @@ export Person, Pedigree, NuclearFamily, Locus
 type Person
   people :: Int
   populations :: Int
-  name :: Vector{AbstractString}
+  name :: Vector{AbstractString} # name of the person, must be unique within pedigree
   pedigree :: Vector{Int}
   mother :: Vector{Int}
   father :: Vector{Int}
@@ -28,7 +28,7 @@ end
 
 type Pedigree
   pedigrees :: Int
-  name :: Vector{AbstractString}
+  name :: Vector{AbstractString} #name of the pedigree 
   start :: Vector{Int}
   twin_finish :: Vector{Int} # end of pedigree including co-twins
   finish :: Vector{Int} # end of pedigree excluding co-twins

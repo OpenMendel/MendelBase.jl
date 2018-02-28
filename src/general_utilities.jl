@@ -33,7 +33,7 @@ end # function empties
 """
 Identifies a repeated string in an array of strings.
 """
-function repeated_string(name::Vector{AbstractString})
+function repeated_string(name::Vector{<:AbstractString})
 
   sorted = sort(name)
   for i = 2:length(name)
