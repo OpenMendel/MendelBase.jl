@@ -1,4 +1,4 @@
-using MendelBase, Base.Test, SnpArrays, DataFrames, DataStructures
+using MendelBase, Base.Test, SnpArrays, DataFrames, DataStructures, CSV
 
 info("Unit tests for read_data")
 
@@ -9,7 +9,7 @@ keyword = set_keyword_defaults!(Dict{AbstractString, Any}())
 process_keywords!(keyword, "control.txt", []) 
 computed = read_external_data_files(keyword)
 
-reference = readtable("gamete competition PedigreeFrame.txt")
+reference = CSV.read("gamete competition PedigreeFrame.txt")
 num = length(unique(reference[1]))
 tot_num = length(reference[1])
 
