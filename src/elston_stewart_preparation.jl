@@ -91,7 +91,7 @@ function orchestrate_likelihood(pedigree::Pedigree, person::Person,
   site = zeros(Int, bound)
   rank = zeros(Int, bound)
   space = zeros(Int, bound)
-  extra = Array(Array{Int, 1}, bound)
+  extra = Array{Array{Int, 1}}(bound)
   for i = 1:bound
     extra[i] = zeros(Int, 0)
   end
@@ -208,7 +208,7 @@ function genotype_elimination!(pedigree::Pedigree, person::Person,
   xlinked = locus.xlinked[loc]
   stable_pedigree = falses(pedigrees)
   stable_family = falses(families)
-  saved_genotype = Array(Set{Tuple{Int, Int}}, people)
+  saved_genotype = Array{Set{Tuple{Int, Int}}}(people)
   #
   # Begin elimination for locus loc.
   #
@@ -321,7 +321,7 @@ function genotype_elimination!(pedigree::Pedigree, person::Person,
       ped = nuclear_family.pedigree[fam]
       stable_pedigree[ped] = stable_pedigree[ped] && stable_family[fam]
     end
-    progress = any(!stable_pedigree)
+    progress = !all(stable_pedigree)
   end # progress loop
   #
   # Recount the number of homozygous genotypes per person.
@@ -1126,4 +1126,3 @@ function model_recombination_fractions(locus::Locus,
   end
   return theta
 end # function model_recombination_fractions
-

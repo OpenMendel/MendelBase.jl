@@ -1,0 +1,11 @@
+# Input and Output files.
+#
+locus_file = test_locus.txt
+pedigree_file = test_pedigree.txt
+output_file = test_output.txt
+#
+# Analysis parameters for the Gamete Competition option.
+#
+trait = ACE
+affected_designator = 1
+standard_errors = true

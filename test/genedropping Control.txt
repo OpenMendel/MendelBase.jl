@@ -1,0 +1,14 @@
+
+#
+# Input and Output files.
+#
+locus_file = genedropping LocusFrame.txt
+pedigree_file = genedropping PedigreeFrame.txt
+phenotype_file = genedropping PhenotypeFrame.txt
+new_pedigree_file = genedropping NewPedigreeFrame.txt
+output_file = genedropping Output.txt
+#
+# Analysis parameters for GeneDropping option.
+#
+repetitions = 2
+populations = European, African, Chinese

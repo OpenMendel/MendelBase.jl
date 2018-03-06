@@ -11,7 +11,7 @@ Creates an array of blank strings.
 """
 function blanks(n::Int)
 
-  blank = Array(AbstractString, n)
+  blank = Array{AbstractString}(n)
   for i = 1:n
     blank[i] = ""
   end
@@ -23,7 +23,7 @@ Creates an array of empty integer sets.
 """
 function empties(n::Int)
 
-  empty = Array(IntSet, n)
+  empty = Array{IntSet}(n)
   for i = 1:n
     empty[i] = IntSet()
   end
@@ -33,7 +33,7 @@ end # function empties
 """
 Identifies a repeated string in an array of strings.
 """
-function repeated_string(name::Vector{AbstractString})
+function repeated_string(name::Vector{<:AbstractString})
 
   sorted = sort(name)
   for i = 2:length(name)
@@ -217,12 +217,12 @@ function regress(X::Matrix{Float64}, y::Vector{Float64}, model::AbstractString)
   #
   if model == "linear"
     BLAS.gemv!('N', 1.0, X, estimate, 0.0, z) # z = X * estimate
-    BLAS.axpy!(n, -1.0, y, 1, z, 1) # z = z - y
+    BLAS.axpy!(-1.0, y, z) # z = z - y
     score = BLAS.gemv('T', -1.0, X, z) # score = - X' * (z - y)
     information = BLAS.gemm('T', 'N', X, X) # information = X' * X
     estimate = information \ score
     BLAS.gemv!('N', 1.0, X, estimate, 0.0, z) # z = X * estimate
-    obj = - 0.5 * n * log(sumabs2(y - z) / n) - 0.5 * n
+    obj = - 0.5 * n * log(sum(abs2, y - z) / n) - 0.5 * n
     return (estimate, obj)
   end
   #
@@ -259,22 +259,22 @@ function regress(X::Matrix{Float64}, y::Vector{Float64}, model::AbstractString)
     BLAS.gemv!('N', 1.0, X, estimate, 0.0, z) # z = X * estimate
     clamp!(z, -20.0, 20.0) 
     if model == "logistic"
-      z = exp(-z)
+      z = exp.(-z)
       z = 1.0 ./ (1.0 + z)
       w = z .* (1.0 .- z)
-      BLAS.axpy!(n, -1.0, y, 1, z, 1) # z = z - y
+      BLAS.axpy!(-1.0, y, z) # z = z - y
       score = BLAS.gemv('T', -1.0, X, z) # score = - X' * (z - y)
-      w = sqrt(w)
+      w = sqrt.(w)
       scale!(w, X) # diag(w) * X
       information = BLAS.gemm('T', 'N', X, X) # information = X' * W * X
       w = 1.0 ./ w
       scale!(w, X)
     elseif model == "Poisson"
-      z = exp(z)
+      z = exp.(z)
       w = copy(z)
-      BLAS.axpy!(n, -1.0, y, 1, z, 1) # z = z - y
+      BLAS.axpy!(-1.0, y, z) # z = z - y
       score = BLAS.gemv('T', -1.0, X, z) # score = - X' * (z - y)
-      w = sqrt(w)
+      w = sqrt.(w)
       scale!(w, X) # diag(w) * X
       information = BLAS.gemm('T', 'N', X, X) # information = X' * W * X
       w = 1.0 ./ w
@@ -298,7 +298,7 @@ function regress(X::Matrix{Float64}, y::Vector{Float64}, model::AbstractString)
       # Compute the loglikelihood under the appropriate model.
       #
       if model == "logistic"
-        z = exp(-z)
+        z = exp.(-z)
         z = 1.0 ./ (1.0 + z)
         for i = 1:n
           if y[i] > 0.0
@@ -361,28 +361,29 @@ function glm_score_test(X::Matrix{Float64}, y::Vector{Float64},
   #
   BLAS.gemv!('N', 1.0, X, estimate, 0.0, z) # z = X * estimate
   if model == "linear"
-    BLAS.axpy!(n, -1.0, y, 1, z, 1) # z = z - y
-    score = BLAS.gemv('T', -1.0, X, z) # score = - X' * (z - y)
-    information = BLAS.gemm('T', 'N', X, X) # information = X' * X
+    BLAS.axpy!(-1.0, y, z) # z = z - y
+    var_inv = n / norm(z)^2 # var = residual sum of squares / n
+    score = BLAS.gemv('T', -var_inv, X, z) # score = - X' * (z - y) / var
+    information = BLAS.gemm('T', 'N', var_inv, X, X) # informat = X' * X / var
   elseif model == "logistic"
     clamp!(z, -20.0, 20.0)
-    z = exp(-z)
+    z = exp.(-z)
     z = 1.0 ./ (1.0 + z)
     w = z .* (1.0 .- z)
-    BLAS.axpy!(n, -1.0, y, 1, z, 1) # z = z - y
+    BLAS.axpy!(-1.0, y, z) # z = z - y
     score = BLAS.gemv('T', -1.0, X, z) # score = - X' * (z - y)
-    w = sqrt(w)
+    w = sqrt.(w)
     scale!(w, X) # diag(w) * X
     information = BLAS.gemm('T', 'N', X, X) # information = X' * W * X 
     w = 1.0 ./ w
     scale!(w, X)
   elseif model == "Poisson"
     clamp!(z, -20.0, 20.0) 
-    z = exp(z)
+    z = exp.(z)
     w = copy(z)
-    BLAS.axpy!(n, -1.0, y, 1, z, 1) # z = z - y
+    BLAS.axpy!(-1.0, y, z) # z = z - y
     score = BLAS.gemv('T', -1.0, X, z) # score = - X' * (z - y)
-    w = sqrt(w)
+    w = sqrt.(w)
     scale!(w, X) # diag(w) * X
     information = BLAS.gemm('T', 'N', X, X) # information = X' * W * X
     w = 1.0 ./ w
