@@ -111,6 +111,8 @@ function set_keyword_defaults!(keyword::Dict{AbstractString, Any})
   keyword["snpdata_file"] = ""
   keyword["snpdefinition_file"] = ""
   keyword["trait"] = ""
+  keyword["manhattan_plot_file"] = ""
+  keyword["repetitions"] = ""
 ## For imputation:
 ##  keyword["gradient_provided"] = false
 ##  keyword["reference_haplotypes"] = 0
@@ -411,7 +413,7 @@ function open_control_file!(keyword::Dict{AbstractString, Any})
     if (isdir(control_dir)); cd(control_dir); end
   else
     throw(ArgumentError(
-      """The named control file "$control_file" is not readable.\n \n"""))
+      """The named control file "$control_file" is not readable or is not present.\n \n"""))
   end
   return
 end # function open_control_file!

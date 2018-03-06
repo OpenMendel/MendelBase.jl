@@ -1,0 +1,8 @@
+Locus,Allele,Chromosome,Frequency,Morgans
+ABO,A,9,0.64,0.27
+ABO,B,9,0.34,0.06
+ABO,O,9,1.35,NA
+Rh,D,1,2.42,0.61
+Rh,d,1,0.58,0.39
+SNP,1,9,0,NA
+SNP,2,9,0,NA

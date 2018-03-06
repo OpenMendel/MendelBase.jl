@@ -35,6 +35,13 @@ function read_external_data_files(keyword::Dict{AbstractString, Any})
   else
     locus_frame = readtable(keyword["locus_file"],
       separator = field_sep)
+    if !in(:Locus, names(locus_frame)) || 
+       !in(:Allele, names(locus_frame)) ||
+       !in(:Chromosome, names(locus_frame))
+      throw(ArgumentError(
+        "Locus, Allele, Chromosome, and Frequency are required in the Locus" * 
+        "file. Does the Locus file contain a header row? \n \n"))
+    end
   end
   #
   # Read the phenotype frame.
@@ -44,6 +51,13 @@ function read_external_data_files(keyword::Dict{AbstractString, Any})
   else
     phenotype_frame = readtable(keyword["phenotype_file"],
       separator = field_sep)
+    if !in(:Locus, names(phenotype_frame)) || 
+       !in(:Phenotype, names(phenotype_frame)) ||
+       !in(:Genotypes, names(phenotype_frame))
+      throw(ArgumentError(
+        "Locus, Phenotypes, and Genotypes are required in the phenotype file." *  
+        "Does the phenotype file contain a header row? \n \n"))
+    end
   end
   #
   # Read the mandatory pedigree frame. Plink .fam files are allowed.
@@ -55,6 +69,11 @@ function read_external_data_files(keyword::Dict{AbstractString, Any})
   else
     pedigree_frame = readtable(keyword["pedigree_file"],
       separator = field_sep)
+    if !in(:Person, names(pedigree_frame)) && !in(:Individual, names(pedigree_frame))
+      throw(ArgumentError(
+        "Either Person or Individual must be present in the pedigree file." *  
+        "Does the pedigree file contain a header row? \n \n"))
+    end
   end
   #
   # Add a column recording the order of entry of each person.
@@ -1178,7 +1197,7 @@ function pedigree_counts!(pedigree::Pedigree, person::Person)
     #
     mates = Set{Tuple{Int, Int}}()
     for j = pedigree.start[i]:pedigree.twin_finish[i]
-      if person.father[j] == 0
+      if person.father[j] == 0 # person's father is 0 if father = NaN?
         founders = founders + 1
       else
         push!(mates, (person.mother[j], person.father[j]))

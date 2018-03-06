@@ -10,6 +10,7 @@ using DataFrames    # From package DataFrames.
 using Distributions # From package Distributions.
 using GLM           # From package GLM.
 using StatsBase     # From package StatsBase.
+using Missings
 #
 # Required OpenMendel packages and modules.
 #

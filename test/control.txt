@@ -1,0 +1,11 @@
+# Input and Output files.
+#
+locus_file = gamete competition LocusFrame.txt
+pedigree_file = gamete competition PedigreeFrame.txt
+output_file = gamete competition Output.txt
+#
+# Analysis parameters for the Gamete Competition option.
+#
+trait = ACE
+affected_designator = 1
+standard_errors = true

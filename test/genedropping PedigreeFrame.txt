@@ -1,0 +1,14 @@
+Pedigree,Person,Mother,Father,Sex,Twin,BirthYear,Politician,European,African,Chinese,ABO,Rh,Xg,XSNP,HtMeters
+Bush,George,,,male,0,1946.0,true,1.0,0.0,0.0,AB,+,+,1/1,1.82
+Bush,Laura,,,female,0,1946.0,false,1.0,0.0,0.0,O,+,+,1/2,NA
+Bush,"Henry Hagar",,,male,0,1978.0,false,1.0,0.0,0.0,A,+,+,1/1,NA
+Bush,Barbara,Laura,George,female,1,1981.0,false,NA,NA,NA,B,+,-,1/1,NA
+Bush,Jenna,Laura,George,female,1,1981.0,false,NA,NA,NA,B,+,+,1/2,NA
+Bush,Margaret,Jenna,"Henry Hagar",female,0,2013.0,false,NA,NA,NA,B,-,-,1/2,NA
+Clinton,Bill,,,male,0,1946.0,true,1.0,0.0,0.0,A,+,+,2/2,1.88
+Clinton,Hillary,,,female,0,1947.0,true,1.0,0.0,0.0,O,-,-,1/1,NA
+Clinton,Chelsea,Hillary,Bill,female,0,1980.0,false,NA,NA,NA,A,+,-,1/2,NA
+Obama,Barack,,,male,0,1961.0,true,0.5,0.5,0.0,O,+,NA,1/1,1.85
+Obama,Michelle,,,female,0,1964.0,false,0.3,0.7,0.0,B,+,NA,2/2,NA
+Obama,Malia,Michelle,Barack,female,0,1998.0,false,NA,NA,NA,O,-,+,1/2,NA
+Obama,Sasha,Michelle,Barack,female,0,2001.0,false,NA,NA,NA,B,+,+,1/2,NA

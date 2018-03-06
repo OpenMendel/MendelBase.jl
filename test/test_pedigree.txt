@@ -1,0 +1,8 @@
+Pedigree,Person,Mother,Father,Sex,Twin,ABO,HtMeters
+Clinton,Bill,,,male,0,A,1.88
+Clinton,Hillary,,,female,0,O,NA
+Clinton,Chelsea,Hillary,Bill,female,0,A,NA
+Obama,Barack,,,male,0,O,1.85
+Obama,Michelle,,,female,0,B,NA
+Obama,Malia,Michelle,Barack,female,0,O,NA
+Obama,Sasha,Michelle,Barack,female,0,B,NA

@@ -1126,4 +1126,3 @@ function model_recombination_fractions(locus::Locus,
   end
   return theta
 end # function model_recombination_fractions
-
