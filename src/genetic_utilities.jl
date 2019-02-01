@@ -4,7 +4,7 @@
 #
 # Required external packages.
 #
-# using Distributions # From package Distributions.
+# using Statistics, Distributions
 
 export map_function, inverse_map_function
 export hardy_weinberg_test, xlinked_hardy_weinberg_test
@@ -12,12 +12,13 @@ export hardy_weinberg_test, xlinked_hardy_weinberg_test
 """
 Calculate recombination fractions based on Haldane's or Kosambi's formula.
 """
-function map_function(d::Float64, choice::AbstractString)
-
+function map_function(d::T where T <: Real, choice::String)
+#
+  one_d = one(typeof(d))
   if choice == "Haldane"
-    theta = 0.5 * (1.0 - exp(-2d))
+    theta = (one_d - exp(-2d)) / 2
   elseif choice == "Kosambi"
-    theta = 0.5 * tanh(2d)
+    theta = tanh(2d) / 2
   else
   throw(ArgumentError(
     "Only Haldane's or Kosambi's map function is allowed.\n \n"))
@@ -28,19 +29,20 @@ end # function map_function
 """
 Calculates genetic map distances based on Haldane's or Kosambi's formula.
 """
-function inverse_map_function(theta::Float64, choice::AbstractString)
-
+function inverse_map_function(theta::T where T <: Real, choice::String)
+#
+  one_th = one(typeof(theta))
   if choice == "Haldane"
-    if theta >= 0.5
+    if theta >= one_th / 2
       d = Inf
     else
-      d = -0.5 * log(1.0 - 2.0 * theta)
+      d = -(log(one_th - 2 * theta)) / 2
     end
   elseif choice == "Kosambi"
-    if theta >= 0.5
+    if theta >= one_th / 2
       d = Inf
     else
-      d = 0.25 * log((1.0 + 2.0 * theta) / (1.0 - 2.0 * theta))
+      d = log((one_th + 2 * theta) / (one_th - 2 * theta)) / 4
     end
   else
     throw(ArgumentError(
@@ -51,19 +53,19 @@ end # function inverse_map_function
 
 """
 Test for Hardy-Weinberg equilibrium at a SNP.
-The genotype vector conveys for each person his/her number of
-reference alleles. Thus, all genotypes belong to {0, 1, 2, NaN}.
+The genotype vector conveys for each person his or her number of
+reference alleles. Thus, all genotypes belong to {0, 1, 2, Missing}.
 The pvalue of the chi-square statistic is returned.
 """
-function hardy_weinberg_test(genotype::Vector{Float64})
-
+function hardy_weinberg_test(genotype::Vector)
+#
   (expected, observed) = (zeros(3), zeros(3))
   #
   # Tally observations per cell.
   #
   n = 0
   for i = 1:length(genotype)
-    if !isnan(genotype[i])
+    if !ismissing(genotype[i])
       n = n + 1
       g = round(Int, genotype[i])
       j = g + 1
@@ -97,11 +99,11 @@ end # function hardy_weinberg_test
 
 """
 Test for Hardy-Weinberg equilibrium at an xlinked SNP.
-The genotype vector conveys for each person his/her number of reference alleles.
-Thus, all genotypes belong to {0, 1, 2, NaN}.
+The genotype vector conveys for each person his or her number of
+reference alleles. Thus, all genotypes belong to {0, 1, 2, Missing}.
 The p-value of the chi-square statistic is returned.
 """
-function xlinked_hardy_weinberg_test(genotype::Vector{Float64}, 
+function xlinked_hardy_weinberg_test(genotype::Vector, 
   male::BitArray{1})
 
   (expected_female, observed_female) = (zeros(3), zeros(3))
@@ -111,7 +113,7 @@ function xlinked_hardy_weinberg_test(genotype::Vector{Float64},
   #
   (females, males) = (0, 0)
   for i = 1:length(genotype)
-    if !isnan(genotype[i])
+    if !ismissing(genotype[i])
       g = round(Int, genotype[i])
       if male[i]
         males = males + 1
@@ -159,33 +161,34 @@ function xlinked_hardy_weinberg_test(genotype::Vector{Float64},
   return ccdf(Chisq(2), test)
 end # function xlinked_hardy_weinberg_test
 
-# using GeneticUtilities
-# d = 1.0
-# choice = "Haldane"
+# Testing Routines
+#
+# d = rand()
+# choice = "Haldane";
 # theta = map_function(d, choice)
-# d = inverse_map_function(theta, choice)
-# println(d)
-# d = 1.0
-# choice = "Kosambi"
+# di = inverse_map_function(theta, choice);
+# println(di);
+# d = rand()
+# choice = "Kosambi";
 # theta = map_function(d, choice)
-# d = inverse_map_function(theta, choice)
-# println(d)
-# p = 1 / 3
-# n = 100
-# x = zeros(n)
+# di= inverse_map_function(theta, choice);
+# println(di);
+# p = 1 / 3;
+# n = 100;
+# x = zeros(n);
 # for i = 1:n
 #   u = rand(2)
 #   if u[1] <= p; x[i] = x[i] + 1.0; end
 #   if u[2] <= p; x[i] = x[i] + 1.0; end 
 # end
-# pvalue = hardy_weinberg_test(x)
-# println("pvalue = ",pvalue)
-# male = falses(n)
-# male[1:div(n, 2)] = true
+# pvalue = hardy_weinberg_test(x);
+# println("pvalue = ",pvalue);
+# male = falses(n);
+# male[1:div(n, 2)] .= true;
 # for i = 1:div(n, 2)
 #   x[i] = 0.0
 #   u = rand(1)
 #   if u[1] <= p; x[i] = x[i] + 1.0; end
 # end
-# pvalue = xlinked_hardy_weinberg_test(x, male)
-# println("pvalue = ",pvalue)
+# pvalue = xlinked_hardy_weinberg_test(x, male);
+# println("pvalue = ",pvalue);

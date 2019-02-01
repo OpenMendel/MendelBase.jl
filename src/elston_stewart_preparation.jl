@@ -10,7 +10,7 @@
 # using GeneticUtilities
 # using ReadData
 
-type Instruction
+mutable struct Instruction
   instructions :: Int
   start :: Vector{Int}
   finish :: Vector{Int}
@@ -19,7 +19,7 @@ type Instruction
   rank :: Vector{Int}
   space :: Vector{Int}
   extra :: Array{Vector{Int}, 1}
-end
+end # Instruction
 
 export Instruction
 export allele_consolidation, genotype_elimination!, orchestrate_likelihood
@@ -91,7 +91,7 @@ function orchestrate_likelihood(pedigree::Pedigree, person::Person,
   site = zeros(Int, bound)
   rank = zeros(Int, bound)
   space = zeros(Int, bound)
-  extra = Array{Array{Int, 1}}(bound)
+  extra = Array{Array{Int, 1}}(undef, bound)
   for i = 1:bound
     extra[i] = zeros(Int, 0)
   end
@@ -136,7 +136,7 @@ function allele_consolidation(pedigree::Pedigree, person::Person,
   # the current pedigree.
   #
   for ped = 1:pedigrees
-    observed = IntSet()
+    observed = BitSet()
     for i = pedigree.start[ped]:pedigree.twin_finish[ped]
       if xlinked && person.male[i]
         if length(person.genotype[i, loc]) < alleles
@@ -163,7 +163,7 @@ function allele_consolidation(pedigree::Pedigree, person::Person,
         lumped_frequency[ped, :] = lumped_frequency[ped, :] - f
       end
     else
-      lumped_frequency[ped, :] = 0.0
+      lumped_frequency[ped, :] .= 0.0
     end
     #
     # Construct a new genotype set for each person, replacing
@@ -208,7 +208,7 @@ function genotype_elimination!(pedigree::Pedigree, person::Person,
   xlinked = locus.xlinked[loc]
   stable_pedigree = falses(pedigrees)
   stable_family = falses(families)
-  saved_genotype = Array{Set{Tuple{Int, Int}}}(people)
+  saved_genotype = Array{Set{Tuple{Int, Int}}}(undef, people)
   #
   # Begin elimination for locus loc.
   #
@@ -539,7 +539,7 @@ of removing a node from the adjacency graph is a simple surrogate
 for the number of arithmetic operations involved in summing over
 the genotypes possible for the node.
 """
-function greedy(nodes::Int, graph::Vector{IntSet},
+function greedy(nodes::Int, graph::Vector{BitSet},
                 weight::Vector{Int}, ped_size::Int)
 
   log_cost = zeros(nodes)
@@ -721,7 +721,7 @@ end # function create_index_set
 Prepare the instructions for performing the Elston-Stewart algorithm.
 """
 function prepare_instructions(pedigree::Pedigree, person::Person, locus::Locus,
-  elston_stewart_count::Vector{Float64}, index_set::Vector{IntSet}, 
+  elston_stewart_count::Vector{Float64}, index_set::Vector{BitSet}, 
   weight::Vector{Int}, permutation::Vector{Int}, extra::Vector{Vector{Int}},
   operation::Vector{Int}, rank::Vector{Int}, space::Vector{Int},
   site::Vector{Int}, arrays::Int, instructions::Int, nodes::Int, bound::Int,
@@ -736,8 +736,8 @@ function prepare_instructions(pedigree::Pedigree, person::Person, locus::Locus,
   #
   n = instructions
   active_array = trues(6 * nodes)
-  involved = IntSet()
-  union_set = IntSet()
+  involved = BitSet()
+  union_set = BitSet()
   #
   # Give the instructions for creating the initial arrays.
   #
@@ -799,7 +799,7 @@ function prepare_instructions(pedigree::Pedigree, person::Person, locus::Locus,
     # to be eliminated.
     #
     for iteration = 1:100000
-      involved = IntSet()
+      involved = BitSet()
       for k = 1:arrays
         if active_array[k] && i in index_set[k]
           push!(involved, k)
@@ -915,7 +915,7 @@ n is the current instruction index, and pivot is the node to
 be eliminated in a multiply and add. a_location and b_location give
 the locations of the multiplicand arrays in the evolving sequence of arrays.
 """
-function combine_nodes(a::IntSet, b::IntSet, a_union_b::IntSet,
+function combine_nodes(a::BitSet, b::BitSet, a_union_b::BitSet,
   weight::Vector{Int}, a_location::Int, b_location::Int, nodes::Int, pivot::Int)
   #
   # Initialize current positions in the original index sets and
@@ -1098,7 +1098,7 @@ end # function combine_nodes
 """
 Find the product of the weights of the elements of the integer set S.
 """
-function product_weights(s::IntSet, weight::Vector{Int})
+function product_weights(s::BitSet, weight::Vector{Int})
 
   p = 1
   for element in s

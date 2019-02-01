@@ -1,17 +1,24 @@
 ################################################################################
 # This set of functions provides various general utilities.
 ################################################################################
+#
+# Required external packages.
+#
+# using Distributions
+# using LinearAlgebra
+# using Statistics
 
-export empties, blanks, repeated_string, select_set_element, random_category
-export normalize!, print_sample_stats, sample_mean_std, sample_stats
-export simes_fdr, regress, glm_score_test
+export blanks, empties, repeated_string, select_set_element, random_category
+export standarize!, sample_mean_std, sample_stats, print_sample_stats
+export simes_fdr, fast_regress, fast_score_test
+export glm_regress, glm_score_statistic
 
 """
 Creates an array of blank strings.
 """
 function blanks(n::Int)
-
-  blank = Array{AbstractString}(n)
+#
+  blank = Array{String}(undef, n)
   for i = 1:n
     blank[i] = ""
   end
@@ -19,13 +26,13 @@ function blanks(n::Int)
 end # function blanks
 
 """
-Creates an array of empty integer sets.
+Creates an array of empty ordered sets.
 """
 function empties(n::Int)
-
-  empty = Array{IntSet}(n)
+#
+  empty = Array{BitSet}(undef, n)
   for i = 1:n
-    empty[i] = IntSet()
+    empty[i] = BitSet()
   end
   return empty
 end # function empties
@@ -33,8 +40,8 @@ end # function empties
 """
 Identifies a repeated string in an array of strings.
 """
-function repeated_string(name::Vector{AbstractString})
-
+function repeated_string(name::Array{String, 1})
+#
   sorted = sort(name)
   for i = 2:length(name)
     if sorted[i - 1] == sorted[i]
@@ -47,8 +54,8 @@ end # function repeated_string
 """
 Selects element number k of the integer set S.
 """
-function select_set_element(set_s::IntSet, k::Int)
-
+function select_set_element(set_s::BitSet, k::Int)
+#
   j = 1
   for s in set_s
     if j == k
@@ -64,8 +71,8 @@ end # function select_set_element
 Returns a random category (numbered 1, 2, and so forth)
 according to a vector of category frequencies.
 """
-function random_category(frequency::Vector{Float64})
-
+function random_category(frequency::Vector{T} where T <: Real)
+#
   u = rand(1)
   for i = 1:length(frequency)
     if u[1] <= frequency[i]
@@ -78,80 +85,51 @@ function random_category(frequency::Vector{Float64})
 end # function random_category
 
 """
-Normalizes the vector x to have mean 0.0 and variance 1.0.
+Standardizes the vector x to have mean 0.0 and variance 1.0.
 Missing values are ignored.
 """
-function normalize!(x::Vector{Float64})
-
-  (p, avg, ss) = zeros(3)
-  for i = 1:length(x)
-    if !isnan(x[i])
-      p = p + 1.0
-      d = x[i] - avg
-      avg = avg + d / p
-      ss = ss + (p - 1.0) * d^2 / p
-    end
+function standarize!(x::Vector) 
+#
+  avg = mean(skipmissing(x))
+  stdev = std(skipmissing(x))
+  if stdev > zero(eltype(stdev))
+    x .= (x .- avg) ./ stdev
+  else
+    x .= x .- avg
   end
-  stddev = sqrt(ss / p)
-  for i = 1:length(x)
-    if !isnan(x[i])
-      x[i] = (x[i] - avg) / stddev
-    end
-  end
-  return x
 end # function normalize!
 
 """
-Computes a sample mean and standard deviation.
+Computes the sample mean and standard deviation.
 Missing values are ignored.
 """
-function sample_mean_std(x::Vector{Float64})
-
-  (p,avg,ss) = zeros(3)
-  for i = 1:length(x)
-    if !isnan(x[i])
-      p = p + 1.0
-      d = x[i] - avg
-      avg = avg + d/p
-      ss = ss + (p - 1.0)*(d^2)/p
-    end
-  end
-  if p > 0.0
-    stddev = sqrt(ss/p)
-  else
-    stddev = 0.0
-  end
-  return (avg, stddev)
+function sample_mean_std(x::Vector)
+#
+  return (mean(skipmissing(x)), std(skipmissing(x)))
 end # function sample_mean_std
 
 """
 Computes sample statistics for the data vector x.
-Missing values equal NaN. The output consists of
+Missing values are ignored. The output consists of
 the number of values present, the number of values missing,
 the minimum, the 0.25 quantile, the median, the 0.75 quantile,
 the maximum, the mean, the standard deviation, the skewness,
 and the excess kurtosis.
 """
-function sample_stats(x::Vector{Float64})
-
-  y = copy(x)
-  (p, n) = (0, length(x))
-  for i = 1:n
-    if !isnan(x[i])
-      p = p + 1
-      y[p] = x[i]
-    end
-  end
-  return p, n - p, minimum(y[1:p]), quantile(y[1:p], 0.25), median(y[1:p]),
-    quantile(y[1:p], 0.75), maximum(y[1:p]), mean(y[1:p]), std(y[1:p]),
-    skewness(y[1:p]), kurtosis(y[1:p])
+function sample_stats(x::Vector)
+#
+  y = collect(skipmissing(x))
+  (p, n) = (length(y), length(x))
+  return p, n - p, minimum(y), quantile(y, 0.25), median(y),
+    quantile(y, 0.75), maximum(y), mean(y), std(y),
+    skewness(y), kurtosis(y)
 end # function sample_stats
 
 """
 Prints the sample statistics output by the function sample_stats.
 """
 function print_sample_stats(s, io::IO = STDOUT)
-
+#
   println(io, "Summary Stats:")
   println(io, "Values Present:     ", s[1])
   println(io, "Values Absent:      ", s[2])
@@ -171,17 +149,19 @@ Performs the Simes false discovery rate (FDR) procedure discussed
 by Benjamini and Hochberg. All p-values at or below the threshold
 are declared significant for the given FDR rate and number of tests.
 """
-function simes_fdr(pvalue::Vector{Float64}, fdr::Vector{Float64}, tests::Int)
-
+function simes_fdr(pvalue::Vector{T} where T <: Real,
+                   fdr::Vector{T} where T <: Real, tests::Int)
+#
   n = length(fdr)
-  threshold = zeros(n)
+  threshold = zeros(typeof(pvalue[1]), n)
   number_passing = zeros(Int, n)
   perm = sortperm(pvalue)
   k = 1 # previous value of i
   for j = 1:n
     i = 0
-    for i = k:length(pvalue)
-      if tests * pvalue[perm[i]] > i * fdr[j]; break; end
+    for m = k:length(pvalue)
+      i = m
+      if tests * pvalue[perm[m]] > m * fdr[j]; break; end
     end
     if i == 1; continue; end
     k = i - 1
@@ -196,7 +176,7 @@ Performs either linear, logistic, or Poisson regression with a canonical
 link function. X is the design matrix, and y is the response vector.
 The parameter estimates and loglikelihood are returned.
 """
-function regress(X::Matrix{Float64}, y::Vector{Float64}, model::AbstractString)
+function fast_regress(X::Matrix{Float64}, y::Vector{Float64}, model::AbstractString)
 
   if model != "linear" && model != "logistic" && model != "Poisson"
     throw(ArgumentError(
@@ -260,25 +240,25 @@ function regress(X::Matrix{Float64}, y::Vector{Float64}, model::AbstractString)
     clamp!(z, -20.0, 20.0) 
     if model == "logistic"
       z = exp.(-z)
-      z = 1.0 ./ (1.0 + z)
+      z = 1.0 ./ (1.0 .+ z)
       w = z .* (1.0 .- z)
       BLAS.axpy!(-1.0, y, z) # z = z - y
       score = BLAS.gemv('T', -1.0, X, z) # score = - X' * (z - y)
       w = sqrt.(w)
-      scale!(w, X) # diag(w) * X
+      lmul!(Diagonal(w), X) # X = diag(w) * X
       information = BLAS.gemm('T', 'N', X, X) # information = X' * W * X
       w = 1.0 ./ w
-      scale!(w, X)
+      lmul!(Diagonal(w), X) # X = diag(w) * X
     elseif model == "Poisson"
       z = exp.(z)
       w = copy(z)
       BLAS.axpy!(-1.0, y, z) # z = z - y
       score = BLAS.gemv('T', -1.0, X, z) # score = - X' * (z - y)
       w = sqrt.(w)
-      scale!(w, X) # diag(w) * X
+      lmul!(Diagonal(w), X) # X = diag(w) * X
       information = BLAS.gemm('T', 'N', X, X) # information = X' * W * X
       w = 1.0 ./ w
-      scale!(w, X)
+      lmul!(Diagonal(w), X) # X = diag(w) * X
     end
     #
     # Compute the scoring increment.
@@ -299,7 +279,7 @@ function regress(X::Matrix{Float64}, y::Vector{Float64}, model::AbstractString)
       #
       if model == "logistic"
         z = exp.(-z)
-        z = 1.0 ./ (1.0 + z)
+        z = 1.0 ./ (1.0 .+ z)
         for i = 1:n
           if y[i] > 0.0
             obj = obj + log(z[i])
@@ -333,14 +313,14 @@ function regress(X::Matrix{Float64}, y::Vector{Float64}, model::AbstractString)
     end
   end
   return (estimate, obj)
-end # function regress
+end # function fast_regress
 
 """
 Performs a score test for either linear, logistic, or Poisson regression 
 with a canonical link function. X is the design matrix, y is the 
 response vector, and estimate is the MLE under the null hypothesis.
 """
-function glm_score_test(X::Matrix{Float64}, y::Vector{Float64}, 
+function fast_score_test(X::Matrix{Float64}, y::Vector{Float64}, 
   estimate::Vector{Float64}, model::AbstractString)
 
   if model != "linear" && model != "logistic" && model != "Poisson"
@@ -368,15 +348,15 @@ function glm_score_test(X::Matrix{Float64}, y::Vector{Float64},
   elseif model == "logistic"
     clamp!(z, -20.0, 20.0)
     z = exp.(-z)
-    z = 1.0 ./ (1.0 + z)
+    z = 1.0 ./ (1.0 .+ z)
     w = z .* (1.0 .- z)
     BLAS.axpy!(-1.0, y, z) # z = z - y
     score = BLAS.gemv('T', -1.0, X, z) # score = - X' * (z - y)
     w = sqrt.(w)
-    scale!(w, X) # diag(w) * X
+    lmul!(Diagonal(w), X) # X = diag(w) * X
     information = BLAS.gemm('T', 'N', X, X) # information = X' * W * X 
     w = 1.0 ./ w
-    scale!(w, X)
+    lmul!(Diagonal(w), X) # X = diag(w) * X
   elseif model == "Poisson"
     clamp!(z, -20.0, 20.0) 
     z = exp.(z)
@@ -384,10 +364,10 @@ function glm_score_test(X::Matrix{Float64}, y::Vector{Float64},
     BLAS.axpy!(-1.0, y, z) # z = z - y
     score = BLAS.gemv('T', -1.0, X, z) # score = - X' * (z - y)
     w = sqrt.(w)
-    scale!(w, X) # diag(w) * X
+    lmul!(Diagonal(w), X) # X = diag(w) * X
     information = BLAS.gemm('T', 'N', X, X) # information = X' * W * X
     w = 1.0 ./ w
-    scale!(w, X)
+    lmul!(Diagonal(w), X) # X = diag(w) * X
   end
   #
   # Compute the score statistic from the score and information.
@@ -395,9 +375,110 @@ function glm_score_test(X::Matrix{Float64}, y::Vector{Float64},
   z = information \ score
   score_test = dot(score, z)
   return score_test
-end # function glm_score_test
+end # function fast_score_test
 
-# using GeneralUtilities
+"""
+Performs generalized linear regression.
+X is the design matrix, y is the response vector,
+meanf is the value and derivative of the inverse link,
+and varf is the variance function of the mean.
+"""
+function glm_regress(X::Matrix, y::Vector, meanf::Function, varf::Function,
+  loglikelihood::Function)
+#
+  (n, p) = size(X)
+  @assert n == length(y)
+  (score, inform, beta) = (zeros(p), zeros(p, p), zeros(p))
+  (x, z) = (zeros(p), zeros(n))
+  ybar = mean(y)
+  for iteration = 1:20 # find the intercept by Newton's method
+    g = meanf(beta[1])
+    beta[1] = beta[1] - clamp((g[1] - ybar) / g[2], -1.0, 1.0)
+    if abs(g[1] - ybar) < 1e-10
+      break
+    end
+  end
+  (obj, old_obj, c, v) = (0.0, 0.0, 0.0, 0.0)
+  epsilon = 1e-8
+  for iteration = 1:100 # scoring algorithm
+    fill!(score, 0.0)
+    fill!(inform, 0.0)
+    mul!(z, X, beta) # z = X * beta
+    for i = 1:n
+      f = meanf(z[i])
+      v = varf(f[1])
+      c = ((y[i] - f[1]) / v) * f[2]
+      copyto!(x, X[i, :])
+      BLAS.axpy!(c, x, score) # score = score + c * x
+      c = f[2]^2 / v
+      BLAS.ger!(c, x, x, inform) # inform = inform + c * x * x'
+    end
+    increment = inform \ score
+    beta = beta + increment
+    steps = -1
+    fill!(score, 0.0)
+    for step_halve = 0:3 # step halving
+      obj = 0.0
+      mul!(z, X, beta) # z = X * beta
+      steps = steps + 1
+      for i = 1:n
+        f = meanf(z[i])
+        v = varf(f[1])
+        c = ((y[i] - f[1]) / v) * f[2]
+        copyto!(x, X[i, :])
+        BLAS.axpy!(c, x, score) # score = score + c * x
+        obj = obj + loglikelihood(y[i], f[1]) 
+      end
+      if obj > old_obj
+        break
+      else
+        beta = beta - increment
+        increment = 0.5 * increment
+      end
+    end
+    println(iteration," ",old_obj," ",obj," ",steps)
+    if iteration > 1 && abs(obj - old_obj) < epsilon * (abs(old_obj) + 1.0)
+      return (beta, obj)
+    else
+      old_obj = obj
+    end
+  end
+  return (beta, obj)
+end # function glm_regress
+
+"""
+Computes the score statistic for a generalized linear regression. 
+X is the design matrix, y is the response vector,
+beta is the vector of regression coefficients,
+meanf is the value and derivative of the inverse link,
+and varf is the variance function of the mean.
+"""
+function glm_score_statistic(X::Matrix, y::Vector, beta::Vector, 
+  meanf::Function, varf::Function)
+#
+  (n, p) = size(X)
+  @assert n == length(y)
+  @assert p == length(beta)
+  (score, inform) = (zeros(p), zeros(p, p))
+  (x, z) = (zeros(p), zeros(n))
+  mul!(z, X, beta) # z = X * beta
+  for i = 1:n
+    f = meanf(z[i])
+    v = varf(f[1])
+    c = ((y[i] - f[1]) / v) * f[2]
+    copyto!(x, X[i, :])
+    BLAS.axpy!(c, x, score) # score = score + c * x
+    c = f[2]^2 / v
+    BLAS.ger!(c, x, x, inform) # inform = inform + c * x * x'
+  end
+  x = inform \ score
+  score_statistic = dot(score, x)
+  return score_statistic
+end # function glm_score_statistic
+
+
+# Testing Routines
+#
 # n = 10
 # a = blanks(n)
 # println(a,"  ",typeof(a))
@@ -405,7 +486,7 @@ end # function glm_score_test
 # println(b,"  ",typeof(b))
 # c = repeated_string(["av", "bc", "qrb", "bc"])
 # println(c)
-# integerset = IntSet([7, 5, 4, 10])
+# integerset = BitSet([7, 5, 4, 10])
 # d = select_set_element(integerset, 3)
 # println(integerset,"  ",d)
 # frequency = rand(n)
@@ -417,9 +498,10 @@ end # function glm_score_test
 #   end
 # end
 # n = 100
-# x = randn(n)
-# x[1] = NaN
-# normalize!(x)
+# x = Vector{Union{Missing, Float64}}(undef, n);
+# x[1:n - 1] = randn(n - 1)
+# println(typeof(x), size(x))
+# standarize!(x)
 # println(sample_mean_std(x))
 # s = sample_stats(x)
 # print_sample_stats(s)
@@ -427,30 +509,60 @@ end # function glm_score_test
 # fdr = collect(0.1:0.1:0.5)
 # tests = 1000
 # (number_passing, threshold) = simes_fdr(pvalue, fdr, tests)
+# function GaussMean(u)
+#   return [u, one(eltype(u))]
+# end
+# function GaussVar(mu)
+#   return one(eltype(mu))
+# end
+# function GaussLoglikelihood(y, mu)
+#   - (y - mu)^2 
+# end
 # X = [68., 49, 60, 68, 97, 82, 59, 50, 73, 39, 71, 95, 61, 72, 87, 
-#   40, 66, 58, 58, 77]
+#   40, 66, 58, 58, 77];
 # y = [75., 63, 57, 88, 88, 79, 82, 73, 90, 62, 70, 96, 76, 75, 85,
-#   40, 74, 70, 75, 72]
-# X = [ones(size(X,1)) X]
-# (estimate, loglikelihood) = regress(X, y, "linear") # Jennrich section 1.4
-# println(estimate)
+#   40, 74, 70, 75, 72];
+# X = [ones(size(X, 1)) X];
+# # Jennrich section 1.4 least squares problem
+# (beta, obj) = glm(X, y, GaussMean, GaussVar, GaussLoglikelihood) 
+# println(beta," ",obj)
 # println(" ")
+# function LogisticMean(u)
+#   p = exp(u) 
+#   p = p / (1 + p)
+#   return [p, p * (1 - p)]
+# end
+# function LogisticVar(mu)
+#   return mu * (1 - mu)
+# end
+# function LogisticLoglikelihood(y, mu)
+#   y * log(mu) + (1 - y) * log(1 - mu) 
+# end
 # X = [0.50, 0.75, 1.00, 1.25, 1.50, 1.75, 1.75, 2.00, 2.25, 2.50, 2.75,
-#   3.00, 3.25, 3.50, 4.00, 4.25, 4.50, 4.75, 5.00, 5.50]
-# y = [0., 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1]
-# X = [ones(size(X,1)) X]
-# (estimate, loglikelihood) = regress(X, y, "logistic") # Wikipedia problem
-# println(estimate)
+#   3.00, 3.25, 3.50, 4.00, 4.25, 4.50, 4.75, 5.00, 5.50];
+# y = [0., 0, 0, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1];
+# X = [ones(size(X,1)) X];
+# # Wikipedia logistic regression problem
+# (beta, obj) = glm(X, y, LogisticMean, LogisticVar, LogisticLoglikelihood)
+# println(beta," ",obj)
+# function PoissonMean(u)
+#   p = exp(u)
+#   return [p, p]
+# end
+# function PoissonVar(mu)
+#   return mu
+# end
+# function PoissonLoglikelihood(y, mu)
+#   y * log(mu) - mu 
+# end
 # println(" ")
-# X = [1.0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14]
-# X = reshape(X, 14, 1)
-# y = [0., 1 ,2 ,3, 1, 4, 9, 18, 23, 31, 20, 25, 37, 45]
-# (estimate, loglikelihood) = regress(X, y, "Poisson") # Aids problem
-# estimate = [0.0; estimate]
-# println(estimate)
-# X = [ones(size(X,1)) X]
-# test = glm_score_test(X, y, estimate, "Poisson")
-# println("score test = ",test)
-# (estimate, loglikelihood) = regress(X, y, "Poisson") # Aids problem
-# println(" ")
-# println(estimate," ",loglikelihood) 
+# X = [1.0, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14];
+# X = reshape(X, 14, 1);
+# y = [0., 1 ,2 ,3, 1, 4, 9, 18, 23, 31, 20, 25, 37, 45];
+# # AIDs Poisson regression problem
+# (beta, obj) = glm(X, y, PoissonMean, PoissonVar, PoissonLoglikelihood) 
+# println(beta," ",obj)
+# beta = [zero(1); beta];
+# X = [ones(size(X,1)) X];
+# score_statistic = glm_score_statistic(X, y, beta, PoissonMean, PoissonVar)
+# println("score_statistic = ",score_statistic)
