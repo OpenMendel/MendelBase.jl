@@ -6,13 +6,13 @@
 
 Within Julia, use the package manager to install MendelBase:
 
-    (v1.1) pkg> add https://github.com/OpenMendel/MendelBase.jl.git
+    pkg> add https://github.com/OpenMendel/MendelBase.jl.git
 
 This package supports Julia v1.0+
 
 ### Input Files
 To make your genetic data available to OpenMendel, the various input files must be in a format
-that OpenMendel can read. Listed here are all of OpenMendel's input file types. However, not every analysis option will use every type. (Example input files can be found in the docs subfolder of each of the analysis packages.)
+that OpenMendel can read. Listed here are all of OpenMendel's input file types. However, not every analysis option will use every type. (Example input files can be found in the data subfolder of each of the analysis packages.)
 
 * [Control File](#control-file): Specifies the names of your data input and output files and any optional parameters (*keywords*) for the analysis. (For a list of common keywords, see [Keywords Table](#keywords-table) below).
 * [Pedigree File](#pedigree-file): Gives information about your individuals, such as name, parents' names, and sex. This may be a PLINK FAM format file.
