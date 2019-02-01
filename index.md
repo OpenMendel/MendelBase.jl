@@ -2,13 +2,13 @@
 [MendelBase](https://github.com/OpenMendel/MendelBase.jl) is a utility package that contains the base functions of [OpenMendel](https://openmendel.github.io). It provides the information needed to process keywords and read data from external files. MendelBase is necessary to run any OpenMendel analysis package, and you should first install MendelBase, before you install the analysis packages.
 
 ### Installation
-*Note: The three OpenMendel packages (1) [SnpArrays](https://openmendel.github.io/SnpArrays.jl/latest/), (2) [Search](https://openmendel.github.io/Search.jl), and (3) [MendelBase](https://openmendel.github.io/MendelBase.jl) must be installed before any other OpenMendel package will run. It is easiest if these three packages are installed in the above order and before any other OpenMendel package.*
+*Note: The three OpenMendel packages (1) [SnpArrays](https://openmendel.github.io/SnpArrays.jl/latest/), (2) [MendelSearch](https://openmendel.github.io/MendelSearch.jl), and (3) [MendelBase](https://openmendel.github.io/MendelBase.jl) must be installed before any other OpenMendel package will run. It is easiest if these three packages are installed in the above order and before any other OpenMendel package.*
 
 Within Julia, use the package manager to install MendelBase:
 
-    Pkg.clone("https://github.com/OpenMendel/MendelBase.jl.git")
+    (v1.1) pkg> add https://github.com/OpenMendel/MendelBase.jl.git
 
-This package supports Julia v0.4 and v0.5.
+This package supports Julia v1.0+
 
 ### Input Files
 To make your genetic data available to OpenMendel, the various input files must be in a format
