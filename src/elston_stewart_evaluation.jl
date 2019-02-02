@@ -5,12 +5,8 @@
 #
 # Required OpenMendel packages and modules.
 #
-# using Search
-# using SearchSetup
-# using DataStructures
-# using ReadData
-# using ElstonStewartPreparation
-# using ModelConstruction
+# using DataStructures, ElstonStewartPreparation, ModelConstruction, ReadData
+# using MendelSearch
 
 export elston_stewart_loglikelihood
 

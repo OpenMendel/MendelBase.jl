@@ -11,9 +11,8 @@
 #
 # Required OpenMendel packages and modules.
 #
-# using Search
-# using SearchSetup
 # using DataStructures
+# using MendelSearch
 
 const DOUBLE_QUOTE_CHAR = Char(34) # to avoid coloring bugs in editors
 const MENDEL_COMMENTS = r"[#!]" # of type Regex; indicates either a ! or #

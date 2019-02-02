@@ -21,7 +21,6 @@ using StatsBase
 # Required OpenMendel packages and modules.
 #
 using MendelSearch
-using SearchSetup   # From package MendelSearch.
 using SnpArrays
 #
 # Define the data structures used by OpenMendel.
