@@ -1554,6 +1554,23 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
           end
           if mother_found && father_found; break; end
         end
+        pednum_string = string(ped)
+        pednam_string = pedigree.name[ped]
+        pernam_string = person_name[i]
+        if !mother_found
+          mother_name = mother_string[i]
+          throw(ArgumentError(
+            "In pedigree number $pednum_string with name $pednam_string,\n" *
+            "person named $pernam_string has mother named $mother_name,\n" *
+            "who does not appear to be a member of the pedigree.\n \n"))
+        end
+        if !father_found
+          father_name = father_string[i]
+          throw(ArgumentError(
+            "In pedigree number $pednum_string,\n" *
+            "person named $pernam_string has father named $father_name,\n" *
+            "who does not appear to be a member of the pedigree.\n \n"))
+        end
       end
     end
   end
