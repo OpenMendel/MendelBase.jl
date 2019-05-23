@@ -178,9 +178,9 @@ The parameter estimates and loglikelihood are returned.
 """
 function fast_regress(X::Matrix{Float64}, y::Vector{Float64}, model::AbstractString)
 
-  if model != "linear" && model != "logistic" && model != "Poisson"
+  if model != "linear" && model != "logistic" && model != "poisson"
     throw(ArgumentError(
-      "The only model choices are linear, logistic, and Poisson.\n \n"))
+      "The only model choices are linear, logistic, and poisson.\n \n"))
   end
   #
   # Create the score vector, information matrix, estimate, a work
@@ -211,11 +211,11 @@ function fast_regress(X::Matrix{Float64}, y::Vector{Float64}, model::AbstractStr
   #
   if model == "logistic"
     estimate[1] = log(mean(y) / (1.0 - mean(y)))
-  elseif model == "Poisson"
+  elseif model == "poisson"
     estimate[1] = log(mean(y))
   else
     throw(ArgumentError(
-      "The only model choices are linear, logistic, and Poisson.\n \n"))
+      "The only model choices are linear, logistic, and poisson.\n \n"))
   end
   #
   # Initialize the loglikelihood and the convergence criterion.
@@ -249,7 +249,7 @@ function fast_regress(X::Matrix{Float64}, y::Vector{Float64}, model::AbstractStr
       information = BLAS.gemm('T', 'N', X, X) # information = X' * W * X
       w = 1.0 ./ w
       lmul!(Diagonal(w), X) # X = diag(w) * X
-    elseif model == "Poisson"
+    elseif model == "poisson"
       z = exp.(z)
       w = copy(z)
       BLAS.axpy!(-1.0, y, z) # z = z - y
@@ -287,7 +287,7 @@ function fast_regress(X::Matrix{Float64}, y::Vector{Float64}, model::AbstractStr
             obj = obj + log(1.0 - z[i])
           end
         end
-      elseif model == "Poisson"
+      elseif model == "poisson"
         for i = 1:n
           q = exp(z[i])
           obj = obj + y[i] * z[i] - q
@@ -323,9 +323,9 @@ response vector, and estimate is the MLE under the null hypothesis.
 function fast_score_test(X::Matrix{Float64}, y::Vector{Float64}, 
   estimate::Vector{Float64}, model::AbstractString)
 
-  if model != "linear" && model != "logistic" && model != "Poisson"
+  if model != "linear" && model != "logistic" && model != "poisson"
     throw(ArgumentError(
-      "The only model choices are linear, logistic, and Poisson.\n \n"))
+      "The only model choices are linear, logistic, and poisson.\n \n"))
   end
   #
   # Initialize the score vector and information matrix.
@@ -357,7 +357,7 @@ function fast_score_test(X::Matrix{Float64}, y::Vector{Float64},
     information = BLAS.gemm('T', 'N', X, X) # information = X' * W * X 
     w = 1.0 ./ w
     lmul!(Diagonal(w), X) # X = diag(w) * X
-  elseif model == "Poisson"
+  elseif model == "poisson"
     clamp!(z, -20.0, 20.0) 
     z = exp.(z)
     w = copy(z)
