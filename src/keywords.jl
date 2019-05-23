@@ -33,8 +33,8 @@ function process_keywords!(keyword::Dict{AbstractString, Any},
     println("genetic data.")
     println(" \nThe data input files can be listed either on the command")
     println("line or in a named control file.")
-    println(" \nFor more information, please see the documentation at")
-    println("http://www.genetics.ucla.edu/software/Mendel_current_doc.pdf")
+##    println(" \nFor more information, please see the documentation at")
+##    println("http://www.genetics.ucla.edu/software/Mendel_current_doc.pdf")
     println(" \n")
     throw(ArgumentError(
       "No genetic data was specified, so no analysis was performed."))
@@ -112,7 +112,6 @@ function set_keyword_defaults!(keyword::Dict{AbstractString, Any})
   keyword["plink_output_basename"] = ""
   keyword["populations"] = Set{AbstractString}()
   keyword["product_mode"] = true
-  keyword["seed"] = 1234
   keyword["snpdata_file"] = ""
   keyword["snpdefinition_file"] = ""
   keyword["trait"] = ""
@@ -122,6 +121,12 @@ function set_keyword_defaults!(keyword::Dict{AbstractString, Any})
 ##  keyword["gradient_provided"] = false
 ##  keyword["reference_haplotypes"] = 0
 ##  keyword["window_width"] = 200 # width of imputation window
+  #
+  # Set the default seed for the random number generator
+  # based on the current time, that is, to a random number.
+  #
+  keyword["seed"] = Int(floor(mod(time()*10000, 100000)))
+# keyword["seed"] = 1234
   #
   # Add default optimization keywords from package Search.
   #
@@ -193,7 +198,7 @@ function revise_keywords!(keyword::Dict{AbstractString, Any},
     end
   end
   #
-  # Turn the field separators into a character.
+  # Turn each field separator into a character.
   #
   if "field_separator" in set_of_modified_keywords
     keyword["field_separator"] = keyword["field_separator"][1]
@@ -209,7 +214,7 @@ function revise_keywords!(keyword::Dict{AbstractString, Any},
   end
   #
   # If a Plink input files basename has been provided,
-  # set the field separator to a blank and set the appropriate filenames.
+  # set the appropriate filenames.
   #
   if "plink_input_basename" in set_of_modified_keywords
     plink_basename = keyword["plink_input_basename"]
