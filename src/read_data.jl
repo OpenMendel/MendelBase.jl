@@ -37,7 +37,7 @@ function read_external_data_files(keyword::Dict{AbstractString, Any})
   # (note that empty means not even a space between the delimiters).
   # When the delimiter is ' ', we treat multiple spaces as a single delimiter.
   #
-  null_strings = convert(Array{AbstractString, 1},
+  null_strings = convert(Array{String, 1},
                          union([], keyword["missing_value"]))
   allow_padding = (field_sep == ' ')
   #
@@ -171,7 +171,7 @@ function read_plink_fam_file(plink_fam_file::AbstractString,
   # Note that some missing values are fixed by the Plink syntax
   # and these are accounted for in the code below.
   #
-  plink_null_strings = convert(Array{AbstractString, 1},
+  plink_null_strings = convert(Array{String, 1},
                                union([], keyword["plink_missing_value"]))
   allow_padding = (plink_field_sep == ' ')
   #
@@ -248,7 +248,7 @@ function read_plink_bim_file(plink_bim_file::AbstractString,
   # (note that empty means not even a space between the delimiters).
   # When the delimiter is ' ', we treat multiple spaces as a single delimiter.
   #
-  plink_null_strings = convert(Array{AbstractString, 1},
+  plink_null_strings = convert(Array{String, 1},
                                union([], keyword["plink_missing_value"]))
   allow_padding = (plink_field_sep == ' ')
   #
