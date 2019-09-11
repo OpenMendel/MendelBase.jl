@@ -29,15 +29,16 @@ function read_external_data_files(keyword::Dict{AbstractString, Any})
   #
   field_sep = keyword["field_separator"]
   #
-  # Set the missing-value string used in the data files.
-  # The default is "NA" but can be changed to another string.
-  # If using a delimiter other than ' ', then an empty field
-  # is also labeled missing, e.g., field1,,field3
+  # Next, set the missing-value strings used in the data files.
+  # The primary default is "NA" but this can be changed to
+  # another string or set of strings using the keyword "missing_value".
+  # In addition, when using a delimiter other than ' ',
+  # an empty field is also labeled missing, e.g., field1,,field3
   # (note that empty means not even a space between the delimiters).
-  # When the delimiter is ' ', then allow multiple spaces
-  # to be treated as a single delimiter.
+  # When the delimiter is ' ', we treat multiple spaces as a single delimiter.
   #
-  null_string = keyword["missing_value"]
+  null_strings = convert(Array{AbstractString, 1},
+                         union([], keyword["missing_value"]))
   allow_padding = (field_sep == ' ')
   #
   # Read the data from the appropriate files. Put the data into dataframes.
@@ -53,7 +54,7 @@ function read_external_data_files(keyword::Dict{AbstractString, Any})
   else
     locus_frame = CSV.File(locus_file; header = 1,
       delim = field_sep, ignorerepeated = allow_padding,
-      missingstring = null_string) |> DataFrame
+      missingstrings = null_strings) |> DataFrame
   end
   #
   # Read the phenotype data into a frame.
@@ -64,7 +65,7 @@ function read_external_data_files(keyword::Dict{AbstractString, Any})
   else
     phenotype_frame = CSV.File(phenotype_file; header = 1,
       delim = field_sep, ignorerepeated = allow_padding,
-      missingstring = null_string) |> DataFrame
+      missingstrings = null_strings) |> DataFrame
   end
   #
   # Read the data in the mandatory pedigree file into a frame.
@@ -73,28 +74,28 @@ function read_external_data_files(keyword::Dict{AbstractString, Any})
   #
   pedigree_file = string(keyword["pedigree_file"])
   if occursin(".fam", pedigree_file)
-    pedigree_frame = read_plink_fam_file(pedigree_file, keyword)
+    person_frame = read_plink_fam_file(pedigree_file, keyword)
   else
-    pedigree_frame = CSV.File(pedigree_file; header = 1,
+    person_frame = CSV.File(pedigree_file; header = 1,
       delim = field_sep, ignorerepeated = allow_padding,
-      missingstring = null_string) |> DataFrame
+      missingstrings = null_strings) |> DataFrame
   end
   #
   # Add a column recording the order of entry of each person.
   #
-  pedigree_frame.EntryOrder =
-    collect(Union{Int64, Missings.Missing}, 1:size(pedigree_frame, 1))
+  person_frame.EntryOrder =
+    collect(Union{Int64, Missings.Missing}, 1:size(person_frame, 1))
   #
   # Check that ancestral populations are present in both the
   # pedigree and locus frames.
   #
-  check_populations(locus_frame, pedigree_frame, keyword)
+  check_populations(locus_frame, person_frame, keyword)
   #
   # Assemble the locus, pedigree, and person data structures.
   #
-  locus = locus_information(locus_frame, pedigree_frame, keyword)
-  pedigree = pedigree_information(pedigree_frame)
-  person = person_information(locus_frame, pedigree_frame, phenotype_frame,
+  locus = locus_information(locus_frame, person_frame, keyword)
+  pedigree = pedigree_information(person_frame)
+  person = person_information(locus_frame, person_frame, phenotype_frame,
     locus, pedigree, keyword)
   #
   # Complete the pedigree data structure, and assemble the nuclear data 
@@ -128,7 +129,7 @@ function read_external_data_files(keyword::Dict{AbstractString, Any})
     else
       snp_definition_frame = CSV.File(snpdefinition_file; header = 1,
       delim = field_sep, ignorerepeated = allow_padding,
-      missingstring = null_string) |> DataFrame
+      missingstrings = null_strings) |> DataFrame
     end
     #
     # Read the SNP bed file.
@@ -145,7 +146,7 @@ function read_external_data_files(keyword::Dict{AbstractString, Any})
     snpdata.missings_per_person = missingrate(snpmatrix, 2)
   end
   return (pedigree, person, nuclear_family, locus, snpdata,
-    locus_frame, phenotype_frame, pedigree_frame, snp_definition_frame)
+    locus_frame, phenotype_frame, person_frame, snp_definition_frame)
 end # function read_external_data_files
 
 """
@@ -160,27 +161,28 @@ function read_plink_fam_file(plink_fam_file::AbstractString,
   #
   plink_field_sep = keyword["plink_field_separator"]
   #
-  # Set the missing-value string used in the plink data files.
-  # The default is "NA" but can be changed to another string.
-  # Note that some missing values are fixed by the Plink syntax
-  # and these are accounted for in this code.
-  # If using a delimiter other than ' ', then an empty field
-  # is also labeled missing, e.g., field1,,field3
+  # Next, set the missing-value strings used in the data files.
+  # The primary default is "NA" but this can be changed to
+  # another string or set of strings using the keyword "plink_missing_value".
+  # In addition, when using a delimiter other than ' ',
+  # an empty field is also labeled missing, e.g., field1,,field3
   # (note that empty means not even a space between the delimiters).
-  # When the delimiter is ' ', then allow multiple spaces
-  # to be treated as a single delimiter.
+  # When the delimiter is ' ', we treat multiple spaces as a single delimiter.
+  # Note that some missing values are fixed by the Plink syntax
+  # and these are accounted for in the code below.
   #
-  plink_null_string = keyword["plink_missing_value"]
+  plink_null_strings = convert(Array{AbstractString, 1},
+                               union([], keyword["plink_missing_value"]))
   allow_padding = (plink_field_sep == ' ')
   #
   # By default, all columns are typed as allowing missing values.
   #
   column_types = [String, String, String, String, String, Float64]
   column_names = [:Pedigree, :Person, :Father, :Mother, :Sex, :Trait]
-  fam_dframe = CSV.File(plink_fam_file; allowmissing = :all,
+  fam_dframe = CSV.File(plink_fam_file;
     delim = plink_field_sep, ignorerepeated = allow_padding,
     types = column_types, header = column_names,
-    missingstring = plink_null_string) |> DataFrame
+    missingstrings = plink_null_strings) |> DataFrame
   allowmissing!(fam_dframe)
 ###
 ### Read the fam data into a matrix of strings.
@@ -192,21 +194,21 @@ function read_plink_fam_file(plink_fam_file::AbstractString,
 ### Move the data from the fam matrix to a new fam dataframe.
 ###
 ##fam_dframe = DataFrame()
-##fam_dframe[:Pedigree] = fam_matrix[:, 1]
-##fam_dframe[:Person] = fam_matrix[:, 2]
-##fam_dframe[:Father] = fam_matrix[:, 3]
-##fam_dframe[:Mother] = fam_matrix[:, 4]
-##fam_dframe[:Sex] = fam_matrix[:, 5]
-##fam_dframe[:Trait] = map(x -> parse(Float64, x), fam_matrix[:, 6])
+##fam_dframe[!, :Pedigree] = fam_matrix[:, 1]
+##fam_dframe[!, :Person] = fam_matrix[:, 2]
+##fam_dframe[!, :Father] = fam_matrix[:, 3]
+##fam_dframe[!, :Mother] = fam_matrix[:, 4]
+##fam_dframe[!, :Sex] = fam_matrix[:, 5]
+##fam_dframe[!, :Trait] = map(x -> parse(Float64, x), fam_matrix[:, 6])
 ###
 ### Allow for missing data in some columns.
 ###
 ##allowmissing!(fam_dframe, (:Father, :Mother, :Trait))
-###  fam_dframe[:Father] =
+###  fam_dframe[!, :Father] =
 ###    convert(Array{Union{String, Missings.Missing}, 1}, fam_dframe[:Father])
-###  fam_dframe[:Mother] =
+###  fam_dframe[!, :Mother] =
 ###    convert(Array{Union{String, Missings.Missing}, 1}, fam_dframe[:Mother])
-###  fam_dframe[:Trait] =
+###  fam_dframe[!, :Trait] =
 ###    convert(Array{Union{Float64, Missings.Missing}, 1}, fam_dframe[:Trait])
   #
   # Use the Julia-internal value "missing" for the data labeled with
@@ -238,17 +240,16 @@ function read_plink_bim_file(plink_bim_file::AbstractString,
   #
   plink_field_sep = keyword["plink_field_separator"]
   #
-  # Set the missing-value string used in the plink data files.
-  # The default is "NA" but can be changed to another string.
-  # Note that some missing values are fixed by the Plink syntax
-  # and these are accounted for in this code.
-  # If using a delimiter other than ' ', then an empty field
-  # is also labeled missing, e.g., field1,,field3
+  # Next, set the missing-value strings used in the data files.
+  # The primary default is "NA" but this can be changed to
+  # another string or set of strings using the keyword "plink_missing_value".
+  # In addition, when using a delimiter other than ' ',
+  # an empty field is also labeled missing, e.g., field1,,field3
   # (note that empty means not even a space between the delimiters).
-  # When the delimiter is ' ', then allow multiple spaces
-  # to be treated as a single delimiter.
+  # When the delimiter is ' ', we treat multiple spaces as a single delimiter.
   #
-  plink_null_string = keyword["plink_missing_value"]
+  plink_null_strings = convert(Array{AbstractString, 1},
+                               union([], keyword["plink_missing_value"]))
   allow_padding = (plink_field_sep == ' ')
   #
   # By default, all columns are typed as allowing missing values.
@@ -256,10 +257,10 @@ function read_plink_bim_file(plink_bim_file::AbstractString,
   column_types = [String, String, Float64, Int64, String, String]
   column_names = [:Chromosome, :SNP, :CentiMorgans, :Basepairs, 
                   :Allele1, :Allele2]
-  bim_dframe = CSV.File(plink_bim_file; allowmissing = :all,
+  bim_dframe = CSV.File(plink_bim_file;
     delim = plink_field_sep, ignorerepeated = allow_padding,
     types = column_types, header = column_names,
-    missingstring = plink_null_string) |> DataFrame
+    missingstrings = plink_null_strings) |> DataFrame
   allowmissing!(bim_dframe)
 ###
 ### Read the bim data into a matrix.
@@ -271,26 +272,26 @@ function read_plink_bim_file(plink_bim_file::AbstractString,
 ### Move the data from the bim matrix to a new bim dataframe.
 ###
 ##bim_dframe = DataFrame()
-##bim_dframe[:Chromosome] = bim_matrix[:, 1]
-##bim_dframe[:SNP] = bim_matrix[:, 2]
-##bim_dframe[:CentiMorgans] = map(x -> parse(Float64, x), bim_matrix[:, 3])
-##bim_dframe[:Basepairs] = map(x -> parse(Int64, x), bim_matrix[:, 4])
-##bim_dframe[:Allele1] = bim_matrix[:, 5]
-##bim_dframe[:Allele2] = bim_matrix[:, 6]
+##bim_dframe[!, :Chromosome] = bim_matrix[:, 1]
+##bim_dframe[!, :SNP] = bim_matrix[:, 2]
+##bim_dframe[!, :CentiMorgans] = map(x -> parse(Float64, x), bim_matrix[:, 3])
+##bim_dframe[!, :Basepairs] = map(x -> parse(Int64, x), bim_matrix[:, 4])
+##bim_dframe[!, :Allele1] = bim_matrix[:, 5]
+##bim_dframe[!, :Allele2] = bim_matrix[:, 6]
 ###
 ### Allow for missing data in some columns.
 ###
 ##allowmissing!(bim_dframe,
 ### (:Chromosome, :CentiMorgans, :Basepairs, :Allele1, :Allele2))
-###  bim_dframe[:Chromosome] =
+###  bim_dframe[!, :Chromosome] =
 ###  convert(Array{Union{String, Missings.Missing}, 1}, bim_dframe[:Chromosome])
-###  bim_dframe[:CentiMorgans] =
+###  bim_dframe[!, :CentiMorgans] =
 ###convert(Array{Union{Float64, Missings.Missing}, 1},bim_dframe[:CentiMorgans])
-###  bim_dframe[:Basepairs] =
+###  bim_dframe[!, :Basepairs] =
 ###   convert(Array{Union{Int64, Missings.Missing}, 1}, bim_dframe[:Basepairs])
-###  bim_dframe[:Allele1] =
+###  bim_dframe[!, :Allele1] =
 ###    convert(Array{Union{String, Missings.Missing}, 1}, bim_dframe[:Allele1])
-###  bim_dframe[:Allele2] =
+###  bim_dframe[!, :Allele2] =
 ###    convert(Array{Union{String, Missings.Missing}, 1}, bim_dframe[:Allele2])
   return bim_dframe
 end # function read_plink_bim_file
@@ -592,7 +593,7 @@ end # function snp_information
 Extracts locus information from the locus frame.
 First extract relevant dimensions and fields.
 """
-function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
+function locus_information(locus_frame::DataFrame, person_frame::DataFrame,
                            keyword::Dict{AbstractString, Any})
   #
   # If the locus_frame is empty, create a null locus structure.
@@ -601,9 +602,9 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
     a = Array{Array{AbstractString, 1}}(undef, 1); a[1] = blanks(1)
     b = Array{Array{Float64, 2}}(undef, 1); b[1] = zeros(1, 1)
     c = zeros(1, 1, 1)
-    locus = Locus(0, 0, 0, true, blanks(0), blanks(0), zeros(Int, 0),
-                  zeros(2, 0), zeros(2, 0), trues(0), zeros(Int, 0),
-                  a, b, c, zeros(Int, 0), zeros(Int, 0))
+    locus = Locus(0, 0, 0, true, 0, 0, 0, zeros(2), blanks(0), blanks(0),
+                  zeros(Int, 0), zeros(2, 0), zeros(2, 0), trues(0),
+                  zeros(Int, 0), a, b, c, zeros(Int, 0), zeros(Int, 0))
     return locus
   end
   #
@@ -724,53 +725,53 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
       "The locus file must have a Chromosome field.\n \n"))
   end
   if :Basepairs in locus_field
-    if typeof(locus_frame[:Basepairs]) !=
+    if typeof(locus_frame[:, :Basepairs]) !=
          Array{Union{Int64, Missings.Missing}, 1} &&
-       typeof(locus_frame[:Basepairs]) != Array{Int64, 1}
+       typeof(locus_frame[:, :Basepairs]) != Array{Int64, 1}
       throw(ArgumentError(
       "The Basepairs column should only have integers or missing values.\n \n"))
     end
   end
   if :Morgans in locus_field
-    if typeof(locus_frame[:Morgans]) !=
+    if typeof(locus_frame[:, :Morgans]) !=
          Array{Union{Float64, Missings.Missing}, 1} &&
-       typeof(locus_frame[:Morgans]) != Array{Float64, 1} &&
-       typeof(locus_frame[:Morgans]) !=
+       typeof(locus_frame[:, :Morgans]) != Array{Float64, 1} &&
+       typeof(locus_frame[:, :Morgans]) !=
          Array{Union{Int64, Missings.Missing}, 1} &&
-       typeof(locus_frame[:Morgans]) != Array{Int64, 1}
+       typeof(locus_frame[:, :Morgans]) != Array{Int64, 1}
       throw(ArgumentError(
         "All Morgans columns should only have numbers or missing values.\n \n"))
     end
   end
   if :FemaleMorgans in locus_field
-    if typeof(locus_frame[:FemaleMorgans]) !=
+    if typeof(locus_frame[:, :FemaleMorgans]) !=
          Array{Union{Float64, Missings.Missing}, 1} &&
-       typeof(locus_frame[:FemaleMorgans]) != Array{Float64, 1} &&
-       typeof(locus_frame[:FemaleMorgans]) !=
+       typeof(locus_frame[:, :FemaleMorgans]) != Array{Float64, 1} &&
+       typeof(locus_frame[:, :FemaleMorgans]) !=
          Array{Union{Int64, Missings.Missing}, 1} &&
-       typeof(locus_frame[:FemaleMorgans]) != Array{Int64, 1}
+       typeof(locus_frame[:, :FemaleMorgans]) != Array{Int64, 1}
       throw(ArgumentError(
         "All Morgans columns should only have numbers or missing values.\n \n"))
     end
   end
   if :MaleMorgans in locus_field
-    if typeof(locus_frame[:MaleMorgans]) !=
+    if typeof(locus_frame[:, :MaleMorgans]) !=
          Array{Union{Float64, Missings.Missing}, 1} &&
-       typeof(locus_frame[:MaleMorgans]) != Array{Float64, 1} &&
-       typeof(locus_frame[:MaleMorgans]) !=
+       typeof(locus_frame[:, :MaleMorgans]) != Array{Float64, 1} &&
+       typeof(locus_frame[:, :MaleMorgans]) !=
          Array{Union{Int64, Missings.Missing}, 1} &&
-       typeof(locus_frame[:MaleMorgans]) != Array{Int64, 1}
+       typeof(locus_frame[:, :MaleMorgans]) != Array{Int64, 1}
       throw(ArgumentError(
         "All Morgans columns should only have numbers or missing values.\n \n"))
     end
   end
   if :CentiMorgans in locus_field
-    if typeof(locus_frame[:CentiMorgans]) !=
+    if typeof(locus_frame[:, :CentiMorgans]) !=
          Array{Union{Float64, Missings.Missing}, 1} &&
-       typeof(locus_frame[:CentiMorgans]) != Array{Float64, 1} &&
-       typeof(locus_frame[:CentiMorgans]) !=
+       typeof(locus_frame[:, :CentiMorgans]) != Array{Float64, 1} &&
+       typeof(locus_frame[:, :CentiMorgans]) !=
          Array{Union{Int64, Missings.Missing}, 1} &&
-       typeof(locus_frame[:CentiMorgans]) != Array{Int64, 1}
+       typeof(locus_frame[:, :CentiMorgans]) != Array{Int64, 1}
       throw(ArgumentError(
         "All Morgans columns should only have numbers or missing values.\n \n"))
     end
@@ -778,9 +779,9 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   #
   # Determine some dimensions for the regular locus structure.
   #
-  rows = length(locus_frame[:Locus])
+  rows = length(locus_frame[:, :Locus])
   columns = length(locus_field)
-  locus_name = unique(locus_frame[:Locus])
+  locus_name = unique(locus_frame[:, :Locus])
   #
   # Strip spaces from the loci, allele, and chromosome names.
   # Also check for missing values.
@@ -872,11 +873,11 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
     sort!(locus_frame, (:Chromosome, :FemaleMorgans))
   end
   locus_field = names(locus_frame)
-  pedigree_field = names(pedigree_frame)
+  person_field = names(person_frame)
   #
   # Get the loci names in the new sorted order.
   #
-##  locus_name = unique(locus_frame[:Locus])
+##  locus_name = unique(locus_frame[:, :Locus])
   j = 1
   locus_name[1] = locus_frame[1, :Locus]
   for i = 2:rows
@@ -945,8 +946,9 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   #
   if populations == 0
     for i = 1:columns
-      if typeof(locus_frame[i]) == Array{Union{Float64, Missings.Missing}, 1} ||
-         typeof(locus_frame[i]) == Array{Float64, 1}
+      if typeof(locus_frame[:, i]) ==
+            Array{Union{Float64, Missings.Missing}, 1} ||
+         typeof(locus_frame[:, i]) == Array{Float64, 1}
         s = Symbol(locus_field[i])
         if s != :FemaleMorgans && s != :MaleMorgans
           populations = 1
@@ -960,25 +962,24 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   # Find the observed loci. These are the loci common to
   # the Pedigree frame and the Locus field in the Locus frame.
   #
-  A = unique(locus_frame[:Locus])
+  A = unique(locus_frame[:, :Locus])
   B = Vector{Symbol}(undef, size(A, 1))
   i = 0
   for loc in A
     i = i+1
     B[i] = Symbol(loc)
   end
-  ## B = convert(Vector{Symbol}, (unique(locus_frame[:Locus])))
-  C = intersect(pedigree_field, B)
+  C = intersect(person_field, B)
   #
   # Find the indices of the matching field names in the Pedigree frame.
   #
-  observed_indices = findall((in)(C), pedigree_field)
+  observed_indices = findall((in)(C), person_field)
   #
   # Find the indices of the observed loci in the locus structure.
   #
   observed_loci = length(C)
   observed_locus = zeros(Int, observed_loci)
-  locus_field_in_pedigree_frame = zeros(Int, observed_loci)
+  locus_field_in_person_frame = zeros(Int, observed_loci)
   i = 0
   for loc = 1:loci
     locus_symbol = Symbol(locus_name[loc])
@@ -986,15 +987,15 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
       i = i + 1
       observed_locus[i] = loc
       for j in observed_indices
-        if isequal(pedigree_field[j], locus_symbol)
-          locus_field_in_pedigree_frame[i] = j
+        if isequal(person_field[j], locus_symbol)
+          locus_field_in_person_frame[i] = j
           break
         end
       end
     end
   end
   #
-  # Eliminate unobserved loci.
+  # Eliminate unobserved loci in the following one-dimensional arrays.
   #
   loci = observed_loci
   locus_name = getindex(locus_name, observed_locus)
@@ -1112,14 +1113,14 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   #
   # Allocate space for the frequency of the lumped allele.
   #
-  pedigree_field = names(pedigree_frame)
-  if :Person in pedigree_field
-    people = length(pedigree_frame[:Person])
+  person_field = names(person_frame)
+  if :Person in person_field
+    people = length(person_frame[:, :Person])
   else
-    people = length(pedigree_frame[:Individual])
+    people = length(person_frame[:, :Individual])
   end
-  if :Pedigree in pedigree_field
-    pedigrees = length(unique(pedigree_frame[:Pedigree]))
+  if :Pedigree in person_field
+    pedigrees = length(unique(person_frame[:, :Pedigree]))
   else
     pedigrees = people
   end
@@ -1131,12 +1132,20 @@ function locus_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   model_loci = loci
   model_locus = collect(1:loci)
   trait = 0
+##
+  mutable_locus = 0 # locus subject to mutation
+  donor_allele = 0 # allele subject to mutation
+  recipient_allele = 0 # allele mutated to
+  mutation_rate = zeros(2)
   #
   # Insert the various scalars and arrays in the locus data structure.
   #
-  locus = Locus(loci, model_loci, trait, free_recombination, locus_name,
-    chromosome, base_pairs, morgans, theta, xlinked, alleles, allele_name, 
-    frequency, lumped_frequency, model_locus, locus_field_in_pedigree_frame)
+##
+  locus = Locus(loci, model_loci, trait, free_recombination, 
+    mutable_locus, donor_allele, recipient_allele, mutation_rate,
+    locus_name, chromosome, base_pairs, morgans, theta, xlinked, 
+    alleles, allele_name, frequency, lumped_frequency, model_locus,
+    locus_field_in_person_frame)
   return locus
 end # function locus_information
 
@@ -1144,159 +1153,159 @@ end # function locus_information
 Extracts pedigree information from the pedigree frame.
 Some fields are supplied later.
 """
-function pedigree_information(pedigree_frame::DataFrame)
+function pedigree_information(person_frame::DataFrame)
   #
   # Strip any leading or trailing spaces from the field names.
   #
-  for i in names(pedigree_frame)
-    rename!(pedigree_frame, i => Symbol(strip(string(i))))
+  for i in names(person_frame)
+    rename!(person_frame, i => Symbol(strip(string(i))))
   end
   #
   # Check dataframe field names.
   #
-  pedigree_field = names(pedigree_frame)
-  if !(:Pedigree in pedigree_field)
-    if :Pedigrees in pedigree_field
-      rename!(pedigree_frame, :Pedigrees => :Pedigree)
-    elseif :pedigree in pedigree_field
-      rename!(pedigree_frame, :pedigree => :Pedigree)
-    elseif :pedigrees in pedigree_field
-      rename!(pedigree_frame, :pedigrees => :Pedigree)
-    elseif :Ped in pedigree_field
-      rename!(pedigree_frame, :Ped => :Pedigree)
-    elseif :Peds in pedigree_field
-      rename!(pedigree_frame, :Peds => :Pedigree)
-    elseif :ped in pedigree_field
-      rename!(pedigree_frame, :ped => :Pedigree)
-    elseif :peds in pedigree_field
-      rename!(pedigree_frame, :peds => :Pedigree)
+  person_field = names(person_frame)
+  if !(:Pedigree in person_field)
+    if :Pedigrees in person_field
+      rename!(person_frame, :Pedigrees => :Pedigree)
+    elseif :pedigree in person_field
+      rename!(person_frame, :pedigree => :Pedigree)
+    elseif :pedigrees in person_field
+      rename!(person_frame, :pedigrees => :Pedigree)
+    elseif :Ped in person_field
+      rename!(person_frame, :Ped => :Pedigree)
+    elseif :Peds in person_field
+      rename!(person_frame, :Peds => :Pedigree)
+    elseif :ped in person_field
+      rename!(person_frame, :ped => :Pedigree)
+    elseif :peds in person_field
+      rename!(person_frame, :peds => :Pedigree)
     end
-    pedigree_field = names(pedigree_frame)
+    person_field = names(person_frame)
   end
-  if !(:Person in pedigree_field)
-    if :Persons in pedigree_field
-      rename!(pedigree_frame, :Persons => :Person)
-    elseif :person in pedigree_field
-      rename!(pedigree_frame, :person => :Person)
-    elseif :persons in pedigree_field
-      rename!(pedigree_frame, :persons => :Person)
-    elseif :Per in pedigree_field
-      rename!(pedigree_frame, :Per => :Person)
-    elseif :Pers in pedigree_field
-      rename!(pedigree_frame, :Pers => :Person)
-    elseif :per in pedigree_field
-      rename!(pedigree_frame, :per => :Person)
-    elseif :pers in pedigree_field
-      rename!(pedigree_frame, :pers => :Person)
+  if !(:Person in person_field)
+    if :Persons in person_field
+      rename!(person_frame, :Persons => :Person)
+    elseif :person in person_field
+      rename!(person_frame, :person => :Person)
+    elseif :persons in person_field
+      rename!(person_frame, :persons => :Person)
+    elseif :Per in person_field
+      rename!(person_frame, :Per => :Person)
+    elseif :Pers in person_field
+      rename!(person_frame, :Pers => :Person)
+    elseif :per in person_field
+      rename!(person_frame, :per => :Person)
+    elseif :pers in person_field
+      rename!(person_frame, :pers => :Person)
     end
-    pedigree_field = names(pedigree_frame)
+    person_field = names(person_frame)
   end
-  if !(:Individual in pedigree_field)
-    if :Individuals in pedigree_field
-      rename!(pedigree_frame, :Individuals => :Individual)
-    elseif :individual in pedigree_field
-      rename!(pedigree_frame, :individual => :Individual)
-    elseif :individuals in pedigree_field
-      rename!(pedigree_frame, :individuals => :Individual)
-    elseif :Ind in pedigree_field
-      rename!(pedigree_frame, :Ind => :Individual)
-    elseif :Inds in pedigree_field
-      rename!(pedigree_frame, :Inds => :Individual)
-    elseif :ind in pedigree_field
-      rename!(pedigree_frame, :ind => :Individual)
-    elseif :inds in pedigree_field
-      rename!(pedigree_frame, :inds => :Individual)
+  if !(:Individual in person_field)
+    if :Individuals in person_field
+      rename!(person_frame, :Individuals => :Individual)
+    elseif :individual in person_field
+      rename!(person_frame, :individual => :Individual)
+    elseif :individuals in person_field
+      rename!(person_frame, :individuals => :Individual)
+    elseif :Ind in person_field
+      rename!(person_frame, :Ind => :Individual)
+    elseif :Inds in person_field
+      rename!(person_frame, :Inds => :Individual)
+    elseif :ind in person_field
+      rename!(person_frame, :ind => :Individual)
+    elseif :inds in person_field
+      rename!(person_frame, :inds => :Individual)
     end
-    pedigree_field = names(pedigree_frame)
+    person_field = names(person_frame)
   end
-  if !(:Father in pedigree_field)
-    if :Fathers in pedigree_field
-      rename!(pedigree_frame, :Fathers => :Father)
-    elseif :father in pedigree_field
-      rename!(pedigree_frame, :father => :Father)
-    elseif :fathers in pedigree_field
-      rename!(pedigree_frame, :fathers => :Father)
-    elseif :Dad in pedigree_field
-      rename!(pedigree_frame, :Dad => :Father)
-    elseif :Dads in pedigree_field
-      rename!(pedigree_frame, :Dads => :Father)
-    elseif :dad in pedigree_field
-      rename!(pedigree_frame, :dad => :Father)
-    elseif :dads in pedigree_field
-      rename!(pedigree_frame, :dads => :Father)
+  if !(:Father in person_field)
+    if :Fathers in person_field
+      rename!(person_frame, :Fathers => :Father)
+    elseif :father in person_field
+      rename!(person_frame, :father => :Father)
+    elseif :fathers in person_field
+      rename!(person_frame, :fathers => :Father)
+    elseif :Dad in person_field
+      rename!(person_frame, :Dad => :Father)
+    elseif :Dads in person_field
+      rename!(person_frame, :Dads => :Father)
+    elseif :dad in person_field
+      rename!(person_frame, :dad => :Father)
+    elseif :dads in person_field
+      rename!(person_frame, :dads => :Father)
     end
-    pedigree_field = names(pedigree_frame)
+    person_field = names(person_frame)
   end
-  if !(:Mother in pedigree_field)
-    if :Mothers in pedigree_field
-      rename!(pedigree_frame, :Mothers => :Mother)
-    elseif :mother in pedigree_field
-      rename!(pedigree_frame, :mother => :Mother)
-    elseif :mothers in pedigree_field
-      rename!(pedigree_frame, :mothers => :Mother)
-    elseif :Mom in pedigree_field
-      rename!(pedigree_frame, :Mom => :Mother)
-    elseif :Moms in pedigree_field
-      rename!(pedigree_frame, :Moms => :Mother)
-    elseif :mom in pedigree_field
-      rename!(pedigree_frame, :mom => :Mother)
-    elseif :moms in pedigree_field
-      rename!(pedigree_frame, :moms => :Mother)
+  if !(:Mother in person_field)
+    if :Mothers in person_field
+      rename!(person_frame, :Mothers => :Mother)
+    elseif :mother in person_field
+      rename!(person_frame, :mother => :Mother)
+    elseif :mothers in person_field
+      rename!(person_frame, :mothers => :Mother)
+    elseif :Mom in person_field
+      rename!(person_frame, :Mom => :Mother)
+    elseif :Moms in person_field
+      rename!(person_frame, :Moms => :Mother)
+    elseif :mom in person_field
+      rename!(person_frame, :mom => :Mother)
+    elseif :moms in person_field
+      rename!(person_frame, :moms => :Mother)
     end
-    pedigree_field = names(pedigree_frame)
+    person_field = names(person_frame)
   end
-  if !(:Sex in pedigree_field)
-    if :Sexes in pedigree_field
-      rename!(pedigree_frame, :Sexes => :Sex)
-    elseif :Sexs in pedigree_field
-      rename!(pedigree_frame, :Sexs => :Sex)
-    elseif :sex in pedigree_field
-      rename!(pedigree_frame, :sex => :Sex)
-    elseif :sexes in pedigree_field
-      rename!(pedigree_frame, :sexes => :Sex)
-    elseif :sexs in pedigree_field
-      rename!(pedigree_frame, :sexs => :Sex)
+  if !(:Sex in person_field)
+    if :Sexes in person_field
+      rename!(person_frame, :Sexes => :Sex)
+    elseif :Sexs in person_field
+      rename!(person_frame, :Sexs => :Sex)
+    elseif :sex in person_field
+      rename!(person_frame, :sex => :Sex)
+    elseif :sexes in person_field
+      rename!(person_frame, :sexes => :Sex)
+    elseif :sexs in person_field
+      rename!(person_frame, :sexs => :Sex)
     end
-    pedigree_field = names(pedigree_frame)
+    person_field = names(person_frame)
   end
-  if !(:Twin in pedigree_field)
-    if :Twins in pedigree_field
-      rename!(pedigree_frame, :Twins => :Twin)
-    elseif :twin in pedigree_field
-      rename!(pedigree_frame, :twin => :Twin)
-    elseif :twins in pedigree_field
-      rename!(pedigree_frame, :twins => :Twin)
+  if !(:Twin in person_field)
+    if :Twins in person_field
+      rename!(person_frame, :Twins => :Twin)
+    elseif :twin in person_field
+      rename!(person_frame, :twin => :Twin)
+    elseif :twins in person_field
+      rename!(person_frame, :twins => :Twin)
     end
-    pedigree_field = names(pedigree_frame)
+    person_field = names(person_frame)
   end
   #
   # Count the number of individuals in the pedigree data.
   #
-  if !(:Person in pedigree_field || :Individual in pedigree_field)
+  if !(:Person in person_field || :Individual in person_field)
     throw(ArgumentError("The pedigree data file does not contain a field\n" *
       "labeled Person or Individual. One such field is required.\n \n"))
-  elseif :Person in pedigree_field && :Individual in pedigree_field
+  elseif :Person in person_field && :Individual in person_field
     throw(ArgumentError("The pedigree data file contains a field\n" *
       "labeled Person and a field labeled Individual.\n" *
       "It is required to have only one such field.\n \n"))
   end
-  if :Person in pedigree_field
-    people = length(pedigree_frame[:Person])
+  if :Person in person_field
+    people = length(person_frame[:, :Person])
   else
-    people = length(pedigree_frame[:Individual])
+    people = length(person_frame[:, :Individual])
   end
   #
   # Initialize arrays.
   #
-  if :Pedigree in pedigree_field
-    pedigrees = length(unique(pedigree_frame[:Pedigree]))
+  if :Pedigree in person_field
+    pedigrees = length(unique(person_frame[:, :Pedigree]))
   else
     pedigrees = people
   end
   pedigree_name = blanks(pedigrees)
-  start = zeros(Int, pedigrees)
+  pedstart = zeros(Int, pedigrees)
   twin_finish = zeros(Int, pedigrees)
-  finish = zeros(Int, pedigrees)
+  pedfinish = zeros(Int, pedigrees)
   individuals = zeros(Int, pedigrees)
   founders = zeros(Int, pedigrees)
   females = zeros(Int, pedigrees)
@@ -1307,21 +1316,21 @@ function pedigree_information(pedigree_frame::DataFrame)
   # If pedigree names are included in the input data,
   # check whether each individual has a pedigree listed.
   #
-  if :Pedigree in pedigree_field
+  if :Pedigree in person_field
     for i = 1:people
       a = string(i)
-      if ismissing(pedigree_frame[i, :Pedigree])
+      if ismissing(person_frame[i, :Pedigree])
         throw(ArgumentError(
           "Individual $a of the pedigree data has no pedigree name.\n \n"))
       end
-      if typeof(pedigree_frame[i, :Pedigree]) <: Number
-        if pedigree_frame[i, :Pedigree] == NaN
+      if typeof(person_frame[i, :Pedigree]) <: Number
+        if person_frame[i, :Pedigree] == NaN
           throw(ArgumentError(
             "Individual $a of the pedigree data has no pedigree name.\n \n"))
         end
-      elseif typeof(pedigree_frame[i, :Pedigree]) <: AbstractString
-        pedigree_frame[i, :Pedigree] = strip(pedigree_frame[i, :Pedigree])
-        if pedigree_frame[i, :Pedigree] == ""
+      elseif typeof(person_frame[i, :Pedigree]) <: AbstractString
+        person_frame[i, :Pedigree] = strip(person_frame[i, :Pedigree])
+        if person_frame[i, :Pedigree] == ""
           throw(ArgumentError(
             "Individual $a of the pedigree data has no pedigree name.\n \n"))
         end
@@ -1335,33 +1344,32 @@ function pedigree_information(pedigree_frame::DataFrame)
     #
     ped = 1
     for i = 2:people
-      if pedigree_frame[i, :Pedigree] != pedigree_frame[i - 1, :Pedigree]
+      if person_frame[i, :Pedigree] != person_frame[i - 1, :Pedigree]
         ped = ped + 1
       end
     end
     if ped > pedigrees
 #      throw(ArgumentError("Some pedigrees are not in a contiguous block." *
 #      " Please fix the data files.\n \n"))
-      sort!(pedigree_frame, :Pedigree)
+      sort!(person_frame, :Pedigree)
     end
     #
     # Find the name, start, and finish of each pedigree.
     #
     ped = 0
     for i = 1:people
-      if i == 1 ||
-         pedigree_frame[i, :Pedigree] != pedigree_frame[i - 1, :Pedigree]
+      if i == 1 || person_frame[i, :Pedigree] != person_frame[i - 1, :Pedigree]
         ped = ped + 1
-        start[ped] = i
+        pedstart[ped] = i
         if i > 1; twin_finish[ped - 1] = i - 1; end
-        pedigree_name[ped] = string(pedigree_frame[i, :Pedigree])
+        pedigree_name[ped] = string(person_frame[i, :Pedigree])
       end
     end
     twin_finish[pedigrees] = people
   else
     for i = 1:people
-      start[i] = i
-      finish[i] = i
+      pedstart[i] = i
+      pedfinish[i] = i
       twin_finish[i] = i
       pedigree_name[i] = "$i"
     end
@@ -1369,15 +1377,16 @@ function pedigree_information(pedigree_frame::DataFrame)
   #
   # Insert the gathered information into the Pedigree structure.
   #
-  pedigree = Pedigree(pedigrees, pedigree_name, start, twin_finish, finish,
-    individuals, founders, females, males, twins, families, zeros(pedigrees, 2))
+  pedigree = Pedigree(pedigrees, pedigree_name, pedstart, twin_finish,
+    pedfinish, individuals, founders, females, males, twins, families,
+    zeros(pedigrees, 2))
   return pedigree
 end # function pedigree_information
 
 """
 Extracts person information from the pedigree frame.
 """
-function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
+function person_information(locus_frame::DataFrame, person_frame::DataFrame,
   phenotype_frame::DataFrame, locus::Locus, pedigree::Pedigree,
   keyword::Dict{AbstractString, Any})
   #
@@ -1385,31 +1394,31 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   # (It has previously been checked that exactly one of :Person or :Individual
   # is in the pedigree dataframe.)
   #
-  pedigree_field = names(pedigree_frame)
-  if :Person in pedigree_field
-    people = length(pedigree_frame[:Person])
+  person_field = names(person_frame)
+  if :Person in person_field
+    people = length(person_frame[:, :Person])
   else
-    people = length(pedigree_frame[:Individual])
+    people = length(person_frame[:, :Individual])
   end
   #
   # Create array of person names, which is not allowed to have missing values.
   #
   person_name = blanks(people)
-  if :Person in pedigree_field
+  if :Person in person_field
     for i = 1:people
       a = string(i)
-      if ismissing(pedigree_frame[i, :Person])
+      if ismissing(person_frame[i, :Person])
         throw(ArgumentError(
           "Individual # $a of the pedigree data has no name.\n \n"))
       end
-      if typeof(pedigree_frame[i, :Person]) <: Number
-        if pedigree_frame[i, :Person] == NaN
+      if typeof(person_frame[i, :Person]) <: Number
+        if person_frame[i, :Person] == NaN
           throw(ArgumentError(
             "Individual # $a of the pedigree data has no name.\n \n"))
         end
-      elseif typeof(pedigree_frame[i, :Person]) <: AbstractString
-        pedigree_frame[i, :Person] = strip(pedigree_frame[i, :Person])
-        if pedigree_frame[i, :Person] == ""
+      elseif typeof(person_frame[i, :Person]) <: AbstractString
+        person_frame[i, :Person] = strip(person_frame[i, :Person])
+        if person_frame[i, :Person] == ""
           throw(ArgumentError(
             "Individual # $a of the pedigree data has no name.\n \n"))
         end
@@ -1417,23 +1426,23 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
         throw(ArgumentError(
           "Individual # $a of the pedigree data has no name.\n \n"))
       end
-      person_name[i] = string(pedigree_frame[i, :Person])
+      person_name[i] = string(person_frame[i, :Person])
     end
   else
     for i = 1:people
       a = string(i)
-      if ismissing(pedigree_frame[i, :Individual])
+      if ismissing(person_frame[i, :Individual])
         throw(ArgumentError(
           "Individual # $a of the pedigree data has no name.\n \n"))
       end
-      if typeof(pedigree_frame[i, :Individual]) <: Number
-        if pedigree_frame[i, :Individual] == NaN
+      if typeof(person_frame[i, :Individual]) <: Number
+        if person_frame[i, :Individual] == NaN
           throw(ArgumentError(
             "Individual # $a of the pedigree data has no name.\n \n"))
         end
-      elseif typeof(pedigree_frame[i, :Individual]) <: AbstractString
-        pedigree_frame[i, :Individual] = strip(pedigree_frame[i, :Individual])
-        if pedigree_frame[i, :Individual] == ""
+      elseif typeof(person_frame[i, :Individual]) <: AbstractString
+        person_frame[i, :Individual] = strip(person_frame[i, :Individual])
+        if person_frame[i, :Individual] == ""
           throw(ArgumentError(
             "Individual # $a of the pedigree data has no name.\n \n"))
         end
@@ -1441,7 +1450,7 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
         throw(ArgumentError(
           "Individual # $a of the pedigree data has no name.\n \n"))
       end
-      person_name[i] = string(pedigree_frame[i, :Individual])
+      person_name[i] = string(person_frame[i, :Individual])
     end
   end
   #
@@ -1456,37 +1465,37 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   #
   # Create array of parental names, which is allowed to have missing values.
   #
-  parents_present = :Mother in pedigree_field && :Father in pedigree_field
+  parents_present = :Mother in person_field && :Father in person_field
   mother_string = blanks(people)
   father_string = blanks(people)
   if parents_present
     for i = 1:people
-      if ismissing(pedigree_frame[i, :Mother]); continue; end
-      if typeof(pedigree_frame[i, :Mother]) <: Number
-        if pedigree_frame[i, :Mother] == NaN ||
-           pedigree_frame[i, :Mother] == 0
+      if ismissing(person_frame[i, :Mother]); continue; end
+      if typeof(person_frame[i, :Mother]) <: Number
+        if person_frame[i, :Mother] == NaN ||
+           person_frame[i, :Mother] == 0
           continue
         end
-      elseif typeof(pedigree_frame[i, :Mother]) <: AbstractString
-        pedigree_frame[i, :Mother] = strip(pedigree_frame[i, :Mother])
-        if pedigree_frame[i, :Mother] == ""; continue; end
+      elseif typeof(person_frame[i, :Mother]) <: AbstractString
+        person_frame[i, :Mother] = strip(person_frame[i, :Mother])
+        if person_frame[i, :Mother] == ""; continue; end
       else
         continue
       end
-      if ismissing(pedigree_frame[i, :Father]); continue; end
-      if typeof(pedigree_frame[i, :Father]) <: Number
-        if pedigree_frame[i, :Father] == NaN ||
-           pedigree_frame[i, :Father] == 0
+      if ismissing(person_frame[i, :Father]); continue; end
+      if typeof(person_frame[i, :Father]) <: Number
+        if person_frame[i, :Father] == NaN ||
+           person_frame[i, :Father] == 0
           continue
         end
-      elseif typeof(pedigree_frame[i, :Father]) <: AbstractString
-        pedigree_frame[i, :Father] = strip(pedigree_frame[i, :Father])
-        if pedigree_frame[i, :Father] == ""; continue; end
+      elseif typeof(person_frame[i, :Father]) <: AbstractString
+        person_frame[i, :Father] = strip(person_frame[i, :Father])
+        if person_frame[i, :Father] == ""; continue; end
       else
         continue
       end
-      mother_string[i] = string(pedigree_frame[i, :Mother])
-      father_string[i] = string(pedigree_frame[i, :Father])
+      mother_string[i] = string(person_frame[i, :Mother])
+      father_string[i] = string(person_frame[i, :Father])
     end
   end
   #
@@ -1496,12 +1505,12 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   #
   next_twin = zeros(Int, people)
   primary_twin = zeros(Int, people)
-  if :Twin in pedigree_field
+  if :Twin in person_field
     twins_present = true
     for i = 1:people
-      if ismissing(pedigree_frame[i, :Twin]); continue; end
-      if typeof(pedigree_frame[i, :Twin]) <: AbstractString
-        pedigree_frame[i, :Twin] = strip(pedigree_frame[i, :Twin])
+      if ismissing(person_frame[i, :Twin]); continue; end
+      if typeof(person_frame[i, :Twin]) <: AbstractString
+        person_frame[i, :Twin] = strip(person_frame[i, :Twin])
       end
     end
   #
@@ -1509,14 +1518,14 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   # The last twin points to no-one.
   # In each twin set designate a primary twin.
   #
-    twin_group = unique(pedigree_frame[:Twin])
+    twin_group = unique(person_frame[:, :Twin])
     for t in twin_group
       if ismissing(t)
         continue
       elseif typeof(t) <: Number && (t == 0 || t == NaN)
         continue
       else
-        twin_list = findall((in)(t), pedigree_frame[:Twin])
+        twin_list = findall((in)(t), person_frame[:, :Twin])
         primary_twin[twin_list[1]] = twin_list[1]
         for i = 2:length(twin_list)
           next_twin[twin_list[i - 1]] = twin_list[i]
@@ -1532,17 +1541,17 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   #
   pedigree_number = zeros(Int, people)
   for ped = 1:pedigrees
-    for i = pedigree.start[ped]:pedigree.twin_finish[ped]
+    for i = pedigree.pedstart[ped]:pedigree.twin_finish[ped]
       pedigree_number[i] = ped
       if parents_present && mother_string[i] != ""
         mother_found = false
         father_found = false
-        for j = pedigree.start[ped]:pedigree.twin_finish[ped]
+        for j = pedigree.pedstart[ped]:pedigree.twin_finish[ped]
           if j == i; continue; end
-          if :Person in pedigree_field
-            name_j = string(pedigree_frame[j, :Person])
+          if :Person in person_field
+            name_j = string(person_frame[j, :Person])
           else
-            name_j = string(pedigree_frame[j, :Individual])
+            name_j = string(person_frame[j, :Individual])
           end
           if mother_string[i] == name_j
             mother[i] = j
@@ -1646,10 +1655,10 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
       end
     end
     #
-    # Sort the pedigree dataframe according to the inverse permutation.
+    # Sort the person dataframe according to the inverse permutation.
     #
-    pedigree_frame[:Inverse_Perm] = inverse_perm
-    sort!(pedigree_frame, :Inverse_Perm)
+    person_frame[!, :Inverse_Perm] = inverse_perm
+    sort!(person_frame, :Inverse_Perm)
   end
   #
   # Record who is male.
@@ -1657,16 +1666,16 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   #
   male_symbols = keyword["male"]
   female_symbols = keyword["female"]
-  if :Sex in pedigree_field
+  if :Sex in person_field
     for i = 1:people
-      if ismissing(pedigree_frame[i, :Sex]); continue; end
-      if typeof(pedigree_frame[i, :Sex]) <: Number
-        if pedigree_frame[i, :Sex] == NaN; continue; end
-        sex_i = pedigree_frame[i, :Sex]
-      elseif typeof(pedigree_frame[i, :Sex]) <: AbstractString
-        pedigree_frame[i, :Sex] = strip(pedigree_frame[i, :Sex])
-        if pedigree_frame[i, :Sex] == ""; continue; end
-        sex_i = lowercase(pedigree_frame[i, :Sex])
+      if ismissing(person_frame[i, :Sex]); continue; end
+      if typeof(person_frame[i, :Sex]) <: Number
+        if person_frame[i, :Sex] == NaN; continue; end
+        sex_i = person_frame[i, :Sex]
+      elseif typeof(person_frame[i, :Sex]) <: AbstractString
+        person_frame[i, :Sex] = strip(person_frame[i, :Sex])
+        if person_frame[i, :Sex] == ""; continue; end
+        sex_i = lowercase(person_frame[i, :Sex])
       else
         continue
       end
@@ -1704,14 +1713,15 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
     end
   end
   #
-  # Search for quantitative variables in the pedigree frame that are not
+  # Search for quantitative variables in the person frame that are not
   # admixture proportions.
   #
   variables = 0
-  for i = 1:length(pedigree_field)
-    if typeof(pedigree_frame[i]) == Array{Union{Float64, Missings.Missing},1} ||
-       typeof(pedigree_frame[i]) == Array{Float64, 1}
-      if !(string(pedigree_field[i]) in keyword["populations"])
+  for i = 1:length(person_field)
+    if typeof(person_frame[:, i]) ==
+          Array{Union{Float64, Missings.Missing}, 1} ||
+       typeof(person_frame[:, i]) == Array{Float64, 1}
+      if !(string(person_field[i]) in keyword["populations"])
         variables = variables + 1
       end
     end
@@ -1722,17 +1732,18 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   variable = zeros(people, variables)
   variable_name = blanks(variables)
   variables = 0
-  for i = 1:length(pedigree_field)
-    if typeof(pedigree_frame[i]) == Array{Union{Float64, Missings.Missing},1} ||
-       typeof(pedigree_frame[i]) == Array{Float64, 1}
-      if !(string(pedigree_field[i]) in keyword["populations"])
+  for i = 1:length(person_field)
+    if typeof(person_frame[:, i]) ==
+          Array{Union{Float64, Missings.Missing}, 1} ||
+       typeof(person_frame[:, i]) == Array{Float64, 1}
+      if !(string(person_field[i]) in keyword["populations"])
         variables = variables + 1
-        variable_name[variables] = string(pedigree_field[i])
+        variable_name[variables] = string(person_field[i])
         for per = 1:people
-          if ismissing(pedigree_frame[per, i])
+          if ismissing(person_frame[per, i])
             variable[per, variables] = NaN
           else
-            variable[per, variables] = pedigree_frame[per, i]
+            variable[per, variables] = person_frame[per, i]
           end
         end
       end
@@ -1744,9 +1755,9 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   disease_field = keyword["trait"]
   if disease_field != ""
     disease_field = Symbol(disease_field)
-    if disease_field in pedigree_field
+    if disease_field in person_field
       disease_status = blanks(people)
-      status = pedigree_frame[disease_field]
+      status = person_frame[:, disease_field]
       for i = 1:people
         if ismissing(status[i])
           disease_status[i] = ""
@@ -1767,9 +1778,9 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   # Find the locus names and number of loci in the phenotype dataframe.
   #
   if size(phenotype_frame, 2) > 0
-    locus_name = unique(phenotype_frame[:Locus])
+    locus_name = unique(phenotype_frame[:, :Locus])
     loci = length(locus_name)
-    rows = length(phenotype_frame[:Locus])
+    rows = length(phenotype_frame[:, :Locus])
     phenotypes = zeros(Int, loci)
     phenotype = Array{Array{AbstractString, 1}}(undef, loci)
     genotype_string = Array{Array{AbstractString, 1}}(undef, loci)
@@ -1818,8 +1829,8 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
       end
     end
     #
-    # Reduce each phenotype to a set of integer pairs. Each integer
-    # represents a numbered allele in the Locus frame.
+    # Reduce each phenotype to a set of integer pairs.
+    # Each integer represents a numbered allele in the Locus frame.
     #
     genotype = Array{Array{Set{Tuple{Int, Int}}, 1}}(undef, loci)
     #
@@ -1881,7 +1892,7 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
         # First consider people with missing values.
         #
         observed_genotype[i, loc] = Set{Tuple{Int, Int}}()
-        phen = pedigree_frame[i, locus.locus_field_in_pedigree_frame[loc]]
+        phen = person_frame[i, locus.locus_field_in_person_frame[loc]]
         if ismissing(phen) || phen == ""
           hemizygous = locus.xlinked[loc] && male[i]
           observed_genotype[i, loc] = full_genotype_set(m, hemizygous)
@@ -1895,7 +1906,11 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
             for n = 1:phenotypes[j]
               p = phenotype[j][n]
               if isequal(phen, p)
-                observed_genotype[i, loc] = genotype[j][n]
+                #
+                # Use a copy() of the genotype, so that when one is changed,
+                # all the other copies are not identically changed.
+                #
+                observed_genotype[i, loc] = copy(genotype[j][n])
                 match = true
                 break
               end
@@ -1907,7 +1922,7 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
       # Finally attempt to decode a codominant genotype.
       #
       if !match
-        g = pedigree_frame[i, locus.locus_field_in_pedigree_frame[loc]]
+        g = person_frame[i, locus.locus_field_in_person_frame[loc]]
         if ismissing(g)
           g = ""
         else
@@ -1953,7 +1968,7 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
   # admixture fractions.
   #
   population_names = keyword["populations"]
-  populations = max(1,length(keyword["populations"]))
+  populations = max(1, length(keyword["populations"]))
   admixture = zeros(Float64, people, populations)
   if populations == 1
     fill!(admixture, 1.0)
@@ -1961,10 +1976,10 @@ function person_information(locus_frame::DataFrame, pedigree_frame::DataFrame,
     for i = 1:people
       j = 1
       for pop in population_names
-        if ismissing(pedigree_frame[i, Symbol(pop)])
+        if ismissing(person_frame[i, Symbol(pop)])
           admixture[i, j] = 0.0
         else
-          admixture[i, j] = pedigree_frame[i, Symbol(pop)]
+          admixture[i, j] = person_frame[i, Symbol(pop)]
         end
         j = j + 1
       end
@@ -1999,7 +2014,7 @@ function pedigree_counts!(pedigree::Pedigree, person::Person)
     # Mates is a set of parent pairs in a particular pedigree.
     #
     mates = Set{Tuple{Int, Int}}()
-    for j = pedigree.start[i]:pedigree.twin_finish[i]
+    for j = pedigree.pedstart[i]:pedigree.twin_finish[i]
       if person.father[j] == 0
         founders = founders + 1
       else
@@ -2021,12 +2036,12 @@ function pedigree_counts!(pedigree::Pedigree, person::Person)
     pedigree.males[i] = males
     pedigree.twins[i] = twins
     pedigree.families[i] = length(mates)
-    pedigree.finish[i] = pedigree.twin_finish[i] - co_twins
+    pedigree.pedfinish[i] = pedigree.twin_finish[i] - co_twins
   end
 end # function pedigree_counts!
 
 """
-Identities all nuclear families, spouses, and children.
+Identify all nuclear families, spouses, and children.
 """ 
 function construct_nuclear_families(pedigree::Pedigree, person::Person)
 
@@ -2043,7 +2058,7 @@ function construct_nuclear_families(pedigree::Pedigree, person::Person)
   #
   for i = 1:pedigree.pedigrees
     mates = Set{Tuple{Int, Int}}()
-    for j = pedigree.start[i]:pedigree.twin_finish[i]
+    for j = pedigree.pedstart[i]:pedigree.twin_finish[i]
       if person.father[j] != 0
         push!(mates, (person.mother[j], person.father[j]))
         push!(person.children[person.mother[j]], j)
@@ -2053,8 +2068,7 @@ function construct_nuclear_families(pedigree::Pedigree, person::Person)
       end
     end
     #
-    # Loop over the nuclear families and assign parents
-    # and siblings.
+    # Loop over the nuclear families and assign parents and siblings.
     #
     for s in mates
       k = k + 1
@@ -2149,13 +2163,13 @@ function loop(pedigree::Pedigree, father::Vector{Int},
   # Loop over all pedigrees.
   #
   for ped = 1:pedigrees
-    start = pedigree.start[ped]
+    pedstart = pedigree.pedstart[ped]
     twin_finish = pedigree.twin_finish[ped]
     #
     # Put all co-twins at the tail of the permutation.
     #
     n = twin_finish
-    for i = start:twin_finish
+    for i = pedstart:twin_finish
       if primary_twin[i] != 0 && primary_twin[i] != i
         perm[n] = i
         n = n - 1
@@ -2167,9 +2181,9 @@ function loop(pedigree::Pedigree, father::Vector{Int},
     # location and how many of his parents have been eliminated as
     # possible candidates for a directed cycle.
     #
-    m = start
+    m = pedstart
     j = n
-    for i = start:twin_finish
+    for i = pedstart:twin_finish
       if primary_twin[i] != 0 && primary_twin[i] != i; continue; end
       if mother[i] == 0
         perm[m] = i
@@ -2185,7 +2199,7 @@ function loop(pedigree::Pedigree, father::Vector{Int},
     # compute his final permutation location. If no such person exists,
     # then the remaining people all belong to directed cycles.
     #
-    m = start
+    m = pedstart
     while m <= n
       k = 0
       for j = m:n
@@ -2289,7 +2303,7 @@ function preliminary_checks(pedigree::Pedigree, person::Person)
   #
   # Check for repeated pedigree names.
   #
-  (nonunique, repeat) = repeated_string(convert(Array{String},pedigree.name))
+  (nonunique, repeat) = repeated_string(convert(Array{String}, pedigree.name))
   if nonunique
     errors = errors + 1
     println("Error: Pedigree name $repeat is used for multiple pedigrees.")
@@ -2298,10 +2312,10 @@ function preliminary_checks(pedigree::Pedigree, person::Person)
   # Check for repeated person names.
   #
   for ped = 1:pedigree.pedigrees
-    ped_start = pedigree.start[ped]
-    ped_finish = pedigree.twin_finish[ped]
+    pedstart = pedigree.pedstart[ped]
+    twinfinish = pedigree.twin_finish[ped]
     (nonunique, repeat) =
-      repeated_string(convert(Array{String},person.name[ped_start:ped_finish]))
+      repeated_string(convert(Array{String},person.name[pedstart:twinfinish]))
     if nonunique
       errors = errors + 1
       p = pedigree.name[ped]
@@ -2384,10 +2398,11 @@ function check_hemizygous_genotypes!(person::Person, locus::Locus, loc::Int)
 
   if locus.xlinked[loc]
     for i = 1:person.people
-      if !person.male[i]; continue; end
-      for (gm, gp) in person.genotype[i, loc]
-        if gm != gp
-          delete!(person.genotype[i, loc], (gm, gp))
+      if person.male[i]
+        for (gm, gp) in person.genotype[i, loc]
+          if gm != gp
+            delete!(person.genotype[i, loc], (gm, gp))
+          end
         end
       end
     end
@@ -2527,15 +2542,14 @@ function gene_counting(person::Person, locus::Locus, loc::Int,
 end # function gene_counting
 
 """
-Check that ancestral populations are present in both the pedigree
-and locus frames.
+Check that ancestral populations are in both the person and locus frames.
 """
-function check_populations(locus_frame::DataFrame, pedigree_frame::DataFrame,
+function check_populations(locus_frame::DataFrame, person_frame::DataFrame,
                            keyword::Dict{AbstractString, Any})
 
-  pedigree_field = names(pedigree_frame)
+  person_field = names(person_frame)
   for pop in keyword["populations"]
-    if Symbol(pop) in pedigree_field
+    if Symbol(pop) in person_field
       continue
     else
       throw(ArgumentError("Population $pop is not in the pedigree frame.\n \n"))
@@ -2552,4 +2566,3 @@ function check_populations(locus_frame::DataFrame, pedigree_frame::DataFrame,
     end
   end
 end # function check_populations
-

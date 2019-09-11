@@ -1,7 +1,7 @@
 name = "MendelBase"
 desc = "Base functions; part of the OpenMendel project."
 uuid = "4fb2d825-8540-5432-a3a3-b9ff66df2cb5"
-version = "0.5.0"
+version = "0.8.0"
 license = "MIT"
 authors = ["Kenneth Lange <klange@ucla.edu>", "Eric Sobel <esobel@ucla.edu>", "OpenMendel Team"]
 keywords = ["OpenMendel", "genetic utilities", "Elston-Stewart"]
@@ -19,6 +19,7 @@ Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 SnpArrays = "4e780e97-f5bf-4111-9dc4-b70aaf691b06"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 StatsBase = "2913bbd2-ae8a-5f71-8c99-4fb6c76f3a91"
+StatsModels = "3eaba693-59b7-5ba5-a881-562e759f1c8d"
 
 [compat]
 julia = "1.0"

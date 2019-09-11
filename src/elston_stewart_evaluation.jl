@@ -17,7 +17,7 @@ by the Elston-Stewart algorithm.
 function elston_stewart_loglikelihood(penetrance::Function, prior::Function, 
   transmission::Function, pedigree::Pedigree, person::Person,
   locus::Locus, parameter::Parameter, instruction::Instruction,
-  keyword::Dict{AbstractString, Any})
+  person_frame::DataFrame, keyword::Dict{AbstractString, Any})
 
   loglikelihood = 0.0
   fill!(pedigree.loglikelihood[:, 2], 0.0)
@@ -41,7 +41,7 @@ function elston_stewart_loglikelihood(penetrance::Function, prior::Function,
     #
     (inconsistent, pedigree.loglikelihood[ped, 2]) =
       compute_likelihood(penetrance, prior, transmission, person, 
-      locus, instruction, par, keyword, ped)
+      locus, instruction, par, person_frame, keyword, ped)
     if inconsistent
       name = pedigree.name[ped]
       throw(ArgumentError(
@@ -60,22 +60,21 @@ Various operations are performed on an array of arrays.
 function compute_likelihood(penetrance::Function, prior::Function, 
   transmission::Function, person::Person, locus::Locus,
   instruction::Instruction, par::Vector{Float64},
-  keyword::Dict{AbstractString, Any}, ped::Int)
+  person_frame::DataFrame, keyword::Dict{AbstractString, Any}, ped::Int)
   #
-  # Initialize the loglikelihood, the number of arrays, and the
-  # array of arrays.
+  # Initialize the loglikelihood, the number of arrays, and the array of arrays.
   #
   inconsistent = false
   loglikelihood = 0.0
-  arrays = instruction.finish[ped] - instruction.start[ped]
-  array = Array{Array{Float64, 1}}(undef, arrays)
+  work_arrays = instruction.instructfinish[ped] - instruction.instructstart[ped]
+  work_array = Array{Array{Float64, 1}}(undef, work_arrays)
   #
   # Now proceed instruction by instruction.
   #
   extent = 0
   increment1 = 0
   increment2 = 0
-  for n = instruction.start[ped]:instruction.finish[ped]
+  for n = instruction.instructstart[ped]:instruction.instructfinish[ped]
     #
     # Fetch the site, rank, and size of the new array created by the
     # current instruction. Then allocate the array. If a multiply
@@ -86,22 +85,22 @@ function compute_likelihood(penetrance::Function, prior::Function,
     if operation != quit_processing_pedigree
       k = instruction.site[n]
       if operation != pure_add
-        rank = instruction.rank[n]
+        rankarray = instruction.rankarray[n]
         space = instruction.space[n]
-        array[k] = zeros(space)
+        work_array[k] = zeros(space)
       end
     end
     #
     # Each instruction involves one of six operations. Two of these,
-    # "multiply_and_add" and "pure_multiply, " are treated simultaneously.
+    # "multiply_and_add" and "pure_multiply" are treated simultaneously.
     #
     if operation == penetrance_and_prior_array
       #
       # Create a penetrance and prior array.
       #
-      array[k] = construct_penetrance_prior!(penetrance, prior, person, 
-        locus, instruction, par, keyword, array[k], n)
-      (negative_entry, no_positive_entry) = check_array_entries(array[k])
+      work_array[k] = construct_penetrance_prior!(penetrance, prior, person,
+        locus, instruction, par, person_frame, keyword, work_array[k], n)
+      (negative_entry, no_positive_entry) = check_array_entries(work_array[k])
       if negative_entry || no_positive_entry
         inconsistent = true
         println("Error: in penetrance or prior array.")
@@ -111,9 +110,9 @@ function compute_likelihood(penetrance::Function, prior::Function,
     # Create a transmission array. 
     #
     elseif operation == transmission_array
-      array[k] = construct_transmission!(transmission, person, locus, 
-        instruction, par, keyword, array[k], n)
-      (negative_entry, no_positive_entry) = check_array_entries(array[k])
+      work_array[k] = construct_transmission!(transmission, person, locus, 
+        instruction, par, person_frame, keyword, work_array[k], n)
+      (negative_entry, no_positive_entry) = check_array_entries(work_array[k])
       if negative_entry || no_positive_entry
         inconsistent = true
         println("Error: in transmission array.")
@@ -123,8 +122,8 @@ function compute_likelihood(penetrance::Function, prior::Function,
     # Perform a pure add.
     #
     elseif operation == pure_add
-      (loglikelihood, zero_likelihood) = pure_add_operation(loglikelihood, 
-        array[k])
+      (loglikelihood, zero_likelihood) =
+        pure_add_operation(loglikelihood, work_array[k])
       if zero_likelihood
         inconsistent = true
         println("Error: in pure add operation.")
@@ -150,17 +149,18 @@ function compute_likelihood(penetrance::Function, prior::Function,
       # of the product array and the increments to the positions within each
       # the multiplicand arrays.
       #
-      if rank > 0
-        extent = instruction.extra[n][6:5 + rank]
-        increment1 = instruction.extra[n][6 + rank:5 + 2 * rank]
-        increment2 = instruction.extra[n][6 + 2 * rank:5 + 3 * rank]
+      if rankarray > 0
+        extent = instruction.extra[n][6:5 + rankarray]
+        increment1 = instruction.extra[n][6 + rankarray:5 + 2 * rankarray]
+        increment2 = instruction.extra[n][6 + 2 * rankarray:5 + 3 * rankarray]
       end
       #
       # Perform the operation.
       #
-      (loglikelihood, zero_likelihood, array[k]) = 
-        multiply_add_operation!(array[i], array[j], array[k], extent, increment1,
-        increment2, rank, pivot_range, stride1, stride2, loglikelihood)
+      (loglikelihood, zero_likelihood, work_array[k]) = 
+        multiply_add_operation!(work_array[i], work_array[j], work_array[k],
+        extent, increment1, increment2, rankarray, pivot_range,
+        stride1, stride2, loglikelihood)
       if zero_likelihood
         inconsistent = true
         println("Error: in a multiply and add multiply operation.")
@@ -177,28 +177,30 @@ function compute_likelihood(penetrance::Function, prior::Function,
 end # function compute_likelihood
 
 """
-Construct a penetrance array or the product of a
-penetrance and prior array.
+Construct a penetrance array or the product of a penetrance and prior array.
 """
 function construct_penetrance_prior!(penetrance::Function, prior::Function,
   person::Person, locus::Locus, instruction::Instruction, par::Vector{Float64},
-  keyword::Dict{AbstractString, Any}, array::Vector{Float64}, n::Int)
-
-  start = instruction.extra[n][1]
-  finish = instruction.extra[n][2]
+  person_frame::DataFrame, keyword::Dict{AbstractString, Any},
+  work_array::Vector{Float64}, n::Int)
+  #
+  # Fetch the starting & finishing loci and individual i.
+  #
+  startlocus = instruction.extra[n][1]
+  finishlocus = instruction.extra[n][2]
   i = instruction.extra[n][3]
   #
   # Construct i's multiple locus genotypes.
   #
-  genotypes = genotype_count(person, locus, i, start, finish)
-  multi_genotype = construct_multigenotypes(person, locus, start, finish,
-                                            genotypes, i)
+  genotypes = genotype_count(person, locus, i, startlocus, finishlocus)
+  multi_genotype = construct_multigenotypes(person, locus, startlocus,
+                                            finishlocus, genotypes, i)
   #
   # Compute the penetrance of each genotype of i.
   #
   for j = 1:genotypes
-    a = penetrance(person, locus, multi_genotype[:, :, j],
-                   par, keyword, start, finish, i)
+    a = penetrance(person, locus, multi_genotype[:, :, j], par,
+                   person_frame, keyword, startlocus, finishlocus, i)
     if a < 0.0
       throw(ArgumentError(
         "Negative penetrance computed for $person.name[i].\n \n"))
@@ -208,8 +210,8 @@ function construct_penetrance_prior!(penetrance::Function, prior::Function,
     #
     m = person.next_twin[i]
     while m > 0
-      b = penetrance(person, locus, multi_genotype[:, :, j],
-                     par, keyword, start, finish, m)
+      b = penetrance(person, locus, multi_genotype[:, :, j], par,
+                     person_frame, keyword, startlocus, finishlocus, m)
       if b < 0.0
         throw(ArgumentError(
           "Negative penetrance computed for $person.name[m].\n \n"))
@@ -221,17 +223,17 @@ function construct_penetrance_prior!(penetrance::Function, prior::Function,
     # Include the prior when i is a founder.
     #
     if person.mother[i] == 0
-      b = prior(person, locus, multi_genotype[:, :, j], par, keyword,
-                start, finish, i)
+      b = prior(person, locus, multi_genotype[:, :, j], par,
+                person_frame, keyword, startlocus, finishlocus, i)
       if b < 0.0
         throw(ArgumentError(
           "Negative prior computed for $person.name[i].\n \n"))
       end
       a = a * b
     end
-    array[j] = a
+    work_array[j] = a
   end
-  return array
+  return work_array
 end # function construct_penetrance_prior!
 
 """
@@ -239,27 +241,28 @@ Construct a transmission array from parent i to child j.
 """
 function construct_transmission!(transmission::Function, person::Person, 
   locus::Locus, instruction::Instruction, par::Vector{Float64},
-  keyword::Dict{AbstractString, Any}, array::Vector{Float64}, n::Int)
+  person_frame::DataFrame, keyword::Dict{AbstractString, Any}, 
+  work_array::Vector{Float64}, n::Int)
   #
   # Fetch the starting & finishing loci and i & j.
   #
-  start = instruction.extra[n][1]
-  finish = instruction.extra[n][2]
+  startlocus = instruction.extra[n][1]
+  finishlocus = instruction.extra[n][2]
   i = instruction.extra[n][3]
   j = instruction.extra[n][4]
   #
   # Construct the parent's multiple locus genotypes.
   #
-  i_genotypes = genotype_count(person, locus, i, start, finish)
-  multi_genotype = construct_multigenotypes(person, locus, start, finish,
-                                            i_genotypes, i)
+  i_genotypes = genotype_count(person, locus, i, startlocus, finishlocus)
+  multi_genotype = construct_multigenotypes(person, locus, startlocus,
+                                            finishlocus, i_genotypes, i)
   #
   # Construct the child's multiple locus gametes.
   #
   maternal = !person.male[i]
-  j_genotypes = genotype_count(person, locus, j, start, finish)
-  gamete = construct_gametes(person, locus, start, finish, j_genotypes, j,
-                             maternal)
+  j_genotypes = genotype_count(person, locus, j, startlocus, finishlocus)
+  gamete = construct_gametes(person, locus, startlocus, finishlocus,
+                             j_genotypes, j, maternal)
   #
   # Insert the transmission probabilities into the transmission array in the
   # correct reverse dictionary order.
@@ -268,26 +271,26 @@ function construct_transmission!(transmission::Function, person::Person,
   for l = 1:j_genotypes
     for k = 1:i_genotypes
       m = m + 1
-      array[m] = transmission(person::Person, locus::Locus, gamete[:, l],
-        multi_genotype[:, :, k], par, keyword, start, finish, i, j)
-      if array[m] < 0.0
-        throw(ArgumentError(
-          "Negative transmission computed "*
+      work_array[m] = transmission(person, locus, gamete[:, l],
+          multi_genotype[:, :, k], par, person_frame, keyword,
+          startlocus, finishlocus, i, j)
+      if work_array[m] < 0.0
+        throw(ArgumentError("Negative transmission computed "*
           "from parent $person.name[i] to child $person.name[j].\n \n"))
       end
     end
   end
-  return array
+  return work_array
 end # function construct_transmission!
 
 """
 Count i's possible multilocus genotypes between loci start and finish.
 """
-function genotype_count(person::Person, locus::Locus, i::Int, start::Int,
-  finish::Int)
+function genotype_count(person::Person, locus::Locus, i::Int,
+  startlocus::Int, finishlocus::Int)
 
   count = 1
-  for l = start:finish
+  for l = startlocus:finishlocus
     loc = locus.model_locus[l]
     count = count * length(person.genotype[i, loc])
   end
@@ -308,9 +311,9 @@ end # function check_array_entries
 """
 Carry out a pure add operation.
 """
-function pure_add_operation(loglikelihood::Float64, array::Vector{Float64})
+function pure_add_operation(loglikelihood::Float64, work_array::Vector{Float64})
 
-  array_sum = sum(array)
+  array_sum = sum(work_array)
   if array_sum <= 0.0
     zero_likelihood = true
   else
@@ -321,20 +324,20 @@ function pure_add_operation(loglikelihood::Float64, array::Vector{Float64})
 end # function pure_add_operation
 
 """
-Multiply array1 times array2 and sum on the pivot index if required.
-Inserts the result in array3 and rescales to avoid underflows and overflows.
-?? Can this be recoded to call a LAPACK routine??
+Multiply work_array1 times work_array2 and sum on the pivot index if required.
+Insert the result in work_array3 and rescale to avoid underflows and overflows.
+?? Can this be recoded to call a LAPACK routine ??
 """
-function multiply_add_operation!(array1::Vector{Float64},
-  array2::Vector{Float64}, array3::Vector{Float64},
+function multiply_add_operation!(work_array1::Vector{Float64},
+  work_array2::Vector{Float64}, work_array3::Vector{Float64},
   extent::Vector{Int}, increment1::Vector{Int}, increment2::Vector{Int},
-  rank::Int, pivot_range::Int, stride1::Int, stride2::Int,
+  rankarray::Int, pivot_range::Int, stride1::Int, stride2::Int,
   loglikelihood::Float64)
 
-  address = ones(Int, rank)
+  address = ones(Int, rankarray)
   #
-  # Initialize the positions in the multiplicand arrays and the reverse
-  # dictionary address in the product array.
+  # Initialize the positions in the multiplicand arrays
+  # and the reverse dictionary address in the product array.
   #
   position1 = 1
   position2 = 1
@@ -342,26 +345,26 @@ function multiply_add_operation!(array1::Vector{Float64},
   #
   # Compute the product array entry by entry.
   #
-  for i = 1:length(array3)
-    a = array1[position1] * array2[position2]
+  for i = 1:length(work_array3)
+    a = work_array1[position1] * work_array2[position2]
     #
     # Sum on the pivot index whenever pivot_range > 0.
     #
     for j = 1:pivot_range
       position1 = position1 + stride1
       position2 = position2 + stride2
-      a = a + array1[position1] * array2[position2]
+      a = a + work_array1[position1] * work_array2[position2]
     end
     #
     # Save the result and keep a running maximum.
     #
-    array3[i] = a
+    work_array3[i] = a
     big = max(big, a)
     #
-    # Update the address in the product array and the positions in the
-    # multiplicand arrays.
+    # Update the address in the product array
+    # and the positions in the multiplicand arrays.
     #
-    for j = 1:rank
+    for j = 1:rankarray
       if address[j] < extent[j]
         address[j] = address[j] + 1
         position1 = position1 + increment1[j]
@@ -381,9 +384,9 @@ function multiply_add_operation!(array1::Vector{Float64},
   else
     zero_likelihood = false
     loglikelihood = loglikelihood + log(big)
-    array3 = array3 / big
+    work_array3 = work_array3 / big
   end
-  return (loglikelihood, zero_likelihood, array3)
+  return (loglikelihood, zero_likelihood, work_array3)
 end # function multiply_add_operation!
 
 """
@@ -391,7 +394,7 @@ Create the multi-locus genotypes for person i from the single locus genotypes.
 Only model loci between positions start and finish are considered.
 """
 function construct_multigenotypes(person::Person, locus::Locus,
-  start::Int, finish::Int, genotypes::Int, i::Int)
+  startlocus::Int, finishlocus::Int, genotypes::Int, i::Int)
 
   multi_genotype = zeros(Int, 2, locus.model_loci, genotypes)
   #
@@ -401,7 +404,7 @@ function construct_multigenotypes(person::Person, locus::Locus,
   #
   copies = 1
   increment = 1
-  for l = start:finish
+  for l = startlocus:finishlocus
     loc = locus.model_locus[l]
     increment = increment * length(person.genotype[i, loc])
     initial_position = 1
@@ -429,7 +432,7 @@ from the single locus genotypes.
 Only model loci between positions start and finish are considered.
 """
 function construct_gametes(person::Person, locus::Locus,
-  start::Int, finish::Int, genotypes::Int, i::Int, maternal::Bool)
+  startlocus::Int, finishlocus::Int, genotypes::Int, i::Int, maternal::Bool)
 
   gamete = zeros(Int, locus.model_loci, genotypes)
   #
@@ -439,7 +442,7 @@ function construct_gametes(person::Person, locus::Locus,
   #
   copies = 1
   increment = 1
-  for l = start:finish
+  for l = startlocus:finishlocus
     loc = locus.model_locus[l]
     increment = increment * length(person.genotype[i, loc])
     initial_position = 1
@@ -463,4 +466,3 @@ function construct_gametes(person::Person, locus::Locus,
   end
   return gamete
 end # function construct_gametes
-

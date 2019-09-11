@@ -11,7 +11,7 @@ MendelBase includes all the base functions of [OpenMendel](https://openmendel.gi
 
 Within Julia, use the package manager to install MendelBase:
 
-    pkg> add https://github.com/OpenMendel/MendelBase.jl.git
+    pkg> add https://github.com/OpenMendel/MendelBase.jl
 
 This package supports Julia v1.0+
 

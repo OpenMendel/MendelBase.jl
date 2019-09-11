@@ -12,17 +12,18 @@
 
 mutable struct Instruction
   instructions :: Int
-  start :: Vector{Int}
-  finish :: Vector{Int}
+  instructstart :: Vector{Int}
+  instructfinish :: Vector{Int}
   operation :: Vector{Int}
   site :: Vector{Int}
-  rank :: Vector{Int}
+  rankarray :: Vector{Int}
   space :: Vector{Int}
   extra :: Array{Vector{Int}, 1}
-end # Instruction
+end # mutable struct Instruction
 
 export Instruction
-export allele_consolidation, genotype_elimination!, orchestrate_likelihood
+export allele_consolidation, genotype_elimination!
+export orchestrate_likelihood, model_recombination_fractions
 
 penetrance_and_prior_array = 1
 transmission_array         = 2
@@ -33,7 +34,6 @@ quit_processing_pedigree   = 6
 
 export penetrance_and_prior_array, transmission_array, pure_add
 export multiply_and_add, pure_multiply, quit_processing_pedigree
-export model_recombination_fractions
 
 """
 Orchestrate allele lumping, genotype consolidation,
@@ -53,12 +53,22 @@ function orchestrate_likelihood(pedigree::Pedigree, person::Person,
   #
   # Define the frequency of the lumped allele at each model locus.
   #
+##
+#   for i = 1:person.people
+#     for l = 1:locus.loci
+#       println(person.name[i],"  ",locus.name[l],"  ",person.genotype[i, l])
+#     end
+#   end
   if lump_alleles
     lumped_frequency = zeros(pedigrees, populations, model_loci)
     for l = 1:model_loci
       loc = locus.model_locus[l]
-      lumped_frequency[:, :, l] =
-        allele_consolidation(pedigree, person, locus, loc)
+##
+      if loc != locus.mutable_locus
+##println(" Allele lumping at locus = ",locus.name[loc])
+        lumped_frequency[:, :, l] =
+          allele_consolidation(pedigree, person, locus, loc)
+      end
     end
   else
     lumped_frequency = zeros(0, 0, 0)
@@ -69,7 +79,11 @@ function orchestrate_likelihood(pedigree::Pedigree, person::Person,
   if eliminate_genotypes
     for l = 1:model_loci
       loc = locus.model_locus[l]
-      genotype_elimination!(pedigree, person, nuclear_family, locus, loc)
+##
+      if loc != locus.mutable_locus
+##println(" Genotype elimination at locus = ",locus.name[loc]) 
+        genotype_elimination!(pedigree, person, nuclear_family, locus, loc)
+      end
     end
   end
   #
@@ -89,7 +103,7 @@ function orchestrate_likelihood(pedigree::Pedigree, person::Person,
   instruction_finish = zeros(Int, pedigrees)
   operation = zeros(Int, bound)
   site = zeros(Int, bound)
-  rank = zeros(Int, bound)
+  rankarray = zeros(Int, bound)
   space = zeros(Int, bound)
   extra = Array{Array{Int, 1}}(undef, bound)
   for i = 1:bound
@@ -100,12 +114,12 @@ function orchestrate_likelihood(pedigree::Pedigree, person::Person,
   #
   instructions = prepare_elston_stewart(pedigree, person, locus,
     elston_stewart_count, instruction_start, instruction_finish, operation,
-    site, rank, space, extra, bound, product_mode, complexity_threshold)
+    site, rankarray, space, extra, bound, product_mode, complexity_threshold)
   #
   # Return the instructions for the Elston-Stewart algorithm.
   #
   instruction = Instruction(instructions, instruction_start, 
-    instruction_finish, operation, site, rank, space, extra)
+    instruction_finish, operation, site, rankarray, space, extra)
   locus.lumped_frequency = lumped_frequency
   return (instruction, elston_stewart_count)
 end  # function orchestrate_likelihood
@@ -137,7 +151,7 @@ function allele_consolidation(pedigree::Pedigree, person::Person,
   #
   for ped = 1:pedigrees
     observed = BitSet()
-    for i = pedigree.start[ped]:pedigree.twin_finish[ped]
+    for i = pedigree.pedstart[ped]:pedigree.twin_finish[ped]
       if xlinked && person.male[i]
         if length(person.genotype[i, loc]) < alleles
           for (gm, gp) in person.genotype[i, loc]
@@ -169,7 +183,7 @@ function allele_consolidation(pedigree::Pedigree, person::Person,
     # Construct a new genotype set for each person, replacing
     # each unobserved allele by the lumped allele.
     #
-    for i = pedigree.start[ped]:pedigree.twin_finish[ped]
+    for i = pedigree.pedstart[ped]:pedigree.twin_finish[ped]
       new_genotype_set = Set{Tuple{Int, Int}}()
       for (gm, gp) in person.genotype[i, loc]
         if in(gm, observed)
@@ -335,7 +349,7 @@ Specify the steps of the Elston-Stewart algorithm for each pedigree.
 function prepare_elston_stewart(pedigree::Pedigree, person::Person,
   locus::Locus, elston_stewart_count::Vector{Float64},
   instruction_start::Vector{Int}, instruction_finish::Vector{Int},
-  operation::Vector{Int}, site::Vector{Int}, rank::Vector{Int},
+  operation::Vector{Int}, site::Vector{Int}, rankarray::Vector{Int},
   space::Vector{Int}, extra::Vector{Vector{Int}}, bound::Int,
   product_mode::Bool, complexity_threshold::Float64)
 
@@ -354,8 +368,8 @@ function prepare_elston_stewart(pedigree::Pedigree, person::Person,
   # Create the instructions pedigree by pedigree.
   #
   for ped = 1:pedigrees
-    ped_start = pedigree.start[ped]
-    ped_finish = pedigree.finish[ped]
+    ped_start = pedigree.pedstart[ped]
+    ped_finish = pedigree.pedfinish[ped]
     ped_size = ped_finish - ped_start + 1
     pedigree_product_mode = product_mode
     #
@@ -393,7 +407,7 @@ function prepare_elston_stewart(pedigree::Pedigree, person::Person,
     # various arrays encountered in likelihood evaluation.
     #
     if lowest_cost_sum <= complexity_threshold
-      (arrays, index_set) = create_index_set(pedigree, person, locus,
+      (work_arrays, index_set) = create_index_set(pedigree, person, locus,
         nodes, ped, pedigree_product_mode)
       #
       # Prepare the instructions for the Elston-Stewart algorithm.
@@ -402,7 +416,7 @@ function prepare_elston_stewart(pedigree::Pedigree, person::Person,
       elston_stewart_count[ped] = 0.0
       instructions = prepare_instructions(pedigree, person, locus,
         elston_stewart_count, index_set, weight, permutation, extra,
-        operation, rank, space, site, arrays, instructions, nodes,
+        operation, rankarray, space, site, work_arrays, instructions, nodes,
         bound, ped, pedigree_product_mode)
       instruction_finish[ped] = instructions
     #
@@ -426,8 +440,8 @@ function adjacency_graph(pedigree::Pedigree, person::Person, locus::Locus,
   homozygotes::Matrix{Int}, pedigree_product_mode::Bool, ped::Int,
   model_loci::Int, free_recombination::Bool)
 
-  ped_start = pedigree.start[ped]
-  ped_finish = pedigree.finish[ped]
+  ped_start = pedigree.pedstart[ped]
+  ped_finish = pedigree.pedfinish[ped]
   ped_size = ped_finish - ped_start + 1
   offset = ped_start - 1
   #
@@ -617,8 +631,8 @@ function create_index_set(pedigree::Pedigree, person::Person,
   #
   model_loci = locus.model_loci
   free_recombination = locus.free_recombination
-  ped_start = pedigree.start[ped]
-  ped_finish = pedigree.finish[ped]
+  ped_start = pedigree.pedstart[ped]
+  ped_finish = pedigree.pedfinish[ped]
   offset = ped_start - 1
   index_set = empties(6 * nodes)
   n = 0
@@ -723,12 +737,12 @@ Prepare the instructions for performing the Elston-Stewart algorithm.
 function prepare_instructions(pedigree::Pedigree, person::Person, locus::Locus,
   elston_stewart_count::Vector{Float64}, index_set::Vector{BitSet}, 
   weight::Vector{Int}, permutation::Vector{Int}, extra::Vector{Vector{Int}},
-  operation::Vector{Int}, rank::Vector{Int}, space::Vector{Int},
-  site::Vector{Int}, arrays::Int, instructions::Int, nodes::Int, bound::Int,
-  ped::Int, pedigree_product_mode::Bool)
+  operation::Vector{Int}, rankarray::Vector{Int}, space::Vector{Int},
+  site::Vector{Int}, work_arrays::Int, instructions::Int, nodes::Int,
+  bound::Int, ped::Int, pedigree_product_mode::Bool)
 
   model_loci = locus.model_loci
-  ped_start = pedigree.start[ped]
+  ped_start = pedigree.pedstart[ped]
   offset = ped_start - 1
   #
   # Let n be the index of the current instruction. Prepare a set
@@ -741,7 +755,7 @@ function prepare_instructions(pedigree::Pedigree, person::Person, locus::Locus,
   #
   # Give the instructions for creating the initial arrays.
   #
-  for i = 1:arrays
+  for i = 1:work_arrays
     n = n + 1
     if i <= nodes
       operation[n] = penetrance_and_prior_array
@@ -785,12 +799,12 @@ function prepare_instructions(pedigree::Pedigree, person::Person, locus::Locus,
     # Load the site, the rank, and the size of the current array.
     #
     site[n] = i
-    rank[n] = length(index_set[i])
+    rankarray[n] = length(index_set[i])
     space[n] = product_weights(index_set[i], weight)
   end
   #
-  # Give the instructions for creating and destroying arrays in computing the
-  # likelihood of the current pedigree.
+  # Give the instructions for creating and destroying arrays in computing
+  # the likelihood of the current pedigree.
   #
   for node = 1:nodes
     i = permutation[node]
@@ -800,7 +814,7 @@ function prepare_instructions(pedigree::Pedigree, person::Person, locus::Locus,
     #
     for iteration = 1:100000
       involved = BitSet()
-      for k = 1:arrays
+      for k = 1:work_arrays
         if active_array[k] && i in index_set[k]
           push!(involved, k)
         end
@@ -820,22 +834,22 @@ function prepare_instructions(pedigree::Pedigree, person::Person, locus::Locus,
         operation[n] = pure_add
         j = first(involved)
         site[n] = j
-        rank[n] = length(index_set[j])
+        rankarray[n] = length(index_set[j])
         space[n] = product_weights(index_set[j], weight)
         elston_stewart_count[ped] = elston_stewart_count[ped] + space[n]
         active_array[j] = false
         break
       #
-      # For a pure multiply or a multiply and add, choose a pair of arrays 
-      # to combine.
+      # For a pure multiply or a multiply and add,
+      # choose a pair of arrays to combine.
       #
       else
         best_1 = 1
         best_2 = 2
         pivot = i
         #
-        # For a pure multiply, find the best pair of arrays to multiply by a
-        # greedy algorithm.
+        # For a pure multiply, find the best pair of arrays
+        # to multiply by a greedy algorithm.
         #
         if length(involved) > 2
           pivot = 0
@@ -855,8 +869,8 @@ function prepare_instructions(pedigree::Pedigree, person::Person, locus::Locus,
           end
         end
         #
-        # Form the union of the index sets corresponding to the only or best
-        # pair of arrays.
+        # Form the union of the index sets corresponding to
+        # the only or best pair of arrays.
         #
         j = select_set_element(involved, best_1)
         k = select_set_element(involved, best_2)
@@ -865,7 +879,7 @@ function prepare_instructions(pedigree::Pedigree, person::Person, locus::Locus,
         # Combine nodes and insert the instructions for a pure multiply or
         # a multiply and add.
         #
-        (rank[n], extra[n]) = combine_nodes(index_set[j], index_set[k],
+        (rankarray[n], extra[n]) = combine_nodes(index_set[j], index_set[k],
           union_set, weight, j, k, n, pivot)
         #
         # Delete node i in a multiply and add. Also record the current 
@@ -885,10 +899,10 @@ function prepare_instructions(pedigree::Pedigree, person::Person, locus::Locus,
         # Activate the array created and determine its location and space 
         # requirement.
         #
-        arrays = arrays + 1
-        index_set[arrays] = deepcopy(union_set)
-        active_array[arrays] = true
-        site[n] = arrays
+        work_arrays = work_arrays + 1
+        index_set[work_arrays] = deepcopy(union_set)
+        active_array[work_arrays] = true
+        site[n] = work_arrays
         #
         # Deactivate the two arrays destroyed.
         #
@@ -1019,7 +1033,7 @@ function combine_nodes(a::BitSet, b::BitSet, a_union_b::BitSet,
   #
   # Insert the rank of the product array into the current instruction.
   #
-  rank = union_block_position
+  rankarray = union_block_position
   a_blocks = a_block_position
   b_blocks = b_block_position
   #
@@ -1027,7 +1041,7 @@ function combine_nodes(a::BitSet, b::BitSet, a_union_b::BitSet,
   # locations of the multiplicand arrays. Also load the pivot range, which
   # determines whether a pure multiply or a multiply and add is performed.
   #
-  extra = zeros(Int, 5 + 3 * rank)
+  extra = zeros(Int, 5 + 3 * rankarray)
   extra[1] = a_location
   extra[2] = b_location
   if pivot_block_position == 0
@@ -1044,7 +1058,7 @@ function combine_nodes(a::BitSet, b::BitSet, a_union_b::BitSet,
   b_block_position = 1
   a_prod = 1
   b_prod = 1
-  for union_block_position = 1:rank
+  for union_block_position = 1:rankarray
     if union_block_position == pivot_block_position
       a_stride = a_prod
       b_stride = b_prod
@@ -1080,10 +1094,10 @@ function combine_nodes(a::BitSet, b::BitSet, a_union_b::BitSet,
   #
   # Load the extents and increments into the current instruction.
   #
-  true_rank = rank
-  if pivot_block_position != 0; true_rank = rank - 1; end
+  true_rank = rankarray
+  if pivot_block_position != 0; true_rank = rankarray - 1; end
   j = 5
-  for i = 1:rank
+  for i = 1:rankarray
     if i != pivot_block_position
       j = j + 1
       extra[j] = extent[i]
@@ -1091,8 +1105,8 @@ function combine_nodes(a::BitSet, b::BitSet, a_union_b::BitSet,
       extra[j + 2 * true_rank] = b_increment[i]
     end
   end
-  rank = true_rank
-  return (rank, extra)
+  rankarray = true_rank
+  return (rankarray, extra)
 end # function combine_nodes
 
 """
@@ -1126,4 +1140,3 @@ function model_recombination_fractions(locus::Locus,
   end
   return theta
 end # function model_recombination_fractions
-

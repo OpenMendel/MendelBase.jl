@@ -100,7 +100,10 @@ function set_keyword_defaults!(keyword::Dict{AbstractString, Any})
   keyword["locus_file"] = ""
   keyword["lump_alleles"] = false
   keyword["male"] = Set{Any}(["male", "m", 'm', "1", '1', 1])
-  keyword["missing_value"] = "NA"
+  keyword["missing_value"] = Set{AbstractString}(["NA"])
+  keyword["mutation"] = "" # a vector of tuples:
+   # example: mutation = [("rh","+","-",1e-6,1e-5), ("abo","a","o",1e-7,1e-7)]
+   # Vector{Tuple{AbstractString, AbstractString, AbstractString, Real, Real}}()
   keyword["new_pedigree_file"] = ""
   keyword["ordered_allele_separator"] = "|" # first character is used in output
   keyword["output_file"] = "Mendel_Output.txt"
@@ -108,15 +111,16 @@ function set_keyword_defaults!(keyword::Dict{AbstractString, Any})
   keyword["phenotype_file"] = ""
   keyword["plink_field_separator"] = ' '
   keyword["plink_input_basename"] = ""
-  keyword["plink_missing_value"] = "NA"
+  keyword["plink_missing_value"] = Set{AbstractString}(["NA"])
   keyword["plink_output_basename"] = ""
   keyword["populations"] = Set{AbstractString}()
   keyword["product_mode"] = true
+##  keyword["shortblank_ismissingdata"] = true
   keyword["snpdata_file"] = ""
   keyword["snpdefinition_file"] = ""
   keyword["trait"] = ""
   keyword["output_field_separator"] = keyword["field_separator"]
-  keyword["output_missing_value"] = keyword["missing_value"]
+  keyword["output_missing_value"] = "NA"
 ## For imputation:
 ##  keyword["gradient_provided"] = false
 ##  keyword["reference_haplotypes"] = 0
@@ -137,7 +141,7 @@ function set_keyword_defaults!(keyword::Dict{AbstractString, Any})
   keyword["keywords_naming_general_sets"] =
     Set{AbstractString}(["female", "male"])
   keyword["keywords_naming_string_sets"] =
-    Set{AbstractString}(["populations"])
+    Set{AbstractString}(["populations", "missing_value", "plink_missing_value"])
 
   return keyword
 end # function set_keyword_defaults!
@@ -243,21 +247,6 @@ function revise_keywords!(keyword::Dict{AbstractString, Any},
     push!(set_of_modified_keywords, "affected_designator")
   end
   #
-  # If the missing value keywords were modified, make sure they are strings.
-  #
-  if "missing_value" in set_of_modified_keywords
-    keyword["missing_value"] = string(keyword["missing_value"])
-    if !("output_missing_value" in set_of_modified_keywords)
-      keyword["output_missing_value"] = keyword["missing_value"]
-    end
-  end
-  if "plink_missing_value" in set_of_modified_keywords
-    keyword["plink_missing_value"] = string(keyword["plink_missing_value"])
-  end
-  if "output_missing_value" in set_of_modified_keywords
-    keyword["output_missing_value"] = string(keyword["output_missing_value"])
-  end
-  #
   # If the user has modified any of the keywords that take a set of strings
   # as its value, then form the set from the list of comma separated strings
   # that should have been assigned as the keyword's value.
@@ -302,6 +291,36 @@ function revise_keywords!(keyword::Dict{AbstractString, Any},
       push!(new_set, element_item)
     end
     keyword[keyword_string] = new_set
+  end
+  #
+  # Make sure the field separator is not a missing value string.
+  #
+  if in(string(keyword["field_separator"]),
+        keyword["missing_value"])
+    throw(ArgumentError("Input field_separator is missing_value string.\n \n"))
+  end
+  if in(string(keyword["plink_field_separator"]),
+        keyword["plink_missing_value"])
+    throw(ArgumentError("Plink field_separator is missing_value string.\n \n"))
+  end
+  if string(keyword["output_field_separator"]) ==
+        keyword["output_missing_value"]
+    throw(ArgumentError("Output field_separator is missing_value string.\n \n"))
+  end
+  #
+  # If the output missing value keyword was modified, make sure it is a string.
+  #
+##   if "missing_value" in set_of_modified_keywords
+##     keyword["missing_value"] = string(keyword["missing_value"])
+##     if !("output_missing_value" in set_of_modified_keywords)
+##       keyword["output_missing_value"] = keyword["missing_value"]
+##     end
+##   end
+##   if "plink_missing_value" in set_of_modified_keywords
+##     keyword["plink_missing_value"] = string(keyword["plink_missing_value"])
+##   end
+  if "output_missing_value" in set_of_modified_keywords
+    keyword["output_missing_value"] = string(keyword["output_missing_value"])
   end
   #
   # A named analysis option used to be mandatory.
