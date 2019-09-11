@@ -1,7 +1,7 @@
 name = "MendelBase"
 desc = "Base functions; part of the OpenMendel project."
 uuid = "4fb2d825-8540-5432-a3a3-b9ff66df2cb5"
-version = "0.8.0"
+version = "0.8.1"
 license = "MIT"
 authors = ["Kenneth Lange <klange@ucla.edu>", "Eric Sobel <esobel@ucla.edu>", "OpenMendel Team"]
 keywords = ["OpenMendel", "genetic utilities", "Elston-Stewart"]
