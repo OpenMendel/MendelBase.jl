@@ -211,11 +211,22 @@ function read_plink_fam_file(plink_fam_file::AbstractString,
 ###  fam_dframe[!, :Trait] =
 ###    convert(Array{Union{Float64, Missings.Missing}, 1}, fam_dframe[:Trait])
   #
-  # Use the Julia-internal value "missing" for the data labeled with
-  # the Plink-format missing value symbols.
-  # Note: the trait value zero is not changed to missing!
+  # Lightly edit the read data values.
   #
   for i = 1:size(fam_dframe, 1)
+    #
+    # Strip any leading or trailing whitespace from the read strings.
+    #
+    fam_dframe[i, :Pedigree] = strip(fam_dframe[i, :Pedigree])
+    fam_dframe[i, :Person] = strip(fam_dframe[i, :Person])
+    fam_dframe[i, :Father] = strip(fam_dframe[i, :Father])
+    fam_dframe[i, :Mother] = strip(fam_dframe[i, :Mother])
+    fam_dframe[i, :Sex] = strip(fam_dframe[i, :Sex])
+    #
+    # Use the Julia-internal value "missing" for the data labeled with
+    # the Plink-format missing value symbols.
+    # Note: the trait value zero is not changed to missing!
+    #
     if fam_dframe[i, :Father] == "0"
       fam_dframe[i, :Father] = missing
     end
@@ -293,6 +304,18 @@ function read_plink_bim_file(plink_bim_file::AbstractString,
 ###    convert(Array{Union{String, Missings.Missing}, 1}, bim_dframe[:Allele1])
 ###  bim_dframe[!, :Allele2] =
 ###    convert(Array{Union{String, Missings.Missing}, 1}, bim_dframe[:Allele2])
+#  #
+#  # Lightly edit the read data values.
+#  #
+#  for i = 1:size(bim_dframe, 1)
+#    #
+#    # Strip any leading or trailing whitespace from the read strings.
+#    #
+#    bim_dframe[i, :Chromosome] = strip(bim_dframe[i, :Chromosome])
+#    bim_dframe[i, :SNP] = strip(bim_dframe[i, :SNP])
+#    bim_dframe[i, :Allele1] = strip(bim_dframe[i, :Allele1])
+#    bim_dframe[i, :Allele2] = strip(bim_dframe[i, :Allele2])
+#  end
   return bim_dframe
 end # function read_plink_bim_file
 
@@ -783,7 +806,8 @@ function locus_information(locus_frame::DataFrame, person_frame::DataFrame,
   columns = length(locus_field)
   locus_name = unique(locus_frame[:, :Locus])
   #
-  # Strip spaces from the loci, allele, and chromosome names.
+  # Strip leading and trailing whitespace from
+  # the loci, allele, and chromosome names.
   # Also check for missing values.
   #
   for i = 1:rows
@@ -1155,7 +1179,7 @@ Some fields are supplied later.
 """
 function pedigree_information(person_frame::DataFrame)
   #
-  # Strip any leading or trailing spaces from the field names.
+  # Strip any leading or trailing whitespace from the field names.
   #
   for i in names(person_frame)
     rename!(person_frame, i => Symbol(strip(string(i))))
@@ -1315,6 +1339,7 @@ function pedigree_information(person_frame::DataFrame)
   #
   # If pedigree names are included in the input data,
   # check whether each individual has a pedigree listed.
+  # Strip leading and trailing whitespace from pedigree values.
   #
   if :Pedigree in person_field
     for i = 1:people
@@ -1402,6 +1427,7 @@ function person_information(locus_frame::DataFrame, person_frame::DataFrame,
   end
   #
   # Create array of person names, which is not allowed to have missing values.
+  # Strip leading and trailing whitespace from person names.
   #
   person_name = blanks(people)
   if :Person in person_field
@@ -1464,6 +1490,7 @@ function person_information(locus_frame::DataFrame, person_frame::DataFrame,
   male = falses(people)
   #
   # Create array of parental names, which is allowed to have missing values.
+  # Strip leading and trailing whitespace from parental names.
   #
   parents_present = :Mother in person_field && :Father in person_field
   mother_string = blanks(people)
@@ -1501,7 +1528,7 @@ function person_information(locus_frame::DataFrame, person_frame::DataFrame,
   #
   # Initialize the data structure containing twin status.
   # Check if the twin field is present in the input data.
-  # If so, strip spaces from their values.
+  # If so, strip leading and trailing whitespace from twin value.
   #
   next_twin = zeros(Int, people)
   primary_twin = zeros(Int, people)
@@ -1662,6 +1689,7 @@ function person_information(locus_frame::DataFrame, person_frame::DataFrame,
   end
   #
   # Record who is male.
+  # Strip leading and trailing whitespace from sex value.
   # NOTE: if a sex value is missing, that individual is recorded as female.
   #
   male_symbols = keyword["male"]
@@ -1751,6 +1779,7 @@ function person_information(locus_frame::DataFrame, person_frame::DataFrame,
   end
   #
   # Record the disease status of each person.
+  # Strip leading and trailing whitespace from status value.
   #
   disease_field = keyword["trait"]
   if disease_field != ""
