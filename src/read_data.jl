@@ -18,6 +18,8 @@
 
 export count_homozygotes!, read_external_data_files
 
+names_symb(df::DataFrame) = map(Symbol, names(df))
+
 """
 This function organizes reading in the data from external files.
 All names of data files are stored in the relevant keyword values.
@@ -337,13 +339,13 @@ function snp_information(snp_definition_frame::DataFrame, person::Person,
   #
   # Strip any leading or trailing spaces from the field names.
   #
-  for i in names(snp_definition_frame)
+  for i in names_symb(snp_definition_frame)
     rename!(snp_definition_frame, i => Symbol(strip(string(i))))
   end
   #
   # Fill-in the snp name array, which is not allowed to have missing values.
   #
-  column_names = names(snp_definition_frame)
+  column_names = names_symb(snp_definition_frame)
   if !(:SNP in column_names)
     if :Locus in column_names
       rename!(snp_definition_frame, :Locus => :SNP)
@@ -358,7 +360,7 @@ function snp_information(snp_definition_frame::DataFrame, person::Person,
     elseif :snp in column_names
       rename!(snp_definition_frame, :snp => :SNP)
     end
-    column_names = names(snp_definition_frame)
+    column_names = names_symb(snp_definition_frame)
   end
 
   snp_name = blanks(snps)
@@ -402,7 +404,7 @@ function snp_information(snp_definition_frame::DataFrame, person::Person,
     elseif :chr in column_names
       rename!(snp_definition_frame, :chr => :SNP)
     end
-    column_names = names(snp_definition_frame)
+    column_names = names_symb(snp_definition_frame)
   end
 
   chromosome = blanks(snps)
@@ -458,7 +460,7 @@ function snp_information(snp_definition_frame::DataFrame, person::Person,
     elseif :cm in column_names
       rename!(snp_definition_frame, :cm => :CentiMorgans)
     end
-    column_names = names(snp_definition_frame)
+    column_names = names_symb(snp_definition_frame)
   end
 
   centimorgans = zeros(Float64, snps)
@@ -503,7 +505,7 @@ function snp_information(snp_definition_frame::DataFrame, person::Person,
     elseif :bp in column_names
       rename!(snp_definition_frame, :bp => :Basepairs)
     end
-    column_names = names(snp_definition_frame)
+    column_names = names_symb(snp_definition_frame)
   end
 
   basepairs = zeros(Int, snps)
@@ -534,13 +536,13 @@ function snp_information(snp_definition_frame::DataFrame, person::Person,
     if :allele1 in column_names
       rename!(snp_definition_frame, :allele1 => :Allele1)
     end
-    column_names = names(snp_definition_frame)
+    column_names = names_symb(snp_definition_frame)
   end
   if !(:Allele2 in column_names)
     if :allele2 in column_names
       rename!(snp_definition_frame, :allele2 => :Allele2)
     end
-    column_names = names(snp_definition_frame)
+    column_names = names_symb(snp_definition_frame)
   end
 
   allele1 = blanks(snps)
@@ -633,13 +635,13 @@ function locus_information(locus_frame::DataFrame, person_frame::DataFrame,
   #
   # Strip any leading or trailing spaces from the field names.
   #
-  for i in names(locus_frame)
+  for i in names_symb(locus_frame)
     rename!(locus_frame, i => Symbol(strip(string(i))))
   end
   #
   # Fix some possible field naming issues.
   #
-  locus_field = names(locus_frame)
+  locus_field = names_symb(locus_frame)
   if !(:FemaleMorgans in locus_field)
     if :FemaleMorgan in locus_field
       rename!(locus_frame, :FemaleMorgan => :FemaleMorgans)
@@ -734,7 +736,7 @@ function locus_information(locus_frame::DataFrame, person_frame::DataFrame,
   # Check that certain fields are in the locus_frame
   # and of the proper type.
   #
-  locus_field = names(locus_frame)
+  locus_field = names_symb(locus_frame)
   if !(:Locus in locus_field)
     throw(ArgumentError(
       "The locus file must have a Locus or SNP field.\n \n"))
@@ -896,8 +898,8 @@ function locus_information(locus_frame::DataFrame, person_frame::DataFrame,
   elseif :FemaleMorgans in locus_field
     sort!(locus_frame, (:Chromosome, :FemaleMorgans))
   end
-  locus_field = names(locus_frame)
-  person_field = names(person_frame)
+  locus_field = names_symb(locus_frame)
+  person_field = names_symb(person_frame)
   #
   # Get the loci names in the new sorted order.
   #
@@ -1137,7 +1139,7 @@ function locus_information(locus_frame::DataFrame, person_frame::DataFrame,
   #
   # Allocate space for the frequency of the lumped allele.
   #
-  person_field = names(person_frame)
+  person_field = names_symb(person_frame)
   if :Person in person_field
     people = length(person_frame[:, :Person])
   else
@@ -1181,13 +1183,13 @@ function pedigree_information(person_frame::DataFrame)
   #
   # Strip any leading or trailing whitespace from the field names.
   #
-  for i in names(person_frame)
+  for i in names_symb(person_frame)
     rename!(person_frame, i => Symbol(strip(string(i))))
   end
   #
   # Check dataframe field names.
   #
-  person_field = names(person_frame)
+  person_field = names_symb(person_frame)
   if !(:Pedigree in person_field)
     if :Pedigrees in person_field
       rename!(person_frame, :Pedigrees => :Pedigree)
@@ -1204,7 +1206,7 @@ function pedigree_information(person_frame::DataFrame)
     elseif :peds in person_field
       rename!(person_frame, :peds => :Pedigree)
     end
-    person_field = names(person_frame)
+    person_field = names_symb(person_frame)
   end
   if !(:Person in person_field)
     if :Persons in person_field
@@ -1222,7 +1224,7 @@ function pedigree_information(person_frame::DataFrame)
     elseif :pers in person_field
       rename!(person_frame, :pers => :Person)
     end
-    person_field = names(person_frame)
+    person_field = names_symb(person_frame)
   end
   if !(:Individual in person_field)
     if :Individuals in person_field
@@ -1240,7 +1242,7 @@ function pedigree_information(person_frame::DataFrame)
     elseif :inds in person_field
       rename!(person_frame, :inds => :Individual)
     end
-    person_field = names(person_frame)
+    person_field = names_symb(person_frame)
   end
   if !(:Father in person_field)
     if :Fathers in person_field
@@ -1258,7 +1260,7 @@ function pedigree_information(person_frame::DataFrame)
     elseif :dads in person_field
       rename!(person_frame, :dads => :Father)
     end
-    person_field = names(person_frame)
+    person_field = names_symb(person_frame)
   end
   if !(:Mother in person_field)
     if :Mothers in person_field
@@ -1276,7 +1278,7 @@ function pedigree_information(person_frame::DataFrame)
     elseif :moms in person_field
       rename!(person_frame, :moms => :Mother)
     end
-    person_field = names(person_frame)
+    person_field = names_symb(person_frame)
   end
   if !(:Sex in person_field)
     if :Sexes in person_field
@@ -1290,7 +1292,7 @@ function pedigree_information(person_frame::DataFrame)
     elseif :sexs in person_field
       rename!(person_frame, :sexs => :Sex)
     end
-    person_field = names(person_frame)
+    person_field = names_symb(person_frame)
   end
   if !(:Twin in person_field)
     if :Twins in person_field
@@ -1300,7 +1302,7 @@ function pedigree_information(person_frame::DataFrame)
     elseif :twins in person_field
       rename!(person_frame, :twins => :Twin)
     end
-    person_field = names(person_frame)
+    person_field = names_symb(person_frame)
   end
   #
   # Count the number of individuals in the pedigree data.
@@ -1419,7 +1421,7 @@ function person_information(locus_frame::DataFrame, person_frame::DataFrame,
   # (It has previously been checked that exactly one of :Person or :Individual
   # is in the pedigree dataframe.)
   #
-  person_field = names(person_frame)
+  person_field = names_symb(person_frame)
   if :Person in person_field
     people = length(person_frame[:, :Person])
   else
@@ -2576,7 +2578,7 @@ Check that ancestral populations are in both the person and locus frames.
 function check_populations(locus_frame::DataFrame, person_frame::DataFrame,
                            keyword::Dict{AbstractString, Any})
 
-  person_field = names(person_frame)
+  person_field = names_symb(person_frame)
   for pop in keyword["populations"]
     if Symbol(pop) in person_field
       continue
@@ -2585,7 +2587,7 @@ function check_populations(locus_frame::DataFrame, person_frame::DataFrame,
     end
   end
   if size(locus_frame, 2) > 0
-    locus_field = names(locus_frame)
+    locus_field = names_symb(locus_frame)
     for pop in keyword["populations"]
       if Symbol(pop) in locus_field
         continue
